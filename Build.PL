@@ -3,6 +3,10 @@ use Module::Build;
 Module::Build->new(
     module_name		=> "App::Jacana",
     license		=> "bsd",
+    requires            => {
+        "Moo"               => "0",
+        "Wx"                => "0",
+    },
     configure_requires	=> {
 	"Module::Build"	    => "0.38",
     },
