@@ -9,9 +9,19 @@ use MooX::MethodAttributes;
 
 with qw/ App::Jacana::HasApp MooX::Gtk2 /;
 
-has doc => is => "ro";
+has doc         => is => "ro";
 
-has widget => is => "lazy";
+has selected    => (
+    is      => "rw",
+    trigger => 1,
+);
+
+sub _trigger_selected {
+    my ($self, $new) = @_;
+    $self->widget->get_window->invalidate_rect(undef, 0);
+}
+
+has widget      => is => "lazy";
 
 sub _build_widget {
     my $d = Gtk2::DrawingArea->new;
@@ -46,13 +56,18 @@ sub _expose_event :Signal {
 sub _show_music {
     my ($self, $c, $music) = @_;
 
+    my $select = $self->selected;
+
     my $x = 4;
-    for my $item (@$music) {
+    for my $id (0..$#$music) {
+        my $item = $$music[$id];
         my $pos = $item->position(7);
 
         $c->save;
         $c->translate($x, 8 - $pos);
         $c->move_to(0, 0);
+        defined $select && $id == $select 
+            and $c->set_source_rgb(1, 0, 0);
         $item->draw($c);
         $x += $item->width($c) + 2;
         $c->restore;

@@ -9,6 +9,7 @@ our $VERSION = "0";
 use Moo;
 
 use App::Jacana::Document;
+use App::Jacana::MIDI;
 use App::Jacana::Resource;
 use App::Jacana::View;
 use App::Jacana::Window;
@@ -23,7 +24,8 @@ has document    => is => "lazy";
 sub _build_document {
     my ($self) = @_;
     my $doc = App::Jacana::Document->new;
-    $doc->parse_music("g'4 a'4 b'4 c''4");
+    $doc->parse_music("a'4 g'4 c''4 d''8 g''8 e''4 d''8 g''8 e''4 " .
+        "c''4 d''4 a'4 g'4");
     $doc;
 }
 
@@ -44,6 +46,9 @@ sub _build_window {
         view    => $self->view,
     );
 }
+
+has midi        => is => "lazy";
+sub _build_midi { App::Jacana::MIDI->new }
 
 sub start {
     my ($self) = @_;
