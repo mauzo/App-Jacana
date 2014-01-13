@@ -1,0 +1,9 @@
+#!/usr/bin/perl
+
+use 5.012;
+
+use Gtk2 "-init";
+use App::Jacana;
+
+my $A = App::Jacana->new;
+$A->start;

@@ -4,8 +4,9 @@ Module::Build->new(
     module_name		=> "App::Jacana",
     license		=> "bsd",
     requires            => {
+        "Font::FreeType"    => "0",
         "Moo"               => "0",
-        "Wx"                => "0",
+        "Gtk2"              => "0",
     },
     configure_requires	=> {
 	"Module::Build"	    => "0.38",
@@ -13,6 +14,7 @@ Module::Build->new(
     build_requires	=> {
 	"Test::More"	    => "0.96",
     },
+    share_dir           => "share",
     meta_merge		=> {
 	resources   => {
 	    repository => "http://github.com/mauzo/App-Jacana",

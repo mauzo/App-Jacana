@@ -1,29 +1,54 @@
 package App::Jacana;
 
+use utf8;
 use 5.012;
 use warnings;
 
 our $VERSION = "0";
 
 use Moo;
-use Wx;
 
-use App::Jacana::Frame;
+use App::Jacana::Document;
+use App::Jacana::Resource;
+use App::Jacana::View;
+use App::Jacana::Window;
 
-extends "Wx::App";
-
-has frame   => (
-    is      => "lazy",
+has resource => (
+    is      => "ro",
+    lazy    => 1,
+    default => sub { App::Jacana::Resource->new(dist => "App-Jacana") },
 );
 
-sub _build_frame {
-    App::Jacana::Frame->new("Jacana");
+has document    => is => "lazy";
+sub _build_document {
+    my ($self) = @_;
+    my $doc = App::Jacana::Document->new;
+    $doc->parse_music("g'4 a'4 b'4 c''4");
+    $doc;
 }
 
-sub OnInit {
+has view        => is => "lazy";
+sub _build_view {
     my ($self) = @_;
-    $self->frame->Show(1);
-    return 1;
+    App::Jacana::View->new(
+        app => $self,
+        doc => $self->document,
+    );
+}
+
+has window      => is => "lazy";
+sub _build_window {
+    my ($self) = @_;
+    App::Jacana::Window->new(
+        app     => $self,
+        view    => $self->view,
+    );
+}
+
+sub start {
+    my ($self) = @_;
+    $self->window->show;
+    Gtk2->main;
 }
 
 1;
