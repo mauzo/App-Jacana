@@ -7,8 +7,9 @@ use Moo;
 
 use Audio::FluidSynth;
 use Glib;
-use Time::HiRes qw/usleep/;
-use List::Util  qw/min/;
+use Time::HiRes     qw/usleep/;
+use List::Util      qw/min/;
+use Scalar::Util    qw/refaddr/;
 
 has settings    => is => "lazy";
 has synth       => is => "lazy";
@@ -56,27 +57,30 @@ sub play_note {
 }
 
 sub play_music {
-    my ($self, $music, $after) = @_;
+    my ($self, $music, $start_note, $stop_note, $finish) = @_;
 
     my $syn     = $self->synth;
     my @notes   =
-        map [$_->pitch, 64/$_->length],
+        map [$_->pitch, 64/$_->length, refaddr $_],
         @$music;
 
     $syn->noteon(0, $notes[0][0], 85);
+    $start_note->($notes[0][2]);
 
     Glib::Timeout->add(32, sub {
         $notes[0][1]-- > 1 and return 1;
+
         $syn->noteoff(0, $notes[0][0]);
+        $stop_note->($notes[0][2]);
+
         shift @notes;
-        if (@notes) {
-            $after->(0);
-        }
-        else {
-            $after->(1);
+        unless (@notes) {
+            $finish->();
             return 0;
         }
+
         $syn->noteon(0, $notes[0][0], 85);
+        $start_note->($notes[0][2]);
         return 1;
     });
 }

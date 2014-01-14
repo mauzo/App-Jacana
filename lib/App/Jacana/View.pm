@@ -7,9 +7,16 @@ use Gtk2;
 use Moo;
 use MooX::MethodAttributes;
 
+use Hash::Util::FieldHash ();
+
 with qw/ App::Jacana::HasApp MooX::Gtk2 /;
 
 has doc         => is => "ro";
+
+sub _refresh {
+    my ($self) = @_;
+    $self->widget->get_window->invalidate_rect(undef, 0);
+}
 
 has selected    => (
     is      => "rw",
@@ -18,7 +25,34 @@ has selected    => (
 
 sub _trigger_selected {
     my ($self, $new) = @_;
-    $self->widget->get_window->invalidate_rect(undef, 0);
+    $self->_refresh;
+}
+
+has _playing    => (
+    is      => "ro",
+    lazy    => 1,
+    default => sub {
+        Hash::Util::FieldHash::idhash my %h;
+        \%h;
+    },
+);
+
+sub playing_on {
+    my ($self, $note) = @_;
+    $self->_playing->{$note} = 1;
+    $self->_refresh;
+}
+
+sub playing_off {
+    my ($self, $note) = @_;
+    delete $self->_playing->{$note};
+    $self->_refresh;
+}
+
+sub clear_playing {
+    my ($self) = @_;
+    undef %{$self->_playing};
+    $self->_refresh;
 }
 
 has widget      => is => "lazy";
@@ -56,7 +90,7 @@ sub _expose_event :Signal {
 sub _show_music {
     my ($self, $c, $music) = @_;
 
-    my $select = $self->selected;
+    my $playing = $self->_playing;
 
     my $x = 4;
     for my $id (0..$#$music) {
@@ -66,7 +100,7 @@ sub _show_music {
         $c->save;
         $c->translate($x, 8 - $pos);
         $c->move_to(0, 0);
-        defined $select && $id == $select 
+        $playing->{$item}
             and $c->set_source_rgb(1, 0, 0);
         $item->draw($c);
         $x += $item->width($c) + 2;

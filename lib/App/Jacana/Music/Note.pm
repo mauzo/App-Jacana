@@ -31,7 +31,6 @@ sub width {
     my ($self, $cr) = @_;
 
     my $ext = $cr->text_extents($self->_notehead);
-    warn "WIDTH [$$ext{x_advance}]";
     $ext->{x_advance};
 }
 
@@ -46,10 +45,7 @@ sub pitch {
 
     my $oct = $self->octave + 4;
     my $off = $Pitch{$self->note} + $Accid{$self->accid};
-    my $pit = $oct * 12 + $off;
-    warn sprintf "PITCH [%u] FOR [%d%s%s]", $pit,
-        $self->octave, $self->note, $self->accid;
-    return $pit;
+    $oct * 12 + $off;
 }
 
 sub duration { $_[0]->length }

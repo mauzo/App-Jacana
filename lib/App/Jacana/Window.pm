@@ -52,20 +52,17 @@ sub _play_music {
     my ($self) = @_;
     my $app     = $self->app;
     my $view    = $self->view;
-    my $sel     = 0;
 
     $self->set_status("playing");
-    $view->selected($sel++);
 
-    $app->midi->play_music($app->document->music, sub {
-        if ($_[0]) {
-            $view->selected(undef);
+    $app->midi->play_music(
+        $app->document->music,
+        sub { $view->playing_on($_[0]) },
+        sub { $view->playing_off($_[0]) },
+        sub { 
             $self->set_status("");
-        }
-        else {
-            $view->selected($sel++);
-        }
-    });
+        },
+    );
 }
 
 # status bar
