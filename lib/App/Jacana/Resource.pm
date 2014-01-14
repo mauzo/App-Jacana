@@ -26,7 +26,7 @@ has feta_font   => is => "lazy";
 
 sub _build_feta_font {
     my ($self) = @_;
-    my $font = $self->_find("feta.ttf");
+    my $font = $self->_find("emmentaler-26.otf");
     $self->_freetype->face($font);
 }
 

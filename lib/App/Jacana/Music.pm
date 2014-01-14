@@ -2,6 +2,12 @@ package App::Jacana::Music;
 
 use Moo;
 
+use overload
+    q/""/   => "to_lily",
+    fallback => 1;    
+
+sub to_lily;
+
 # position($centre)
 # $centre is the note on the centre staff line, where middle C is 0.
 # Returns the staff line on which this should be drawn.

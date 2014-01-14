@@ -72,7 +72,7 @@ sub _expose_event :Signal {
     $c->set_antialias("gray");
     $c->scale(5, 5);
 
-    for (2..6) {
+    for (4..8) {
         $c->move_to(0, 2*$_);
         $c->line_to($wd, 2*$_);
     }
@@ -91,6 +91,7 @@ sub _show_music {
     my ($self, $c, $music) = @_;
 
     my $playing = $self->_playing;
+    my $ftfont  = $self->_resource("feta_font");
 
     my $x = 4;
     for my $id (0..$#$music) {
@@ -98,12 +99,12 @@ sub _show_music {
         my $pos = $item->position(7);
 
         $c->save;
-        $c->translate($x, 8 - $pos);
+        $c->translate($x, 12 - $pos);
         $c->move_to(0, 0);
         $playing->{$item}
             and $c->set_source_rgb(1, 0, 0);
-        $item->draw($c);
-        $x += $item->width($c) + 2;
+        $item->draw($c, $ftfont, $pos);
+        $x += $item->width($c, $ftfont) + 2;
         $c->restore;
     }
 }

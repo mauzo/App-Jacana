@@ -26,7 +26,7 @@ sub _build_frame {
     my $w = Gtk2::Window->new("toplevel");
 
     $w->set_title("Jacana");
-    $w->set_default_size(400, 300);
+    $w->set_default_size(800, 600);
 
     my $ui = $self->uimgr;
     $ui->ensure_update;

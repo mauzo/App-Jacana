@@ -25,7 +25,10 @@ sub _build_document {
     my ($self) = @_;
     my $doc = App::Jacana::Document->new;
     $doc->parse_music("a'4 g'4 c''4 d''8 g''8 e''4 d''8 g''8 e''4 " .
-        "c''4 d''4 a'4 g'4");
+        "c''4 d''4 a'4 g'4 " .
+        "c''4 c''8 c''16 c''32 c''64 c''128 " .
+        "a'4 a'8 a'16 a'32 a'64 a'128 "
+    );
     $doc;
 }
 
