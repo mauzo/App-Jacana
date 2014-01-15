@@ -22,6 +22,8 @@ has resource => (
     default => sub { App::Jacana::Resource->new(dist => "App-Jacana") },
 );
 
+sub yield { Gtk2::Gdk::Window->process_all_updates }
+
 has document    => is => "lazy";
 sub _build_document {
     my ($self) = @_;

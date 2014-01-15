@@ -192,10 +192,13 @@ sub _play_music :Action(MidiPlay) {
     my $app     = $self->app;
     my $view    = $self->view;
 
-    $self->set_status("playing");
+    $self->set_status("Initialising MIDI…");
     $action->set_sensitive(0);
+    $app->yield;
+    my $midi = $app->midi;
 
-    $app->midi->play_music(
+    $self->set_status("Playing");
+    $midi->play_music(
         $app->document->music,
         $view->weak_method("playing_on"),
         $view->weak_method("playing_off"),
