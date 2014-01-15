@@ -14,6 +14,8 @@ use App::Jacana::Resource;
 use App::Jacana::View;
 use App::Jacana::Window;
 
+use File::ShareDir ();
+
 has resource => (
     is      => "ro",
     lazy    => 1,
@@ -52,6 +54,13 @@ sub _build_window {
 
 has midi        => is => "lazy";
 sub _build_midi { App::Jacana::MIDI->new }
+
+sub BUILD {
+    my ($self) = @_;
+    my $it      = Gtk2::IconTheme->get_default;
+    my $icons   = File::ShareDir::dist_dir("App-Jacana") . "/icons";
+    $it->prepend_search_path($icons);
+}
 
 sub start {
     my ($self) = @_;

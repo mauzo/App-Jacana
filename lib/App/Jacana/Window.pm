@@ -34,13 +34,14 @@ sub _build_frame {
 
     my $vb = Gtk2::VBox->new;
     $vb->pack_start($_, 0, 0, 0) for $ui->get_toplevels("menubar");
-    for ($ui->get_toplevels("toolbar")) {
-        $_->set_style("icons");
-        $_->set_icon_size("small-toolbar");
-        $vb->pack_start($_, 0, 0, 0);
+    for my $tb ($ui->get_toplevels("toolbar")) {
+        $tb->set_style("icons");
+        $tb->set_icon_size("small-toolbar");
+        $vb->pack_start($tb, 0, 0, 0);
     }
 
     $vb->pack_start($self->view->widget, 1, 1, 0);
+
     $vb->pack_start($self->status_bar, 0, 0, 0);
 
     $w->add($vb);
@@ -60,7 +61,8 @@ sub _destroy :Signal(frame::destroy) {
 # actions
 
 my @NoteLengths = qw/
-    semibreve minim crotchet quaver semiquaver
+    breve semibreve minim crotchet quaver semiquaver d.s.quaver
+    h.d.s.quaver q.h.d.s.quaver
 /;
 
 sub _build_actions {
@@ -101,15 +103,24 @@ YAML
         },
         "A".."G"
     ]);
-    $grp->add_radio_actions([   
-        map +{
-            name        => "Note\u$NoteLengths[$_]",
-            label       => "\u$NoteLengths[$_]",
-            accelerator => $_ + 1,
-            value       => (1<<$_),
-        },
-        0..$#NoteLengths
-    ], 4, undef);
+
+    # Build the RadioActions by hand, because the GtkPerl implementation
+    # of ActionGroup->add_radio_actions doesn't set icon_name properly.
+    my $radio;
+    for (0..8) {
+        my $l = $NoteLengths[$_];
+        my $act = Gtk2::RadioAction->new(
+            name    => "Note\u$l",
+            label   => "\u$l",
+            value   => ($_ ? (1<<($_-1)) : 0),
+        );
+        $act->set_icon_name("icon-note-$_");
+        if ($radio) { $act->set_group($radio) }
+        else        { $radio = $act }
+        $grp->add_action_with_accel($act, 
+            $_ > 0 && $_ < 6 ? $_ : "");
+    }
+    $radio->set_current_value(4);
 
     $grp;
 }
@@ -138,10 +149,10 @@ XML
     $notemenu .= "<separator/>";
     $notemenu .= join "",
         map qq!<menuitem action="Note\u$NoteLengths[$_]"/>!,
-        0..$#NoteLengths;
+        0..8;
     my $notetools = join "",
         map qq!<toolitem action="Note\u$NoteLengths[$_]"/>!,
-        0..$#NoteLengths;
+        1..5;
     $ui->add_ui_from_string(<<XML);
         <menubar>
             <menu action="NoteMenu">
