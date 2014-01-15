@@ -47,7 +47,13 @@ sub _build_frame {
     $w;
 }
 
-sub _quit : Signal(frame::destroy) Action(Quit) { 
+sub _quit :Action(Quit) { 
+    my ($self) = @_;
+    $self->frame->destroy;
+}
+
+sub _destroy :Signal(frame::destroy) {
+    my ($self) = @_;
     Gtk2->main_quit;
 }
 
@@ -85,15 +91,13 @@ YAML
         map +{ name => $_, %{$$actions{$_}} },
         keys %$actions
     ]);
-    my $_; # closure
     $grp->add_actions([
         map +{
             name        => "Insert$_",
             label       => "Insert $_",
             accelerator => $_,
-            callback    => sub {
-                $self->_insert_note($_) 
-            },
+            callback    => $self->weak_method(
+                "_insert_note", [], [$_]),
         },
         "A".."G"
     ]);
@@ -182,12 +186,12 @@ sub _play_music :Action(MidiPlay) {
 
     $app->midi->play_music(
         $app->document->music,
-        sub { $view->playing_on($_[0]) },
-        sub { $view->playing_off($_[0]) },
-        sub { 
-            $self->set_status("");
+        $view->weak_method("playing_on"),
+        $view->weak_method("playing_off"),
+        $self->weak_closure(sub {
+            $_[0] and $_[0]->set_status("");
             $action->set_sensitive(1);
-        },
+        }),
     );
 }
 

@@ -11,10 +11,13 @@ use Time::HiRes     qw/usleep/;
 use List::Util      qw/min/;
 use Scalar::Util    qw/refaddr/;
 
+with qw/ MooX::WeakClosure /;
+
 has settings    => is => "lazy";
 has synth       => is => "lazy";
 has driver      => is => "lazy";
 has sfont       => is => "lazy";
+has active      => is => "ro", default => sub { [] };
 
 sub _build_settings {
     my $s = Audio::FluidSynth::Settings->new;
@@ -37,11 +40,27 @@ sub _build_sfont {
     $s->synth->sfload("fluidr3gm.sf2", 0);
 }
 
+sub add_active {
+    my ($s, $id) = @_;
+    push @{$s->active}, $id;
+}
+
+sub remove_active {
+    my ($s, $id) = @_;
+    my $ac = $s->active;
+    @$ac = grep $_ != $id, @$ac;
+}
+
 sub BUILD {
     my ($self) = @_;
 
     $self->synth->program_select(0, $self->sfont, 0, 68);
     $self->driver;
+}
+
+sub DESTROY {
+    my ($self) = @_;
+    Glib::Source->remove($_) for @{$self->active};
 }
 
 sub play_note {
@@ -67,7 +86,10 @@ sub play_music {
     $syn->noteon(0, $notes[0][0], 85);
     $start_note->($notes[0][2]);
 
-    Glib::Timeout->add(32, sub {
+    my $id;
+    $id = Glib::Timeout->add(32, $self->weak_closure(sub {
+        my ($self) = @_;
+
         $notes[0][1]-- > 1 and return 1;
 
         $syn->noteoff(0, $notes[0][0]);
@@ -76,13 +98,15 @@ sub play_music {
         shift @notes;
         unless (@notes) {
             $finish->();
+            $self and $self->remove_active($id);
             return 0;
         }
 
         $syn->noteon(0, $notes[0][0], 85);
         $start_note->($notes[0][2]);
         return 1;
-    });
+    }));
+    $self->add_active($id);
 }
 
 1;
