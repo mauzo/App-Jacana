@@ -18,6 +18,8 @@ sub push_music {
     push @{$self->music}, @music;
 }
 
+sub pop_music { pop @{$_[0]->music} }
+
 sub parse_music {
     my ($self, $text) = @_;
 

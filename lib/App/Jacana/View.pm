@@ -13,7 +13,7 @@ with qw/ App::Jacana::HasApp MooX::Gtk2 /;
 
 has doc         => is => "ro";
 
-sub _refresh {
+sub refresh {
     my ($self) = @_;
     $self->widget->get_window->invalidate_rect(undef, 0);
 }
@@ -25,7 +25,7 @@ has selected    => (
 
 sub _trigger_selected {
     my ($self, $new) = @_;
-    $self->_refresh;
+    $self->refresh;
 }
 
 has _playing    => (
@@ -40,19 +40,19 @@ has _playing    => (
 sub playing_on {
     my ($self, $note) = @_;
     $self->_playing->{$note} = 1;
-    $self->_refresh;
+    $self->refresh;
 }
 
 sub playing_off {
     my ($self, $note) = @_;
     delete $self->_playing->{$note};
-    $self->_refresh;
+    $self->refresh;
 }
 
 sub clear_playing {
     my ($self) = @_;
     undef %{$self->_playing};
-    $self->_refresh;
+    $self->refresh;
 }
 
 has widget      => is => "lazy";
