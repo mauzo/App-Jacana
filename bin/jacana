@@ -2,6 +2,12 @@
 
 use 5.012;
 
+BEGIN { 
+    $INC{"strictures.pm"} = $0;
+    $strictures::VERSION = "1.005002";
+    *strictures::import = sub {};
+}
+
 use Gtk2 "-init";
 use App::Jacana;
 
