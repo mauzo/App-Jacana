@@ -4,9 +4,13 @@ Module::Build->new(
     module_name		=> "App::Jacana",
     license		=> "bsd",
     requires            => {
+        "Audio::FluidSynth" => "0",
+        "Cairo"             => "0",
         "Font::FreeType"    => "0",
-        "Moo"               => "0",
         "Gtk2"              => "0",
+        "Moo"               => "0",
+        "MooX::Gtk2"        => "0",
+        "YAML::XS"          => "0",
     },
     configure_requires	=> {
 	"Module::Build"	    => "0.38",
