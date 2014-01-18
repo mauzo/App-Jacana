@@ -6,13 +6,11 @@ use warnings;
 use Moo;
 
 extends "App::Jacana::Music";
+with    qw/ App::Jacana::HasPitch /;
 
-has note    => is => "rw";
 has accid   => (is => "rw", default => "");
-has octave  => is => "rw";
 has length  => is => "rw";
 
-my %Staff = qw/c 1 d 2 e 3 f 4 g 5 a 6 b 7/;
 my %Pitch = qw/c 0 d 2 e 4 f 5 g 7 a 9 b 11/;
 my %Accid = ("", 0, qw/is 1 es -1 isis 2 eses -2/);
 
@@ -25,15 +23,6 @@ sub to_lily {
         $oct < 0 ? "," x -$oct  :
         "");
     "$note$acc$oct$len";
-}
-
-# staff position
-sub position {
-    my ($self, $centre) = @_;
-
-    my $oct = $self->octave - 1;
-    my $off = $Staff{$self->note};
-    $oct * 7 + $off - $centre;
 }
 
 sub _glyph {

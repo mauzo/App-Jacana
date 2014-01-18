@@ -77,6 +77,22 @@ sub _build_actions {
 
         NoteMenu:
             label:          Note
+
+        Left:
+            accelerator:    h
+        Right:
+            accelerator:    l
+        Home:
+            accelerator:    asciicircum
+        End:
+            accelerator:    dollar
+
+        OctaveUp:
+            label:          Octave up
+            accelerator:    apostrophe
+        OctaveDown:
+            label:          Octave down
+            accelerator:    comma
         Backspace:
             label:          Backspace
             accelerator:    BackSpace
@@ -134,7 +150,10 @@ sub _build_uimgr {
             <menu action="FileMenu">
                 <menuitem action="Quit"/>
             </menu>
-            <menu action="NoteMenu"/>
+            <menu action="NoteMenu">
+                <menuitem action="OctaveUp"/>
+                <menuitem action="OctaveDown"/>
+            </menu>
             <menu action="MidiMenu">
                 <menuitem action="MidiPlay"/>
             </menu>
@@ -142,7 +161,12 @@ sub _build_uimgr {
         <toolbar>
             <toolitem action="MidiPlay"/>
         </toolbar>
+
         <accelerator action="Backspace"/>
+        <accelerator action="Left"/>
+        <accelerator action="Right"/>
+        <accelerator action="Home"/>
+        <accelerator action="End"/>
 XML
     my $notemenu = join "",
         map qq!<menuitem action="Insert$_"/>!,
@@ -169,23 +193,57 @@ XML
     $ui;
 }
 
+sub _move_left :Action(Left)    { $_[0]->view->cursor->move_left  }
+sub _move_right :Action(Right)  { $_[0]->view->cursor->move_right }
+
+sub _move_to_end :Action(End) {
+    my ($self) = @_;
+    my $view = $self->view;
+    my $music = $view->doc->music;
+    $view->cursor->position(@$music ? $$music[-1] : undef);
+}
+
+sub _move_to_start :Action(Home) {
+    my ($self) = @_;
+    $self->view->cursor->position(undef);
+}
+
+sub _octave_up :Action(OctaveUp) {
+    my ($self) = @_;
+    $self->view->cursor->octave_up;
+}
+
+sub _octave_down :Action(OctaveDown) {
+    my ($self) = @_;
+    $self->view->cursor->octave_down;
+}
+
 sub _insert_note {
     my ($self, $note) = @_;
+
+    my $cursor = $self->view->cursor;
+    $note = lc $note;
+    my $octave = $cursor->nearest($note);
     my $length = $self->actions->get_action("NoteCrotchet")
         ->get_current_value;
-    $self->app->document->push_music(
-        App::Jacana::Music::Note->new(
-            note    => lc($note),
-            octave  => 1,
-            length  => $length,
-        ));
-    $self->view->refresh;
+
+    my $new = App::Jacana::Music::Note->new(
+        note    => $note,
+        octave  => $octave,
+        length  => $length,
+    );
+    $self->app->document->push_music($new);
+    $cursor->position($new);
 }
 
 sub _backspace :Action(Backspace) {
     my ($self) = @_;
-    $self->app->document->pop_music;
-    $self->view->refresh;
+    no warnings "uninitialized";
+    my $doc = $self->app->document;
+    my $note = $doc->pop_music;
+    my $view = $self->view;
+    $view->cursor->position == $note and $self->_move_to_end;
+    $view->refresh;
 }
 
 sub _play_music :Action(MidiPlay) {

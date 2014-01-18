@@ -8,11 +8,23 @@ use Moo;
 use MooX::MethodAttributes
     use     => [qw/ MooX::Gtk2 /];
 
+use App::Jacana::Cursor;
+
 use Hash::Util::FieldHash ();
 
 with qw/ App::Jacana::HasApp MooX::Gtk2 /;
 
 has doc         => is => "ro";
+has cursor      => is => "lazy";
+
+sub _build_cursor { 
+    App::Jacana::Cursor->new(
+        view        => $_[0],
+        position    => undef,
+        note        => "c", 
+        octave      => 1
+    );
+}
 
 sub refresh {
     my ($self) = @_;
@@ -73,12 +85,7 @@ sub _expose_event :Signal {
     $c->set_antialias("gray");
     $c->scale(5, 5);
 
-    for (4..8) {
-        $c->move_to(0, 2*$_);
-        $c->line_to($wd, 2*$_);
-    }
-    $c->set_line_width(0.1);
-    $c->stroke;
+    $self->_show_stave($c, $wd);
 
     my $fn = $self->_resource("cairo_feta_font");
     $c->save;
@@ -88,26 +95,70 @@ sub _expose_event :Signal {
     $c->restore;
 }
 
+sub _show_stave {
+    my ($self, $c, $wd) = @_;
+
+    $c->save;
+        for (4..8) {
+            $c->move_to(0, 2*$_);
+            $c->line_to($wd, 2*$_);
+        }
+        $c->set_line_width(0.1);
+        $c->stroke;
+    $c->restore;
+}
+
 sub _show_music {
     my ($self, $c, $music) = @_;
+    no warnings "uninitialized";
 
     my $playing = $self->_playing;
     my $ftfont  = $self->_resource("feta_font");
 
+    my $cursor  = $self->cursor;
+    my $curpos  = $cursor->position;
+
     my $x = 4;
+    $curpos or $self->_show_cursor($c, $x);
+
     for my $id (0..$#$music) {
         my $item = $$music[$id];
-        my $pos = $item->position(7);
 
+        my $pos = $item->staff_line(7);
         $c->save;
-        $c->translate($x, 12 - $pos);
-        $c->move_to(0, 0);
-        $playing->{$item}
-            and $c->set_source_rgb(1, 0, 0);
-        $item->draw($c, $ftfont, $pos);
-        $x += $item->width($c, $ftfont) + 2;
+            $c->translate($x, 12 - $pos);
+            $c->move_to(0, 0);
+            $playing->{$item}
+                and $c->set_source_rgb(1, 0, 0);
+            $item->draw($c, $ftfont, $pos);
+            $x += $item->width($c, $ftfont) + 2;
         $c->restore;
+
+        $item == $curpos and $self->_show_cursor($c, $x - 1);
     }
+
+    return $x;
 }
 
+sub _show_cursor {
+    my ($self, $c, $x) = @_;
+
+    $c->save;
+        $c->move_to($x, 7);
+        $c->line_to($x, 17);
+        $c->set_line_width(0.7);
+        $c->set_line_cap("round");
+        $c->stroke;
+    $c->restore;
+
+    my $curs = 12 - $self->cursor->staff_line(7);
+    $c->save;
+        $c->set_source_rgb(0, 0, 1);
+        $c->move_to($x - 1.5, $curs);
+        $c->line_to($x + 1.5, $curs);
+        $c->set_line_width(1);
+        $c->set_line_cap("butt");
+        $c->stroke;
+    $c->restore;
+}
 1;
