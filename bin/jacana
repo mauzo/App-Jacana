@@ -1,11 +1,16 @@
 #!/usr/bin/perl
 
 use 5.012;
+use strict;
+use warnings;
 
 BEGIN { 
     $INC{"strictures.pm"} = $0;
     $strictures::VERSION = "1.005002";
-    *strictures::import = sub {};
+    *strictures::import = sub {
+        strict->import;
+        warnings->import;
+    };
 }
 
 use Gtk2 "-init";
