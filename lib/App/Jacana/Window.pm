@@ -233,6 +233,7 @@ sub _insert_note {
         length  => $length,
     );
     $cursor->position($cursor->position->insert($new));
+    $self->app->midi->play_note($new->pitch, 8);
 }
 
 sub _backspace :Action(Backspace) {

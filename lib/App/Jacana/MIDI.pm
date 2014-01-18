@@ -65,14 +65,14 @@ sub DESTROY {
 
 sub play_note {
     my ($self, $pitch, $length) = @_;
-    my $time = 2000000/$length;
+    my $time = (16*128)/$length;
     my $syn = $self->synth;
 
-    warn "PLAYING [$pitch] FOR [$time]";
-
-    $syn->noteon(0, $pitch, 85);
-    usleep $time;
-    $syn->noteoff(0, $pitch);
+    eval { $syn->noteon(0, $pitch, 85) };
+    Glib::Timeout->add($time, sub {
+        eval { $syn->noteoff(0, $pitch) };
+        return 0;
+    });
 }
 
 sub _note_on {
@@ -93,7 +93,7 @@ sub play_music {
     $start_note->($note);
 
     my $id;
-    $id = Glib::Timeout->add(32, $self->weak_closure(sub {
+    $id = Glib::Timeout->add(16, $self->weak_closure(sub {
         my ($self) = @_;
 
         $when-- > 1 and return 1;

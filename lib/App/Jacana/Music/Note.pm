@@ -149,6 +149,6 @@ sub pitch {
     _clamp $oct * 12 + $off, 0, 127;
 }
 
-sub duration { 64 / $_[0]->length }
+sub duration { 128 / $_[0]->length }
 
 1;
