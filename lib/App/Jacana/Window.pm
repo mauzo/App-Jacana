@@ -5,7 +5,8 @@ use 5.012;
 use warnings;
 
 use Moo;
-use MooX::MethodAttributes;
+use MooX::MethodAttributes
+    use     => [qw/MooX::Gtk2/];
 
 use YAML::XS ();
 

@@ -5,7 +5,8 @@ use warnings;
 
 use Gtk2;
 use Moo;
-use MooX::MethodAttributes;
+use MooX::MethodAttributes
+    use     => [qw/ MooX::Gtk2 /];
 
 use Hash::Util::FieldHash ();
 
