@@ -6,29 +6,27 @@ use warnings;
 use Moo;
 
 use App::Jacana::Music::Note;
+use App::Jacana::Util::Types;
 
+# We always have a plain Music item at the head of the list. This is
+# invisible and inaudible, but it makes the list traversal easier.
 has music => (
     is      => "ro",
-    lazy    => 1,
-    default => sub { +[] },
+    isa     => Music,
+    default => sub { App::Jacana::Music->new },
 );
-
-sub push_music {
-    my ($self, @music) = @_;
-    push @{$self->music}, @music;
-}
-
-sub pop_music { pop @{$_[0]->music} }
 
 sub parse_music {
     my ($self, $text) = @_;
+
+    my $music = $self->music->prev;
 
     while ($text =~ s/^([a-g])([',]*)([0-9.]+)\s*//) {
         my ($note, $octave, $length) = ($1, $2, $3);
         $octave = $octave
             ? length($octave) * ($octave =~ /'/ ? 1 : -1)
             : 0;
-        $self->push_music(App::Jacana::Music::Note->new(
+        $music = $music->insert(App::Jacana::Music::Note->new(
             note    => $note,
             octave  => $octave,
             length  => $length,

@@ -52,15 +52,8 @@ sub _tail {
     return ($gly, $off);
 }
 
-sub width {
-    my ($self, $cr, $font) = @_;
-
-    my $ext = $cr->glyph_extents($self->_notehead($font));
-    $ext->{x_advance} + 1;
-}
-
 sub _draw_stem {
-    my ($self, $cr, $up, $wd) = @_;
+    my ($self, $c, $up, $wd) = @_;
 
     my ($x, $y1, $y2);
     if ($up) {
@@ -73,24 +66,24 @@ sub _draw_stem {
         $y1 = 0.5;
         $y2 = 5.5;
     }
-    $cr->move_to($x, $y1);
-    $cr->line_to($x, $y2);
-    $cr->stroke;
+    $c->move_to($x, $y1);
+    $c->line_to($x, $y2);
+    $c->stroke;
 
     return ($x + ($up ? 0.1 : 0), $y2);
 }
 
 sub _draw_tail {
-    my ($self, $cr, $tail, $x, $y) = @_;
+    my ($self, $c, $tail, $x, $y) = @_;
 
-    $cr->save;
-    $cr->translate($x, $y);
-    $cr->show_glyphs($tail);
-    $cr->restore;
+    $c->save;
+    $c->translate($x, $y);
+    $c->show_glyphs($tail);
+    $c->restore;
 }
 
 sub _draw_ledgers {
-    my ($self, $cr, $pos, $wd) = @_;
+    my ($self, $c, $pos, $wd) = @_;
 
     my $sgn = $pos > 0 ? 1 : -1;
     my $n   = int(abs($pos)/2) - 2;
@@ -98,35 +91,48 @@ sub _draw_ledgers {
 
     for (1..$n) {
         my $y = $sgn * (2 * $_ + $off);
-        $cr->move_to(0, $y);
-        $cr->line_to($wd, $y);
-        $cr->stroke;
+        $c->move_to(0, $y);
+        $c->line_to($wd, $y);
+        $c->stroke;
     }
 }
 
+sub _draw_head {
+    my ($self, $c, $font) = @_;
+
+    my $head    = $self->_notehead($font);
+    my $ext     = $c->glyph_extents($head);
+    my $wd      = $ext->{x_advance} + 1;
+
+    $c->save;
+        $c->translate(0.5, 0);
+        $c->show_glyphs($head);
+    $c->restore;
+
+    return $wd;
+}
+
 sub draw {
-    my ($self, $cr, $font, $pos) = @_;
+    my ($self, $c, $font, $pos) = @_;
 
-    $cr->set_line_width(0.4);
-    $cr->set_line_cap("round");
+    $c->set_line_width(0.4);
+    $c->set_line_cap("round");
 
-    $cr->save;
-    $cr->translate(0.5, 0);
-    $cr->show_glyphs($self->_notehead($font));
-    $cr->restore;
+    my $wd  = $self->_draw_head($c, $font);
 
     my $len = $self->length;
     my $up  = $pos < 0;
-    my $wd  = $self->width($cr, $font);
 
-    abs($pos) > 5   and $self->_draw_ledgers($cr, $pos, $wd);
+    abs($pos) > 5   and $self->_draw_ledgers($c, $pos, $wd);
     if ($len >= 2) {
-        my ($ex, $ey) = $self->_draw_stem($cr, $up, $wd);
+        my ($ex, $ey) = $self->_draw_stem($c, $up, $wd);
         if (my ($tail, $tlen) = $self->_tail($font, $up)) {
             $ey += ($up ? -1 : 1) * $tlen;
-            $self->_draw_tail($cr, $tail, $ex, $ey);
+            $self->_draw_tail($c, $tail, $ex, $ey);
         }
     }
+
+    return $wd;
 }
 
 sub _clamp {
@@ -143,6 +149,6 @@ sub pitch {
     _clamp $oct * 12 + $off, 0, 127;
 }
 
-sub duration { $_[0]->length }
+sub duration { 64 / $_[0]->length }
 
 1;

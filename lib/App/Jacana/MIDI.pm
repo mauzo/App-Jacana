@@ -75,35 +75,41 @@ sub play_note {
     $syn->noteoff(0, $pitch);
 }
 
+sub _note_on {
+    my ($self, $note) = @_;
+    eval { $self->synth->noteon(0, $note->pitch, 85) };
+    return $note->duration;
+}
+
+sub _note_off {
+    my ($self, $note) = @_;
+    eval { $self->synth->noteoff(0, $note->pitch) };
+}
+
 sub play_music {
-    my ($self, $music, $start_note, $stop_note, $finish) = @_;
+    my ($self, $note, $start_note, $stop_note, $finish) = @_;
 
-    my $syn     = $self->synth;
-    my @notes   =
-        map [$_->pitch, 64/$_->length, refaddr $_],
-        @$music;
-
-    eval { $syn->noteon(0, $notes[0][0], 85) };
-    $start_note->($notes[0][2]);
+    my $when = $self->_note_on($note);
+    $start_note->($note);
 
     my $id;
     $id = Glib::Timeout->add(32, $self->weak_closure(sub {
         my ($self) = @_;
 
-        $notes[0][1]-- > 1 and return 1;
+        $when-- > 1 and return 1;
 
-        eval { $syn->noteoff(0, $notes[0][0]) };
-        $stop_note->($notes[0][2]);
+        $self->_note_off($note);
+        $stop_note->($note);
 
-        shift @notes;
-        unless (@notes) {
+        if ($note->is_list_end) {
             $finish->();
             $self and $self->remove_active($id);
             return 0;
         }
 
-        eval { $syn->noteon(0, $notes[0][0], 85) };
-        $start_note->($notes[0][2]);
+        $note   = $note->next;
+        $when   = $self->_note_on($note);
+        $start_note->($note);
         return 1;
     }));
     $self->add_active($id);

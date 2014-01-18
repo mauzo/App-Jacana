@@ -18,6 +18,11 @@ sub staff_line {
 sub octave_up       { $_[0]->octave($_[0]->octave + 1) }
 sub octave_down     { $_[0]->octave($_[0]->octave - 1) }
 
-
+sub copy_pitch_from {
+    my ($self, $from) = @_;
+    $from->DOES(__PACKAGE__) or return;
+    $self->octave($from->octave);
+    $self->note($from->note);
+}
 
 1;

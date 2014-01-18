@@ -199,13 +199,13 @@ sub _move_right :Action(Right)  { $_[0]->view->cursor->move_right }
 sub _move_to_end :Action(End) {
     my ($self) = @_;
     my $view = $self->view;
-    my $music = $view->doc->music;
-    $view->cursor->position(@$music ? $$music[-1] : undef);
+    $view->cursor->position($view->doc->music->prev);
 }
 
 sub _move_to_start :Action(Home) {
     my ($self) = @_;
-    $self->view->cursor->position(undef);
+    my $view = $self->view;
+    $view->cursor->position($view->doc->music);
 }
 
 sub _octave_up :Action(OctaveUp) {
@@ -232,18 +232,14 @@ sub _insert_note {
         octave  => $octave,
         length  => $length,
     );
-    $self->app->document->push_music($new);
-    $cursor->position($new);
+    $cursor->position($cursor->position->insert($new));
 }
 
 sub _backspace :Action(Backspace) {
     my ($self) = @_;
     no warnings "uninitialized";
-    my $doc = $self->app->document;
-    my $note = $doc->pop_music;
-    my $view = $self->view;
-    $view->cursor->position == $note and $self->_move_to_end;
-    $view->refresh;
+    my $cursor  = $self->view->cursor;
+    $cursor->position($cursor->position->remove);
 }
 
 sub _play_music :Action(MidiPlay) {

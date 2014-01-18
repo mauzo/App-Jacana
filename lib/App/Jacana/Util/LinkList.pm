@@ -1,7 +1,11 @@
 package App::Jacana::Util::LinkList;
 
-use MooX::Types::MooseLike::Base qw/:all/;
+use 5.012;
+use warnings;
+
 use Scalar::Util    qw/ weaken isweak /;
+
+use App::Jacana::Util::Types;
 
 use Moo::Role;
 
@@ -9,19 +13,20 @@ with qw/ MooX::NoGlobalDestruction /;
 
 has next    => (
     is      => "rw", 
-    isa     => ConsumerOf[__PACKAGE__],
+    isa     => LinkList,
 );
 has prev    => (
     is      => "rw", 
-    isa     => ConsumerOf[__PACKAGE__],
+    isa     => LinkList,
     weak_ref => 1,
     default => sub { $_[0] },
 );
 
 # This has to manipulate the hash directly, because of the irritating
 # no-copy semantics of weakrefs.
-sub is_list_end { isweak $_[0]{next}  }
-sub mk_list_end { weaken $_[0]{next}  }
+sub is_list_end { isweak $_[0]{next} }
+# OK, so weaken is even more irritating than I thought
+sub mk_list_end { isweak $_[0]{next} or weaken $_[0]{next} }
 
 sub BUILD {}
 
@@ -76,6 +81,7 @@ sub insert {
 
 sub remove {
     my ($self, $upto) = @_;
+    $upto //= $self;
 
     my $prev    = $self->prev;
     my $next    = $upto->next;

@@ -1,14 +1,22 @@
 package App::Jacana::Cursor;
 
 use Moo;
+use App::Jacana::Util::Types;
 
 with    qw/ App::Jacana::HasPitch /;
 
 has view        => is => "ro", weak_ref => 1;
 has position    => (
     is      => "rw",
-    trigger => sub { $_[0]->view and $_[0]->view->refresh },
+    isa     => Music,
+    trigger => 1,
 );
+
+sub _trigger_position {
+    my ($self, $note) = @_;
+    $self->copy_pitch_from($note);
+    $self->view and $self->view->refresh;
+}
 
 after qw/ octave_up octave_down /,
     sub { $_[0]->view->refresh };
@@ -31,40 +39,18 @@ sub nearest {
     $oct;
 }
     
-sub _move_lr {
-    my ($self, $left) = @_;
-
-    my $dir     = $left ? "LEFT" : "RIGHT";
-    my $view    = $self->view;
-    my $pos     = $self->position;
-    my $notes   = $view->doc->music;
-
-    my $new;
-    if (defined $pos) {
-        my ($old) = grep($$notes[$_] == $pos, 0..$#$notes);
-        warn "FOUND CURSOR [$old]";
-        if ($left) {
-            $new = $old ? $$notes[$old - 1] : undef;
-        }
-        else {
-            $old == $#$notes and warn("CURSOR RIGHT AT END"), return;
-            $new = $$notes[$old + 1];
-        }
-    }
-    else {
-        if ($left)  { warn("CURSOR LEFT AT START"), return }
-        else        { $new = $$notes[0] }
-    }
-
-    warn "CURSOR $dir [$new]";
-    $self->position($new);
-    if ($new) {
-        $self->note($new->note);
-        $self->octave($new->octave);
-    }
+sub move_left   {
+    my ($self) = @_;
+    my $pos = $self->position;
+    $pos->is_list_start and return;
+    $self->position($pos->prev);
 }
 
-sub move_left   { $_[0]->_move_lr(1) }
-sub move_right  { $_[0]->_move_lr(0) }
+sub move_right  {
+    my ($self) = @_;
+    my $pos = $self->position;
+    $pos->is_list_end and return;
+    $self->position($pos->next);
+}
 
 1;

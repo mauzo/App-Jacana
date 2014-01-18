@@ -20,7 +20,7 @@ has cursor      => is => "lazy";
 sub _build_cursor { 
     App::Jacana::Cursor->new(
         view        => $_[0],
-        position    => undef,
+        position    => $_[0]->doc->music,
         note        => "c", 
         octave      => 1
     );
@@ -109,32 +109,30 @@ sub _show_stave {
 }
 
 sub _show_music {
-    my ($self, $c, $music) = @_;
+    my ($self, $c, $item) = @_;
     no warnings "uninitialized";
 
     my $playing = $self->_playing;
     my $ftfont  = $self->_resource("feta_font");
-
     my $cursor  = $self->cursor;
     my $curpos  = $cursor->position;
 
     my $x = 4;
-    $curpos or $self->_show_cursor($c, $x);
 
-    for my $id (0..$#$music) {
-        my $item = $$music[$id];
-
+    for (;;) {
         my $pos = $item->staff_line(7);
         $c->save;
             $c->translate($x, 12 - $pos);
             $c->move_to(0, 0);
             $playing->{$item}
                 and $c->set_source_rgb(1, 0, 0);
-            $item->draw($c, $ftfont, $pos);
-            $x += $item->width($c, $ftfont) + 2;
+            $x += $item->draw($c, $ftfont, $pos) + 2;
         $c->restore;
 
         $item == $curpos and $self->_show_cursor($c, $x - 1);
+
+        $item->is_list_end and last;
+        $item = $item->next;
     }
 
     return $x;
@@ -161,4 +159,5 @@ sub _show_cursor {
         $c->stroke;
     $c->restore;
 }
+
 1;
