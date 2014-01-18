@@ -2,10 +2,6 @@ package App::Jacana::Music;
 
 use Moo;
 
-use overload
-    q/""/   => "to_lily",
-    fallback => 1;    
-
 sub to_lily;
 
 # position($centre)
