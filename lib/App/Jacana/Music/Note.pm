@@ -140,12 +140,18 @@ sub draw {
     }
 }
 
+sub _clamp {
+    $_[0] < $_[1]   ? $_[1]
+    : $_[0] > $_[2] ? $_[2]
+    : $_[0]
+}
+
 sub pitch {
     my ($self) = @_;
 
     my $oct = $self->octave + 4;
     my $off = $Pitch{$self->note} + $Accid{$self->accid};
-    $oct * 12 + $off;
+    _clamp $oct * 12 + $off, 0, 127;
 }
 
 sub duration { $_[0]->length }

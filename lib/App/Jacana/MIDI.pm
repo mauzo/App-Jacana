@@ -83,7 +83,7 @@ sub play_music {
         map [$_->pitch, 64/$_->length, refaddr $_],
         @$music;
 
-    $syn->noteon(0, $notes[0][0], 85);
+    eval { $syn->noteon(0, $notes[0][0], 85) };
     $start_note->($notes[0][2]);
 
     my $id;
@@ -92,7 +92,7 @@ sub play_music {
 
         $notes[0][1]-- > 1 and return 1;
 
-        $syn->noteoff(0, $notes[0][0]);
+        eval { $syn->noteoff(0, $notes[0][0]) };
         $stop_note->($notes[0][2]);
 
         shift @notes;
@@ -102,7 +102,7 @@ sub play_music {
             return 0;
         }
 
-        $syn->noteon(0, $notes[0][0], 85);
+        eval { $syn->noteon(0, $notes[0][0], 85) };
         $start_note->($notes[0][2]);
         return 1;
     }));
