@@ -21,8 +21,8 @@ sub parse_music {
 
     my $music = $self->music->prev;
 
-    while ($text =~ s/^([a-g])([',]*)([0-9.]+)\s*//) {
-        my ($note, $octave, $length) = ($1, $2, $3);
+    while ($text =~ s/^([a-g])([',]*)([0-9]+)(\.*)\s*//) {
+        my ($note, $octave, $length, $dots) = ($1, $2, $3, $4);
         $octave = $octave
             ? length($octave) * ($octave =~ /'/ ? 1 : -1)
             : 0;
@@ -30,6 +30,7 @@ sub parse_music {
             note    => $note,
             octave  => $octave,
             length  => $length,
+            dots    => length $dots,
         ));
     }
 }

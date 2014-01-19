@@ -10,19 +10,21 @@ with    qw/ App::Jacana::HasPitch /;
 
 has accid   => (is => "rw", default => "");
 has length  => is => "rw";
+has dots    => is => "rw", default => 0;
 
 my %Pitch = qw/c 0 d 2 e 4 f 5 g 7 a 9 b 11/;
 my %Accid = ("", 0, qw/is 1 es -1 isis 2 eses -2/);
 
 sub to_lily {
     my ($self) = @_;
-    my ($note, $acc, $oct, $len) = 
-        map $self->$_, qw/note accid octave length/;
+    my ($note, $acc, $oct, $len, $dots) = 
+        map $self->$_, qw/note accid octave length dots/;
     $oct = (
         $oct > 0 ? "'" x $oct   :
         $oct < 0 ? "," x -$oct  :
         "");
-    "$note$acc$oct$len";
+    $dots = "." x $dots;
+    "$note$acc$oct$len$dots";
 }
 
 sub _glyph {
@@ -112,6 +114,25 @@ sub _draw_head {
     return $wd;
 }
 
+sub _draw_dots {
+    my ($self, $c, $wd, $pos) = @_;
+
+    my $dots    = $self->dots   or return 0;
+    my $yoff    = ($pos % 2) ? 0 : -1;
+
+    $c->save;
+        $c->set_line_width(0.8);
+        $c->set_line_cap("round");
+        for (1..$dots) {
+            $c->move_to($wd + $_ * 1.6 - 0.8, $yoff);
+            $c->close_path;
+            $c->stroke;
+        }
+    $c->restore;
+
+    return $dots * 1.6;
+}
+
 sub draw {
     my ($self, $c, $font, $pos) = @_;
 
@@ -119,11 +140,9 @@ sub draw {
     $c->set_line_cap("round");
 
     my $wd  = $self->_draw_head($c, $font);
-
     my $len = $self->length;
     my $up  = $pos < 0;
 
-    abs($pos) > 5   and $self->_draw_ledgers($c, $pos, $wd);
     if ($len >= 2) {
         my ($ex, $ey) = $self->_draw_stem($c, $up, $wd);
         if (my ($tail, $tlen) = $self->_tail($font, $up)) {
@@ -131,6 +150,10 @@ sub draw {
             $self->_draw_tail($c, $tail, $ex, $ey);
         }
     }
+
+    abs($pos) > 5   and $self->_draw_ledgers($c, $pos, $wd);
+
+    $wd += $self->_draw_dots($c, $wd, $pos);
 
     return $wd;
 }
@@ -149,6 +172,15 @@ sub pitch {
     _clamp $oct * 12 + $off, 0, 127;
 }
 
-sub duration { 128 / $_[0]->length }
+sub duration { 
+    my ($self) = @_;
+    my $base = my $bit = 128;
+    $base += $bit >>= 1 for 1..$self->dots;
+
+    my $dur = $base / $self->length;
+    my $lily = $self->to_lily;
+    warn "DURATION [$dur] FOR [$lily]";
+    return $dur;
+}
 
 1;

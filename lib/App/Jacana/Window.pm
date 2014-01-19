@@ -77,6 +77,9 @@ sub _build_actions {
 
         NoteMenu:
             label:          Note
+        AddDot:
+            label:          Add dot
+            accelerator:    period
 
         Left:
             accelerator:    h
@@ -87,15 +90,16 @@ sub _build_actions {
         End:
             accelerator:    dollar
 
+        Backspace:
+            label:          Backspace
+            accelerator:    BackSpace
+
         OctaveUp:
             label:          Octave up
             accelerator:    apostrophe
         OctaveDown:
             label:          Octave down
             accelerator:    comma
-        Backspace:
-            label:          Backspace
-            accelerator:    BackSpace
 
         MidiMenu:
             label:          MIDI
@@ -182,6 +186,8 @@ XML
         <menubar>
             <menu action="NoteMenu">
                 $notemenu
+                <separator/>
+                <menuitem action="AddDot"/>
             </menu>
         </menubar>
         <toolbar>
@@ -236,6 +242,22 @@ sub _insert_note {
     $self->app->midi->play_note($new->pitch, 8);
 }
 
+sub _add_dot :Action(AddDot) {
+    my ($self) = @_;
+    my $view = $self->view;
+    my $note = $view->cursor->position;
+    $note->isa("App::Jacana::Music::Note") or return;
+    my $dots = $note->dots + 1;
+    if ($dots > 6) {
+        $self->status_flash("Don't be *silly*.");
+        return;
+    }
+    $note->dots($dots);
+    $note->duration != int($note->duration) and
+        $self->status_flash("Divisions this small will not play correctly.");
+    $view->refresh;
+}
+
 sub _backspace :Action(Backspace) {
     my ($self) = @_;
     no warnings "uninitialized";
@@ -279,6 +301,13 @@ sub set_status {
     my $b = $self->status_bar;
     $b->pop(0);
     $b->push(0, $msg);
+}
+
+sub status_flash {
+    my ($self, $msg) = @_;
+    my $b = $self->status_bar;
+    $b->push(1, $msg);
+    Glib::Timeout->add(5000, sub { $b->pop(1) });
 }
 
 # show
