@@ -64,8 +64,15 @@ sub BUILD {
 
 sub start {
     my ($self) = @_;
+
+    my $res = $self->resource;
+    Gtk2::AccelMap->load($res->find_user_file("accelmap"));
+
     $self->window->show;
     Gtk2->main;
+
+    my $tmp = $res->write_user_file("accelmap");
+    Gtk2::AccelMap->save_fd(fileno $tmp->fh);
 }
 
 1;

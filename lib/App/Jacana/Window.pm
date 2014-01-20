@@ -61,11 +61,6 @@ sub _destroy :Signal(frame::destroy) {
 
 # actions
 
-my @NoteLengths = qw/
-    breve semibreve minim crotchet quaver semiquaver d.s.quaver
-    h.d.s.quaver q.h.d.s.quaver
-/;
-
 sub _build_actions {
     my ($self) = @_;
     my $actions = YAML::XS::Load <<'YAML';
@@ -73,75 +68,121 @@ sub _build_actions {
             label:          File
         Quit:
             label:          Quit
-            accelerator:    "<Ctrl>Q"
 
         NoteMenu:
             label:          Note
+        NotePitchMenu:
+            label:          Pitch
+        PitchA:
+            label:          A
+            method:         _note_pitch
+        PitchB:
+            label:          B
+            method:         _note_pitch
+        PitchC:
+            label:          C
+            method:         _note_pitch
+        PitchD:
+            label:          D
+            method:         _note_pitch
+        PitchE:
+            label:          E
+            method:         _note_pitch
+        PitchF:
+            label:          F
+            method:         _note_pitch
+        PitchG:
+            label:          G
+            method:         _note_pitch
+        
+        NoteLengthMenu:
+            label:          Length
         AddDot:
             label:          Add dot
-            accelerator:    period
 
         Left:
-            accelerator:    h
         Right:
-            accelerator:    l
         Home:
-            accelerator:    asciicircum
         End:
-            accelerator:    dollar
 
         Backspace:
             label:          Backspace
-            accelerator:    BackSpace
 
         OctaveUp:
             label:          Octave up
-            accelerator:    apostrophe
         OctaveDown:
             label:          Octave down
-            accelerator:    comma
 
         MidiMenu:
             label:          MIDI
         MidiPlay:
             stock_id:       gtk-media-play
             label:          Play
-            accelerator:    F5
 YAML
     
     my $grp = Gtk2::ActionGroup->new("edit");
     $grp->add_actions([
-        map +{ name => $_, %{$$actions{$_}} },
+        map +{ name => $_, %{$$actions{$_} || {}} },
         keys %$actions
     ]);
-    $grp->add_actions([
-        map +{
-            name        => "Insert$_",
-            label       => "Insert $_",
-            accelerator => $_,
-            callback    => $self->weak_method(
-                "_insert_note", [], [$_]),
-        },
-        "A".."G"
-    ]);
+    for (keys %$actions) {
+        my $meth = $$actions{$_}{method};
+        $meth and $grp->get_action($_)->signal_connect(
+            "activate", $self->weak_method($meth));
+    }
+
+    my $radios = YAML::XS::Load <<'YAML';
+    -   Breve:
+            label:          Breve
+            value:          0
+        Semibreve:
+            label:          Semibreve
+            icon_name:      icon-note-1
+            value:          1
+        Minim:
+            label:          Minim
+            icon_name:      icon-note-2
+            value:          2
+        Crotchet:
+            label:          Crotchet
+            icon_name:      icon-note-3
+            value:          4
+        Quaver:
+            label:          Quaver
+            icon_name:      icon-note-4
+            value:          8
+        Semiquaver:
+            label:          Semiquaver
+            icon_name:      icon-note-5
+            value:          16
+        DSquaver:
+            label:          D.s.quaver
+            value:          32
+        HDSquaver:
+           label:          H.d.s.quaver
+           value:          64
+        QHDSquaver:
+            label:          Q.h.d.s.quaver
+            value:          128
+YAML
 
     # Build the RadioActions by hand, because the GtkPerl implementation
     # of ActionGroup->add_radio_actions doesn't set icon_name properly.
-    my $radio;
-    for (0..8) {
-        my $l = $NoteLengths[$_];
-        my $act = Gtk2::RadioAction->new(
-            name    => "Note\u$l",
-            label   => "\u$l",
-            value   => ($_ ? (1<<($_-1)) : 0),
-        );
-        $act->set_icon_name("icon-note-$_");
-        if ($radio) { $act->set_group($radio) }
-        else        { $radio = $act }
-        $grp->add_action_with_accel($act, 
-            $_ > 0 && $_ < 6 ? $_ : "");
+    for my $rgrp (@$radios) {
+        my $first;
+        for my $nm (keys %$rgrp) {
+            my $def = $$rgrp{$nm};
+            my $act = Gtk2::RadioAction->new(
+                name    => $nm,
+                label   => $$def{label},
+                value   => $$def{value},
+            );
+            $$def{icon_name} and $act->set_icon_name($$def{icon_name});
+            if ($first) { $act->set_group($first) }
+            else        { $first = $act }
+            $grp->add_action_with_accel($act, "");
+        }
     }
-    $radio->set_current_value(4);
 
     $grp;
 }
@@ -149,20 +190,50 @@ YAML
 sub _build_uimgr {
     my ($self) = @_;
     my $ui = Gtk2::UIManager->new;
+
     $ui->add_ui_from_string(<<XML);
         <menubar>
             <menu action="FileMenu">
                 <menuitem action="Quit"/>
             </menu>
             <menu action="NoteMenu">
-                <menuitem action="OctaveUp"/>
-                <menuitem action="OctaveDown"/>
+                <menu action="NotePitchMenu">
+                    <menuitem action="PitchC"/>
+                    <menuitem action="PitchD"/>
+                    <menuitem action="PitchE"/>
+                    <menuitem action="PitchF"/>
+                    <menuitem action="PitchG"/>
+                    <menuitem action="PitchA"/>
+                    <menuitem action="PitchB"/>
+                    <separator/>
+                    <menuitem action="OctaveUp"/>
+                    <menuitem action="OctaveDown"/>
+                </menu>
+                <menu action="NoteLengthMenu">
+                    <menuitem action="Breve"/>
+                    <menuitem action="Semibreve"/>
+                    <menuitem action="Minim"/>
+                    <menuitem action="Crotchet"/>
+                    <menuitem action="Quaver"/>
+                    <menuitem action="Semiquaver"/>
+                    <menuitem action="DSquaver"/>
+                    <menuitem action="HDSquaver"/>
+                    <menuitem action="QHDSquaver"/>
+                    <separator/>
+                    <menuitem action="AddDot"/>
+                </menu>
             </menu>
             <menu action="MidiMenu">
                 <menuitem action="MidiPlay"/>
             </menu>
         </menubar>
         <toolbar>
+            <toolitem action="Semibreve"/>
+            <toolitem action="Minim"/>
+            <toolitem action="Crotchet"/>
+            <toolitem action="Quaver"/>
+            <toolitem action="Semiquaver"/>
+            <separator/>
             <toolitem action="MidiPlay"/>
         </toolbar>
 
@@ -172,29 +243,7 @@ sub _build_uimgr {
         <accelerator action="Home"/>
         <accelerator action="End"/>
 XML
-    my $notemenu = join "",
-        map qq!<menuitem action="Insert$_"/>!,
-        "A".."G";
-    $notemenu .= "<separator/>";
-    $notemenu .= join "",
-        map qq!<menuitem action="Note\u$NoteLengths[$_]"/>!,
-        0..8;
-    my $notetools = join "",
-        map qq!<toolitem action="Note\u$NoteLengths[$_]"/>!,
-        1..5;
-    $ui->add_ui_from_string(<<XML);
-        <menubar>
-            <menu action="NoteMenu">
-                $notemenu
-                <separator/>
-                <menuitem action="AddDot"/>
-            </menu>
-        </menubar>
-        <toolbar>
-            <separator/>
-            $notetools
-        </toolbar>
-XML
+
     $ui->insert_action_group($self->actions, 0);
     $ui;
 }
@@ -224,13 +273,14 @@ sub _octave_down :Action(OctaveDown) {
     $self->view->cursor->octave_down;
 }
 
-sub _insert_note {
-    my ($self, $note) = @_;
+sub _note_pitch {
+    my ($self, $action) = @_;
 
-    my $cursor = $self->view->cursor;
-    $note = lc $note;
-    my $octave = $cursor->nearest($note);
-    my $length = $self->actions->get_action("NoteCrotchet")
+    my $note    = $action->get_name =~ s/^Pitch([A-G])$/lc $1/er
+        or return;
+    my $cursor  = $self->view->cursor;
+    my $octave  = $cursor->nearest($note);
+    my $length  = $self->actions->get_action("Crotchet")
         ->get_current_value;
 
     my $new = App::Jacana::Music::Note->new(
