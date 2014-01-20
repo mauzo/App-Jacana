@@ -356,8 +356,8 @@ sub set_status {
 sub status_flash {
     my ($self, $msg) = @_;
     my $b = $self->status_bar;
-    $b->push(1, $msg);
-    Glib::Timeout->add(5000, sub { $b->pop(1) });
+    my $id = $b->push(1, $msg);
+    Glib::Timeout->add(5000, sub { $b->remove(1, $id) });
 }
 
 # show
