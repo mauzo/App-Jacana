@@ -16,23 +16,32 @@ has music => (
     default => sub { App::Jacana::Music->new },
 );
 
+my %Chroma = ("", 0, qw/is 1 es -1 isis 2 eses -2/);
+
 sub parse_music {
     my ($self, $text) = @_;
 
     my $music = $self->music->prev;
 
-    while ($text =~ s/^([a-g])([',]*)([0-9]+)(\.*)\s*//) {
-        my ($note, $octave, $length, $dots) = ($1, $2, $3, $4);
-        $octave = $octave
-            ? length($octave) * ($octave =~ /'/ ? 1 : -1)
+    $text =~ s/^\s+//;
+    while ($text =~ s(
+        ^ (?<note>[a-g]) (?<chroma>[eis]*) (?<octave>[',]*)
+          (?<length>[0-9]+) (?<dots>\.*)
+        \s*
+    )()x) {
+        my %n = %+;
+        my $octave = $n{octave}
+            ? length($n{octave}) * ($n{octave} =~ /'/ ? 1 : -1)
             : 0;
         $music = $music->insert(App::Jacana::Music::Note->new(
-            note    => $note,
+            note    => $n{note},
+            chroma  => $Chroma{$n{chroma}},
             octave  => $octave,
-            length  => $length,
-            dots    => length $dots,
+            length  => $n{length},
+            dots    => length $n{dots},
         ));
     }
+    $text and die "UNPARSED MUSIC [$text]";
 }
 
 1;

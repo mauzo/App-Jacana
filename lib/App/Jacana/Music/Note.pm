@@ -8,23 +8,21 @@ use Moo;
 extends "App::Jacana::Music";
 with    qw/ App::Jacana::HasPitch /;
 
-has accid   => (is => "rw", default => "");
 has length  => is => "rw";
 has dots    => is => "rw", default => 0;
 
-my %Pitch = qw/c 0 d 2 e 4 f 5 g 7 a 9 b 11/;
-my %Accid = ("", 0, qw/is 1 es -1 isis 2 eses -2/);
+my @Chroma = ("", qw/is es isis eses/);
 
 sub to_lily {
     my ($self) = @_;
-    my ($note, $acc, $oct, $len, $dots) = 
-        map $self->$_, qw/note accid octave length dots/;
+    my ($note, $chrm, $oct, $len, $dots) = 
+        map $self->$_, qw/note chroma octave length dots/;
     $oct = (
         $oct > 0 ? "'" x $oct   :
         $oct < 0 ? "," x -$oct  :
         "");
     $dots = "." x $dots;
-    "$note$acc$oct$len$dots";
+    "$note$Chroma[$chrm]$oct$len$dots";
 }
 
 sub _glyph {
@@ -36,8 +34,14 @@ sub _glyph {
     };
 }
 
-my %Heads = qw/1 s0 2 s1/;
-my %Tails = qw/8 3 16 4 32 5 64 6 128 7/;
+sub _glyph_width {
+    my ($self, $c, $gly) = @_;
+    $c->glyph_extents($gly)->{x_advance};
+}
+
+my %Heads   = qw/1 s0 2 s1/;
+my %Tails   = qw/8 3 16 4 32 5 64 6 128 7/;
+my %Acci    = qw/0 natural 1 sharp -1 flat 2 doublesharp -2 flatflat/;
 
 sub _notehead {
     my ($self, $font) = @_;
@@ -52,6 +56,26 @@ sub _tail {
     my $gly = $self->_glyph($font, "flags.$dir$len");
     my $off = ($len - 2) * 1.5;
     return ($gly, $off);
+}
+
+sub _accidental {
+    my ($self, $font) = @_;
+    my $chroma = $self->chroma or return;
+    $self->_glyph($font, "accidentals.$Acci{$chroma}");
+}
+
+sub _draw_accidental {
+    my ($self, $c, $font) = @_;
+
+    my $gly = $self->_accidental($font) or return 0;
+    my $wd  = $self->_glyph_width($c, $gly);
+
+    $c->save;
+        $c->translate($wd/2, 0);
+        $c->show_glyphs($gly);
+    $c->restore;
+
+    return $wd + 1;
 }
 
 sub _draw_stem {
@@ -139,7 +163,12 @@ sub draw {
     $c->set_line_width(0.4);
     $c->set_line_cap("round");
 
+    my $awd = $self->_draw_accidental($c, $font);
+    $c->save;
+    $c->translate($awd, 0);
+
     my $wd  = $self->_draw_head($c, $font);
+
     my $len = $self->length;
     my $up  = $pos < 0;
 
@@ -155,32 +184,15 @@ sub draw {
 
     $wd += $self->_draw_dots($c, $wd, $pos);
 
-    return $wd;
-}
-
-sub _clamp {
-    $_[0] < $_[1]   ? $_[1]
-    : $_[0] > $_[2] ? $_[2]
-    : $_[0]
-}
-
-sub pitch {
-    my ($self) = @_;
-
-    my $oct = $self->octave + 4;
-    my $off = $Pitch{$self->note} + $Accid{$self->accid};
-    _clamp $oct * 12 + $off, 0, 127;
+    $c->restore;
+    return $wd + $awd;
 }
 
 sub duration { 
     my ($self) = @_;
     my $base = my $bit = 128;
     $base += $bit >>= 1 for 1..$self->dots;
-
-    my $dur = $base / $self->length;
-    my $lily = $self->to_lily;
-    warn "DURATION [$dur] FOR [$lily]";
-    return $dur;
+    $base / $self->length;
 }
 
 1;

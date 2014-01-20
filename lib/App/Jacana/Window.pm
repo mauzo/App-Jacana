@@ -99,6 +99,12 @@ sub _build_actions {
             label:      Length
         AddDot:
             label:      Add dot
+        NoteAccidentalMenu:
+            label:      Accidental
+        Sharpen:
+            label:      Semitone sharper
+        Flatten:
+            label:      Semitone flatter
 
         Left:
         Right:
@@ -164,6 +170,28 @@ YAML
         QHDSquaver:
             label:      Q.h.d.s.quaver
             value:      128
+
+    -   Natural:
+            label:      Natural
+            icon_name:  icon-natural
+            value:      0
+            on_change:  _note_chroma
+        Sharp:
+            label:      Sharp
+            icon_name:  icon-sharp
+            value:      1
+        Flat:
+            label:      Flat
+            icon_name:  icon-flat
+            value:      -1
+        DoubleSharp:
+            label:      Double sharp
+            icon_name:  icon-dsharp
+            value:      2
+        DoubleFlat:
+            label:      Double flat
+            icon_name:  icon-dflat
+            value:      -2
 YAML
 
     # Build the RadioActions by hand, because the GtkPerl implementation
@@ -181,6 +209,11 @@ YAML
             if ($first) { $act->set_group($first) }
             else        { $first = $act }
             $grp->add_action_with_accel($act, "");
+            if (my $m = $$def{on_change}) {
+                $act->set_current_value($$def{value});
+                warn "SETTING [$m] ON CHANGE FOR [$nm]";
+                $act->signal_connect("changed", $self->weak_method($m));
+            }
         }
     }
 
@@ -222,6 +255,16 @@ sub _build_uimgr {
                     <separator/>
                     <menuitem action="AddDot"/>
                 </menu>
+                <menu action="NoteAccidentalMenu">
+                    <menuitem action="Natural"/>
+                    <menuitem action="Sharp"/>
+                    <menuitem action="Flat"/>
+                    <menuitem action="DoubleSharp"/>
+                    <menuitem action="DoubleFlat"/>
+                    <separator/>
+                    <menuitem action="Sharpen"/>
+                    <menuitem action="Flatten"/>
+                </menu>
             </menu>
             <menu action="MidiMenu">
                 <menuitem action="MidiPlay"/>
@@ -233,6 +276,10 @@ sub _build_uimgr {
             <toolitem action="Crotchet"/>
             <toolitem action="Quaver"/>
             <toolitem action="Semiquaver"/>
+            <separator/>
+            <toolitem action="Sharp"/>
+            <toolitem action="Flat"/>
+            <toolitem action="Natural"/>
             <separator/>
             <toolitem action="MidiPlay"/>
         </toolbar>
@@ -273,6 +320,29 @@ sub _octave_down :Action(OctaveDown) {
     $self->view->cursor->octave_down;
 }
 
+sub _note_chroma {
+    my ($self, $action) = @_;
+    my $name    = $action->get_name;
+    my $value   = $action->get_current_value;
+    $self->view->cursor->chroma($value);
+}
+
+sub _note_sharpen :Action(Sharpen) {
+    my ($self) = @_;
+    my $cursor  = $self->view->cursor;
+    my $chrm    = $cursor->chroma;
+    $chrm > 1 and return $self->_silly;
+    $cursor->chroma($chrm + 1);
+}
+
+sub _note_flatten :Action(Flatten) {
+    my ($self) = @_;
+    my $cursor  = $self->view->cursor;
+    my $chrm    = $cursor->chroma;
+    $chrm < -1 and return $self->_silly;
+    $cursor->chroma($chrm - 1);
+}
+
 sub _note_pitch {
     my ($self, $action) = @_;
 
@@ -287,6 +357,7 @@ sub _note_pitch {
         note    => $note,
         octave  => $octave,
         length  => $length,
+        chroma  => $cursor->chroma,
     );
     $cursor->position($cursor->position->insert($new));
     $self->app->midi->play_note($new->pitch, 8);
@@ -298,10 +369,7 @@ sub _add_dot :Action(AddDot) {
     my $note = $view->cursor->position;
     $note->isa("App::Jacana::Music::Note") or return;
     my $dots = $note->dots + 1;
-    if ($dots > 6) {
-        $self->status_flash("Don't be *silly*.");
-        return;
-    }
+    $dots > 6 and return $self->_silly;
     $note->dots($dots);
     $note->duration != int($note->duration) and
         $self->status_flash("Divisions this small will not play correctly.");
@@ -358,6 +426,12 @@ sub status_flash {
     my $b = $self->status_bar;
     my $id = $b->push(1, $msg);
     Glib::Timeout->add(5000, sub { $b->remove(1, $id) });
+}
+
+sub _silly {
+    my ($self) = @_;
+    $self->status_flash("Don't be *silly*.");
+    return;
 }
 
 # show

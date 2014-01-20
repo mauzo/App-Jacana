@@ -28,9 +28,9 @@ has document    => is => "lazy";
 sub _build_document {
     my ($self) = @_;
     my $doc = App::Jacana::Document->new;
-    $doc->parse_music("a'4 g'4 c''4 d''8. g''16 e''4 d''8.. g''32 e''4 " .
-        "c''4 d''4 a'4 g'4 "
-    );
+    $doc->parse_music(<<'LILY');
+        ees'4 f'2 c''4 bes'2 g'4 ees'4 f'2 bes2 g4 c'2 d'4 g'4 f'2 bes'1.
+LILY
     $doc;
 }
 

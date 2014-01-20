@@ -11,11 +11,20 @@ has position    => (
     isa     => Music,
     trigger => 1,
 );
+has "+chroma"   => trigger => 1;
 
 sub _trigger_position {
     my ($self, $note) = @_;
     $self->copy_pitch_from($note);
+    $self->chroma(0);
     $self->view and $self->view->refresh;
+}
+
+sub _trigger_chroma {
+    my ($self, $chroma) = @_;
+    my $vw = $self->view or return;
+    my $w = $vw->app->window;
+    $w->actions->get_action("Natural")->set_current_value($chroma);
 }
 
 after qw/ octave_up octave_down /,
