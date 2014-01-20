@@ -65,40 +65,40 @@ sub _build_actions {
     my ($self) = @_;
     my $actions = YAML::XS::Load <<'YAML';
         FileMenu:
-            label:          File
+            label:      File
         Quit:
-            label:          Quit
+            label:      Quit
 
         NoteMenu:
-            label:          Note
+            label:      Note
         NotePitchMenu:
-            label:          Pitch
+            label:      Pitch
         PitchA:
-            label:          A
-            method:         _note_pitch
+            label:      A
+            method:     _note_pitch
         PitchB:
-            label:          B
-            method:         _note_pitch
+            label:      B
+            method:     _note_pitch
         PitchC:
-            label:          C
-            method:         _note_pitch
+            label:      C
+            method:     _note_pitch
         PitchD:
-            label:          D
-            method:         _note_pitch
+            label:      D
+            method:     _note_pitch
         PitchE:
-            label:          E
-            method:         _note_pitch
+            label:      E
+            method:     _note_pitch
         PitchF:
-            label:          F
-            method:         _note_pitch
+            label:      F
+            method:     _note_pitch
         PitchG:
-            label:          G
-            method:         _note_pitch
+            label:      G
+            method:     _note_pitch
         
         NoteLengthMenu:
-            label:          Length
+            label:      Length
         AddDot:
-            label:          Add dot
+            label:      Add dot
 
         Left:
         Right:
@@ -106,18 +106,18 @@ sub _build_actions {
         End:
 
         Backspace:
-            label:          Backspace
+            label:      Backspace
 
         OctaveUp:
-            label:          Octave up
+            label:      Octave up
         OctaveDown:
-            label:          Octave down
+            label:      Octave down
 
         MidiMenu:
-            label:          MIDI
+            label:      MIDI
         MidiPlay:
-            stock_id:       gtk-media-play
-            label:          Play
+            stock_id:   gtk-media-play
+            label:      Play
 YAML
     
     my $grp = Gtk2::ActionGroup->new("edit");
@@ -133,37 +133,37 @@ YAML
 
     my $radios = YAML::XS::Load <<'YAML';
     -   Breve:
-            label:          Breve
-            value:          0
+            label:      Breve
+            value:      0
         Semibreve:
-            label:          Semibreve
-            icon_name:      icon-note-1
-            value:          1
+            label:      Semibreve
+            icon_name:  icon-note-1
+            value:      1
         Minim:
-            label:          Minim
-            icon_name:      icon-note-2
-            value:          2
+            label:      Minim
+            icon_name:  icon-note-2
+            value:      2
         Crotchet:
-            label:          Crotchet
-            icon_name:      icon-note-3
-            value:          4
+            label:      Crotchet
+            icon_name:  icon-note-3
+            value:      4
         Quaver:
-            label:          Quaver
-            icon_name:      icon-note-4
-            value:          8
+            label:      Quaver
+            icon_name:  icon-note-4
+            value:      8
         Semiquaver:
-            label:          Semiquaver
-            icon_name:      icon-note-5
-            value:          16
+            label:      Semiquaver
+            icon_name:  icon-note-5
+            value:      16
         DSquaver:
-            label:          D.s.quaver
-            value:          32
+            label:      D.s.quaver
+            value:      32
         HDSquaver:
-           label:          H.d.s.quaver
-           value:          64
+           label:       H.d.s.quaver
+           value:       4
         QHDSquaver:
-            label:          Q.h.d.s.quaver
-            value:          128
+            label:      Q.h.d.s.quaver
+            value:      128
 YAML
 
     # Build the RadioActions by hand, because the GtkPerl implementation
