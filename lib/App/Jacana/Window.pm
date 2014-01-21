@@ -175,7 +175,6 @@ YAML
             label:      Natural
             icon_name:  icon-natural
             value:      0
-            on_change:  _note_chroma
         Sharp:
             label:      Sharp
             icon_name:  icon-sharp
@@ -209,11 +208,6 @@ YAML
             if ($first) { $act->set_group($first) }
             else        { $first = $act }
             $grp->add_action_with_accel($act, "");
-            if (my $m = $$def{on_change}) {
-                $act->set_current_value($$def{value});
-                warn "SETTING [$m] ON CHANGE FOR [$nm]";
-                $act->signal_connect("changed", $self->weak_method($m));
-            }
         }
     }
 
@@ -318,13 +312,6 @@ sub _octave_up :Action(OctaveUp) {
 sub _octave_down :Action(OctaveDown) {
     my ($self) = @_;
     $self->view->cursor->octave_down;
-}
-
-sub _note_chroma {
-    my ($self, $action) = @_;
-    my $name    = $action->get_name;
-    my $value   = $action->get_current_value;
-    $self->view->cursor->chroma($value);
 }
 
 sub _note_sharpen :Action(Sharpen) {

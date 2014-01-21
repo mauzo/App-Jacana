@@ -3,7 +3,7 @@ package App::Jacana::Cursor;
 use Moo;
 use App::Jacana::Util::Types;
 
-with    qw/ App::Jacana::HasPitch /;
+with    qw/ MooX::Gtk2 App::Jacana::HasPitch /;
 
 has view        => is => "ro", weak_ref => 1;
 has position    => (
@@ -11,20 +11,15 @@ has position    => (
     isa     => Music,
     trigger => 1,
 );
-has "+chroma"   => trigger => 1;
+has "+chroma"   => (
+    gtk_prop => "view.app.window.actions.get_action(Natural)::current-value",
+);
 
 sub _trigger_position {
     my ($self, $note) = @_;
     $self->copy_pitch_from($note);
     $self->chroma(0);
     $self->view and $self->view->refresh;
-}
-
-sub _trigger_chroma {
-    my ($self, $chroma) = @_;
-    my $vw = $self->view or return;
-    my $w = $vw->app->window;
-    $w->actions->get_action("Natural")->set_current_value($chroma);
 }
 
 after qw/ octave_up octave_down /,
