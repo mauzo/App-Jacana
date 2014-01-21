@@ -6,10 +6,7 @@ use warnings;
 use Moo;
 
 extends "App::Jacana::Music";
-with    qw/ App::Jacana::HasPitch /;
-
-has length  => is => "rw";
-has dots    => is => "rw", default => 0;
+with    qw/ App::Jacana::HasPitch App::Jacana::HasLength /;
 
 my @Chroma = ("", qw/is es isis eses/);
 
@@ -186,13 +183,6 @@ sub draw {
 
     $c->restore;
     return $wd + $awd;
-}
-
-sub duration { 
-    my ($self) = @_;
-    my $base = my $bit = 128;
-    $base += $bit >>= 1 for 1..$self->dots;
-    $base / $self->length;
 }
 
 1;

@@ -3,7 +3,11 @@ package App::Jacana::Cursor;
 use Moo;
 use App::Jacana::Util::Types;
 
-with    qw/ MooX::Gtk2 App::Jacana::HasPitch /;
+with qw/ 
+    MooX::Gtk2 
+    App::Jacana::HasPitch
+    App::Jacana::HasLength
+/;
 
 has view        => is => "ro", weak_ref => 1;
 has position    => (
@@ -11,8 +15,14 @@ has position    => (
     isa     => Music,
     trigger => 1,
 );
+
 has "+chroma"   => (
+    default  => 0,
     gtk_prop => "view.app.window.actions.get_action(Natural)::current-value",
+);
+has "+length"   => (
+    default  => 4,
+    gtk_prop => "view.app.window.actions.get_action(Breve)::current-value",
 );
 
 sub _trigger_position {

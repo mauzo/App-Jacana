@@ -337,13 +337,11 @@ sub _note_pitch {
         or return;
     my $cursor  = $self->view->cursor;
     my $octave  = $cursor->nearest($note);
-    my $length  = $self->actions->get_action("Crotchet")
-        ->get_current_value;
 
     my $new = App::Jacana::Music::Note->new(
         note    => $note,
         octave  => $octave,
-        length  => $length,
+        length  => $cursor->length,
         chroma  => $cursor->chroma,
     );
     $cursor->position($cursor->position->insert($new));
