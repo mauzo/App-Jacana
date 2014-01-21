@@ -12,15 +12,21 @@ use App::Jacana::View;
 
 use YAML::XS ();
 
-with qw/ App::Jacana::HasApp MooX::Gtk2 /;
+with qw/
+    MooX::Gtk2
+    App::Jacana::HasApp
+    App::Jacana::HasActions
+/;
 
 has doc         => is => "ro";
 has view        => is => "lazy";
 
+# we own the canonical copy of the actions
+has "+actions"  => is => "lazy", required => 0;
+
 has frame       => is => "lazy";
 has status_bar  => is => "lazy";
 
-has actions     => is => "lazy";
 has uimgr       => is => "lazy";
 
 # view
@@ -30,6 +36,7 @@ sub _build_view {
     App::Jacana::View->new(
         app     => $self->app,
         doc     => $self->doc,
+        actions => $self->actions,
     );
 }
 
@@ -89,25 +96,18 @@ sub _build_actions {
             label:      Pitch
         PitchA:
             label:      A
-            method:     _note_pitch
         PitchB:
             label:      B
-            method:     _note_pitch
         PitchC:
             label:      C
-            method:     _note_pitch
         PitchD:
             label:      D
-            method:     _note_pitch
         PitchE:
             label:      E
-            method:     _note_pitch
         PitchF:
             label:      F
-            method:     _note_pitch
         PitchG:
             label:      G
-            method:     _note_pitch
         
         NoteLengthMenu:
             label:      Length
@@ -301,85 +301,6 @@ XML
 
     $ui->insert_action_group($self->actions, 0);
     $ui;
-}
-
-sub _move_left :Action(Left)    { $_[0]->view->cursor->move_left  }
-sub _move_right :Action(Right)  { $_[0]->view->cursor->move_right }
-
-sub _move_to_end :Action(End) {
-    my ($self) = @_;
-    my $view = $self->view;
-    $view->cursor->position($view->doc->music->prev);
-}
-
-sub _move_to_start :Action(Home) {
-    my ($self) = @_;
-    my $view = $self->view;
-    $view->cursor->position($view->doc->music);
-}
-
-sub _octave_up :Action(OctaveUp) {
-    my ($self) = @_;
-    $self->view->cursor->octave_up;
-}
-
-sub _octave_down :Action(OctaveDown) {
-    my ($self) = @_;
-    $self->view->cursor->octave_down;
-}
-
-sub _note_sharpen :Action(Sharpen) {
-    my ($self) = @_;
-    my $cursor  = $self->view->cursor;
-    my $chrm    = $cursor->chroma;
-    $chrm > 1 and return $self->_silly;
-    $cursor->chroma($chrm + 1);
-}
-
-sub _note_flatten :Action(Flatten) {
-    my ($self) = @_;
-    my $cursor  = $self->view->cursor;
-    my $chrm    = $cursor->chroma;
-    $chrm < -1 and return $self->_silly;
-    $cursor->chroma($chrm - 1);
-}
-
-sub _note_pitch {
-    my ($self, $action) = @_;
-
-    my $note    = $action->get_name =~ s/^Pitch([A-G])$/lc $1/er
-        or return;
-    my $cursor  = $self->view->cursor;
-    my $octave  = $cursor->nearest($note);
-
-    my $new = App::Jacana::Music::Note->new(
-        note    => $note,
-        octave  => $octave,
-        length  => $cursor->length,
-        chroma  => $cursor->chroma,
-    );
-    $cursor->position($cursor->position->insert($new));
-    $self->app->midi->play_note($new->pitch, 8);
-}
-
-sub _add_dot :Action(AddDot) {
-    my ($self) = @_;
-    my $view = $self->view;
-    my $note = $view->cursor->position;
-    $note->isa("App::Jacana::Music::Note") or return;
-    my $dots = $note->dots + 1;
-    $dots > 6 and return $self->_silly;
-    $note->dots($dots);
-    $note->duration != int($note->duration) and
-        $self->status_flash("Divisions this small will not play correctly.");
-    $view->refresh;
-}
-
-sub _backspace :Action(Backspace) {
-    my ($self) = @_;
-    no warnings "uninitialized";
-    my $cursor  = $self->view->cursor;
-    $cursor->position($cursor->position->remove);
 }
 
 sub _play_music :Action(MidiPlay) {

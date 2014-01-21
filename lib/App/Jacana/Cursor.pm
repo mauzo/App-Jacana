@@ -1,6 +1,8 @@
 package App::Jacana::Cursor;
 
 use Moo;
+use MooX::MethodAttributes use => ["MooX::Gtk2"];
+
 use App::Jacana::Util::Types;
 
 with qw/ 
@@ -18,11 +20,11 @@ has position    => (
 
 has "+chroma"   => (
     default  => 0,
-    gtk_prop => "view.app.window.actions.get_action(Natural)::current-value",
+    gtk_prop => "view.get_action(Natural)::current-value",
 );
 has "+length"   => (
     default  => 4,
-    gtk_prop => "view.app.window.actions.get_action(Breve)::current-value",
+    gtk_prop => "view.get_action(Breve)::current-value",
 );
 
 sub _trigger_position {
@@ -31,6 +33,9 @@ sub _trigger_position {
     $self->chroma(0);
     $self->view and $self->view->refresh;
 }
+
+method_attrs octave_up      => "Action(view::OctaveUp)";
+method_attrs octave_down    => "Action(view::OctaveDown)";
 
 after qw/ octave_up octave_down /,
     sub { $_[0]->view->refresh };
@@ -53,18 +58,84 @@ sub nearest {
     $oct;
 }
     
-sub move_left   {
+sub move_left :Action(view::Left) {
     my ($self) = @_;
     my $pos = $self->position;
     $pos->is_list_start and return;
     $self->position($pos->prev);
 }
 
-sub move_right  {
+sub move_right :Action(view::Right)  {
     my ($self) = @_;
     my $pos = $self->position;
     $pos->is_list_end and return;
     $self->position($pos->next);
+}
+
+sub move_to_end :Action(view::End) {
+    my ($self) = @_;
+    $self->position($self->view->doc->music->prev);
+}
+
+sub move_to_start :Action(view::Home) {
+    my ($self) = @_;
+    $self->position($self->view->doc->music);
+}
+
+sub _silly { $_[0]->view->app->window->_silly }
+sub status_flash { $_[0]->view->app->window->status_flash(@_[1..$#_]) }
+
+sub sharpen :Action(view::Sharpen) {
+    my ($self) = @_;
+    my $chrm = $self->chroma;
+    $chrm > 1 and return $self->_silly;
+    $self->chroma($chrm + 1);
+}
+
+sub flatten :Action(view::Flatten) {
+    my ($self) = @_;
+    my $chrm = $self->chroma;
+    $chrm < -1 and return $self->_silly;
+    $self->chroma($chrm - 1);
+}
+
+method_attrs pitch => map "Action(view::Pitch$_)", "A".."G";
+
+sub pitch {
+    my ($self, $action) = @_;
+
+    my $note    = $action->get_name =~ s/^Pitch([A-G])$/lc $1/er
+        or return;
+    my $octave  = $self->nearest($note);
+
+    my $new = App::Jacana::Music::Note->new(
+        note    => $note,
+        octave  => $octave,
+        length  => $self->length,
+        chroma  => $self->chroma,
+    );
+    $self->position($self->position->insert($new));
+    $self->view->app->midi->play_note($new->pitch, 8);
+}
+
+sub _add_dot :Action(view::AddDot) {
+    my ($self) = @_;
+
+    my $note = $self->position;
+    $note->isa("App::Jacana::Music::Note") or return;
+
+    my $dots = $note->dots + 1;
+    $dots > 6 and return $self->_silly;
+    $note->dots($dots);
+
+    $note->duration != int($note->duration) and
+        $self->status_flash("Divisions this small will not play correctly.");
+    $self->view->refresh;
+}
+
+sub _backspace :Action(view::Backspace) {
+    my ($self) = @_;
+    $self->position($self->position->remove);
 }
 
 1;

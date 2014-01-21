@@ -12,7 +12,11 @@ use App::Jacana::Cursor;
 
 use Hash::Util::FieldHash ();
 
-with qw/ App::Jacana::HasApp MooX::Gtk2 /;
+with qw/ 
+    MooX::Gtk2
+    App::Jacana::HasApp
+    App::Jacana::HasActions
+/;
 
 has doc         => is => "ro";
 has cursor      => is => "lazy";
