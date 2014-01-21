@@ -22,6 +22,18 @@ has prev    => (
     default => sub { $_[0] },
 );
 
+push @Data::Dump::FILTERS, sub {
+    my ($ctx, $obj) = @_;
+    require Scalar::Util;
+    my $class = Scalar::Util::blessed $obj;
+    $class && $obj->DOES(__PACKAGE__) or return;
+    my %atts = %{$obj};
+    delete @atts{qw/prev next/};
+    my $next = $obj->is_list_end ? "" 
+        : "->" . Data::Dump::pp($obj->next);
+    +{ dump => $class . Data::Dump::pp(\%atts) . $next };
+};
+
 # This has to manipulate the hash directly, because of the irritating
 # no-copy semantics of weakrefs.
 sub is_list_end { isweak $_[0]{next} }
