@@ -24,31 +24,18 @@ has resource => (
 
 sub yield { Gtk2::Gdk::Window->process_all_updates }
 
-has document    => is => "lazy";
-sub _build_document {
+has window      => is => "lazy";
+sub _build_window {
     my ($self) = @_;
+
     my $doc = App::Jacana::Document->new;
     $doc->parse_music(<<'LILY');
         ees'4 f'2 c''4 bes'2 g'4 ees'4 f'2 bes2 g4 c'2 d'4 g'4 f'2 bes'1.
 LILY
-    $doc;
-}
 
-has view        => is => "lazy";
-sub _build_view {
-    my ($self) = @_;
-    App::Jacana::View->new(
-        app => $self,
-        doc => $self->document,
-    );
-}
-
-has window      => is => "lazy";
-sub _build_window {
-    my ($self) = @_;
     App::Jacana::Window->new(
-        app     => $self,
-        view    => $self->view,
+        app => $self,
+        doc => $doc,
     );
 }
 

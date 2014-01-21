@@ -8,16 +8,30 @@ use Moo;
 use MooX::MethodAttributes
     use     => [qw/MooX::Gtk2/];
 
+use App::Jacana::View;
+
 use YAML::XS ();
 
 with qw/ App::Jacana::HasApp MooX::Gtk2 /;
 
+has doc         => is => "ro";
+has view        => is => "lazy";
+
 has frame       => is => "lazy";
 has status_bar  => is => "lazy";
-has view        => is => "ro";
 
 has actions     => is => "lazy";
 has uimgr       => is => "lazy";
+
+# view
+
+sub _build_view {
+    my ($self) = @_;
+    App::Jacana::View->new(
+        app     => $self->app,
+        doc     => $self->doc,
+    );
+}
 
 # frame
 
@@ -380,7 +394,7 @@ sub _play_music :Action(MidiPlay) {
 
     $self->set_status("Playing");
     $midi->play_music(
-        $app->document->music,
+        $self->doc->music,
         $view->weak_method("playing_on"),
         $view->weak_method("playing_off"),
         $self->weak_closure(sub {
