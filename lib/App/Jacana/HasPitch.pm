@@ -2,15 +2,18 @@ package App::Jacana::HasPitch;
 
 use Moo::Role;
 
+with qw/MooX::Role::Copiable/;
+
 has note    => (
-    is => "rw", 
-    isa => sub { 
+    is          => "rw", 
+    isa         => sub { 
         $_[0] =~ /^[a-g]$/
             or Carp::confess("Bad note value [$_[0]]");
     },
+    copiable    => 1,
 );
-has octave  => is => "rw";
-has chroma  => is => "rw", default => "";
+has octave  => is => "rw", copiable => 1;
+has chroma  => is => "rw", default => "", copiable => 1;
 
 my %Staff = qw/c 1 d 2 e 3 f 4 g 5 a 6 b 7/;
 
@@ -24,14 +27,6 @@ sub staff_line {
 
 sub octave_up       { $_[0]->octave($_[0]->octave + 1) }
 sub octave_down     { $_[0]->octave($_[0]->octave - 1) }
-
-sub copy_pitch_from {
-    my ($self, $from) = @_;
-    $from->DOES(__PACKAGE__) or return;
-    $self->octave($from->octave);
-    $self->note($from->note);
-    $self->chroma($from->chroma);
-}
 
 sub _clamp {
     $_[0] < $_[1]   ? $_[1]

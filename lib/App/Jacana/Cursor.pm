@@ -29,7 +29,7 @@ has "+length"   => (
 
 sub _trigger_position {
     my ($self, $note) = @_;
-    $self->copy_pitch_from($note);
+    $self->copy_from($note, "App::Jacana::HasPitch");
     $self->chroma(0);
     $self->view and $self->view->refresh;
 }
@@ -106,14 +106,9 @@ sub pitch {
 
     my $note    = $action->get_name =~ s/^Pitch([A-G])$/lc $1/er
         or return;
-    my $octave  = $self->nearest($note);
+    $self->nearest($note);
 
-    my $new = App::Jacana::Music::Note->new(
-        note    => $note,
-        octave  => $octave,
-        length  => $self->length,
-        chroma  => $self->chroma,
-    );
+    my $new = App::Jacana::Music::Note->new(copy_from => $self);
     $self->position($self->position->insert($new));
     $self->view->app->midi->play_note($new->pitch, 8);
 }

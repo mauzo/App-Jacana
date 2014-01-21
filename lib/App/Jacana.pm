@@ -11,10 +11,16 @@ use Moo;
 use App::Jacana::Document;
 use App::Jacana::MIDI;
 use App::Jacana::Resource;
-use App::Jacana::View;
 use App::Jacana::Window;
 
 use File::ShareDir ();
+
+with qw/ App::Jacana::HasApp /;
+
+has "+app" => (
+    required    => 0, 
+    default     => sub { $_[0] },
+);
 
 has resource => (
     is      => "ro",
@@ -34,8 +40,8 @@ sub _build_window {
 LILY
 
     App::Jacana::Window->new(
-        app => $self,
-        doc => $doc,
+        copy_from   => $self,
+        doc         => $doc,
     );
 }
 

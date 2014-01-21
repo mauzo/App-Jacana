@@ -34,9 +34,8 @@ has uimgr       => is => "lazy";
 sub _build_view {
     my ($self) = @_;
     App::Jacana::View->new(
-        app     => $self->app,
-        doc     => $self->doc,
-        actions => $self->actions,
+        copy_from   => $self,
+        doc         => $self->doc,
     );
 }
 

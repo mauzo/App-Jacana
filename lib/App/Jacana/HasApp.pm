@@ -1,10 +1,16 @@
 package App::Jacana::HasApp;
 
 use Moo::Role;
+use App::Jacana::Util::Types;
+
+with qw/MooX::Role::Copiable/;
 
 has app => (
     is          => "ro",
+    required    => 1,
+    isa         => InstanceOf["App::Jacana"],
     weak_ref    => 1,
+    copiable    => 1,
 );
 
 sub _resource {

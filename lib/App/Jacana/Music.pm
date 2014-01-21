@@ -2,7 +2,10 @@ package App::Jacana::Music;
 
 use Moo;
 
-with "App::Jacana::Util::LinkList";
+with qw/
+    MooX::Role::Copiable
+    App::Jacana::Util::LinkList
+/;
 
 sub to_lily { "" }
 

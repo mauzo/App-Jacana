@@ -2,8 +2,10 @@ package App::Jacana::HasLength;
 
 use Moo::Role;
 
-has length  => is => "rw";
-has dots    => is => "rw", default => 0;
+with qw/MooX::Role::Copiable/;
+
+has length  => is => "rw", copiable => 1;
+has dots    => is => "rw", default => 0, copiable => 1;
 
 sub duration { 
     my ($self) = @_;
