@@ -1,0 +1,5 @@
+*.c
+*.o
+blib
+Build
+_build
