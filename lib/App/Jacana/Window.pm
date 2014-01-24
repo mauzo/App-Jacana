@@ -27,6 +27,7 @@ has "+actions"  => is => "lazy", required => 0;
 
 has frame       => is => "lazy";
 has status_bar  => is => "lazy";
+has status_mode => is => "lazy";
 
 has uimgr       => is => "lazy";
 
@@ -90,6 +91,13 @@ sub _build_actions {
             label:      File
         Quit:
             label:      Quit
+
+        EditMenu:
+            label:      Edit
+        InsertMode:
+            label:      Insert mode
+        EditMode:
+            label:      Edit mode
 
         NoteMenu:
             label:      Note
@@ -240,6 +248,10 @@ sub _build_uimgr {
             <menu action="FileMenu">
                 <menuitem action="Quit"/>
             </menu>
+            <menu action="EditMenu">
+                <menuitem action="InsertMode"/>
+                <menuitem action="EditMode"/>
+            </menu>
             <menu action="NoteMenu">
                 <menu action="NotePitchMenu">
                     <menuitem action="PitchC"/>
@@ -329,9 +341,22 @@ sub _play_music :Action(MidiPlay) {
 
 # status bar
 
+sub _build_status_mode { Gtk2::Label->new("insert") }
+
 sub _build_status_bar { 
     my ($self) = @_;
     my $b = Gtk2::Statusbar->new;
+
+    my $l = $self->status_mode;
+    my $r = $l->size_request;
+    $l->set_size_request($r->width + 4, -1);
+    my $f = Gtk2::Frame->new;
+    $f->add($l);
+    $f->set_shadow_type("in");
+    my $m = $b->get_message_area;
+    $m->pack_start($f, 0, 0, 0);
+    $m->reorder_child($f, 0);
+
     $b->push(0, "loading…");
     $b;
 }

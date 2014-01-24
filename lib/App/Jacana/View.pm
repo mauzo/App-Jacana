@@ -121,6 +121,7 @@ sub _show_music {
     my $ftfont  = $self->_resource("feta_font");
     my $cursor  = $self->cursor;
     my $curpos  = $cursor->position;
+    my $mode    = $cursor->mode;
 
     my $x = 4;
 
@@ -129,12 +130,15 @@ sub _show_music {
         $c->save;
             $c->translate($x, 12 - $pos);
             $c->move_to(0, 0);
+            $mode eq "edit" && $item == $curpos
+                and $c->set_source_rgb(0, 0, 1);
             $playing->{$item}
                 and $c->set_source_rgb(1, 0, 0);
             $x += $item->draw($c, $ftfont, $pos) + 2;
         $c->restore;
 
-        $item == $curpos and $self->_show_cursor($c, $x - 1);
+        $mode eq "insert" && $item == $curpos 
+            and $self->_show_cursor($c, $x - 1);
 
         $item->is_list_end and last;
         $item = $item->next;

@@ -17,6 +17,13 @@ has position    => (
     isa     => Music,
     trigger => 1,
 );
+has mode        => (
+    is          => "rw",
+    isa         => Enum[qw/insert edit/],
+    default     => "insert",
+    gtk_prop    => "view.status_mode::label",
+    trigger     => 1,
+);
 
 has "+chroma"   => (
     default  => 0,
@@ -27,18 +34,52 @@ has "+length"   => (
     gtk_prop => "view.get_action(NoteLength)::current-value",
 );
 
+sub _trigger_mode { 
+    my ($self, $mode) = @_;
+    my $pos = $self->position;
+    $mode eq "edit" and $pos->is_list_start
+        and $pos = $pos->next;
+    $self->position($pos);
+}
+sub insert_mode :Action(view::InsertMode)   { $_[0]->mode("insert") }
+sub edit_mode :Action(view::EditMode)       { $_[0]->mode("edit") }
+
 sub _trigger_position {
     my ($self, $note) = @_;
     $self->copy_from($note, "App::Jacana::HasPitch");
-    $self->chroma(0);
+    $self->mode eq "insert" and $self->chroma(0);
+    $self->mode eq "edit" 
+        and $self->copy_from($note, "App::Jacana::HasLength");
+    warn "POSITION " . join ",", map "$_=>$$self{$_}", keys %$self;
     $self->view and $self->view->refresh;
+}
+
+sub _reset_length :Action(view::NoteLength) {
+    my ($self) = @_;
+    $self->dots(0);
+    $self->mode eq "edit" or return;
+    $self->position->copy_from($self, "App::Jacana::HasLength");
+    $self->view->refresh;
+}
+
+sub _reset_chroma :Action(view::NoteChroma) {
+    my ($self) = @_;
+    $self->mode eq "edit" or return;
+    $self->position->copy_from($self, { only => "chroma" });
+    $self->_play_note;
+    $self->view->refresh;
 }
 
 method_attrs octave_up      => "Action(view::OctaveUp)";
 method_attrs octave_down    => "Action(view::OctaveDown)";
 
-after qw/ octave_up octave_down /,
-    sub { $_[0]->view->refresh };
+after qw/ octave_up octave_down /, sub { 
+    my ($self) = @_;
+    if ($self->mode eq "edit") {
+        $self->position->copy_from($self, { only => "octave" });
+    }
+    $self->view->refresh;
+};
 
 my %nearest = (
     cg => -1, ca => -1, cb => -1, cc =>  0, cd =>  0, ce =>  0, cf =>  0,
@@ -93,6 +134,7 @@ sub _adjust_chroma {
     my $new = $self->chroma + $by;
     abs($new) > 2 and return $self->view->silly;
     $self->chroma($new);
+    $self->_reset_chroma;
 }
 
 sub sharpen :Action(view::Sharpen) { $_[0]->_adjust_chroma(+1) }
@@ -103,15 +145,20 @@ method_attrs change_pitch => map "Action(view::Pitch$_)", "A".."G";
 sub change_pitch {
     my ($self, $action) = @_;
 
-    my $note    = $action->get_name =~ s/^Pitch([A-G])$/lc $1/er
-        or return;
+    my ($note) = $action->get_name =~ /^Pitch([A-Z])$/ or return;
+    $note = lc $note;
     $self->nearest($note);
 
     # this must come before position, because that resets chroma
     $self->_play_note;
 
-    my $new = App::Jacana::Music::Note->new(copy_from => $self);
-    $self->position($self->position->insert($new));
+    if ($self->mode eq "insert") {
+        my $new = App::Jacana::Music::Note->new(copy_from => $self);
+        $self->position($self->position->insert($new));
+    }
+    else {
+        $self->position->copy_from($self, "App::Jacana::HasPitch");
+    }
 }
 
 sub _add_dot :Action(view::AddDot) {
