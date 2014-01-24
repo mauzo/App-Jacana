@@ -2,40 +2,35 @@ package App::Jacana::Music::Clef;
 
 use Moo;
 
+use App::Jacana::Util::Types;
+
 use Carp ();
 
 extends "App::Jacana::Music";
+with    qw/ App::Jacana::HasCentre /;
 
-has type        => is => "ro";
-has _staff_line => is => "ro", init_arg => "staff_line";
+my %Type = (
+    treble      => [qw/G -2/],
+    alto        => [qw/C 0/],
+    tenor       => [qw/C 2/],
+    bass        => [qw/F 2/],
+    soprano     => [qw/C -4/],
+);
+my %Centre = qw/C 7 F 3 G 11/;
 
-my %Preset = (
-    treble  => {qw/type G staff_line -2/},
-    soprano => {qw/type C staff_line -4/},
-    alto    => {qw/type C staff_line 0/},
-    tenor   => {qw/type C staff_line 2/},
-    bass    => {qw/type F staff_line 2/},
+has type => (
+    is  => "rw",
+    isa => Enum[keys %Type],
 );
 
-sub BUILDARGS {
-    my ($self, @args) = @_;
-    my $args = (@args == 1 && ref $args[0]) ? $args[0] : {@args};
-    if (my $preset = delete $$args{preset}) {
-        my $def = $Preset{$preset}
-            or Carp::croak "No such clef preset '$preset'";
-        $$args{$_} = $$def{$_} for keys %$def;
-    }
-    $args;
+sub staff_line {
+    my ($self, $centre) = @_;
+    $Type{$self->type}[1];
 }
-
-# Hmm, I can't find a way to make the reader ignore arguments
-sub staff_line { $_[0]->_staff_line }
-
-my %Centre = qw/C 7 F 3 G 11/;
 
 sub centre_line {
     my ($self) = @_;
-    $Centre{$self->type} - $self->staff_line;
+    $Centre{$Type{$self->type}[0]} - $self->staff_line;
 }
 
 sub _glyph {
@@ -55,7 +50,8 @@ sub _glyph_width {
 sub draw {
     my ($self, $c, $font, $pos) = @_;
 
-    my $gly = $self->_glyph($font, "clefs." . $self->type);
+    my $gly = $self->_glyph($font, "clefs." . 
+        $Type{$self->type}[0]);
     $c->show_glyphs($gly);
 
     return $self->_glyph_width($c, $gly);

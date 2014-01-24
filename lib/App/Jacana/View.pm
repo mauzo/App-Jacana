@@ -122,13 +122,13 @@ sub _show_music {
     my $cursor  = $self->cursor;
     my $curpos  = $cursor->position;
     my $mode    = $cursor->mode;
-    my $centre  = 14;
+    my $centre;
 
     my $x = 4;
 
     for (;;) {
-        $item->isa("App::Jacana::Music::Clef")
-            and $centre = $item->centre_line;
+        $item->DOES("App::Jacana::HasCentre")
+            and $centre = $item->centre_line($centre);
         my $pos = $item->staff_line($centre);
         $c->save;
             $c->translate($x, 12 - $pos);

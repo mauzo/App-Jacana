@@ -2,8 +2,11 @@ package App::Jacana::Cursor;
 
 use Moo;
 use MooX::MethodAttributes use => ["MooX::Gtk2"];
+use Class::Method::Modifiers qw/:all/;
 
 use App::Jacana::Util::Types;
+
+use namespace::clean;
 
 with qw/ 
     MooX::Gtk2 
@@ -46,9 +49,11 @@ sub edit_mode :Action(view::EditMode)       { $_[0]->mode("edit") }
 
 sub _trigger_position {
     my ($self, $note) = @_;
+    my $view = $self->view;
+
     $self->copy_from($note, "App::Jacana::HasPitch");
     $self->mode eq "insert" and $self->chroma(0);
-    $self->mode eq "edit" 
+    $self->mode eq "edit"
         and $self->copy_from($note, "App::Jacana::HasLength");
     warn "POSITION " . join ",", map "$_=>$$self{$_}", keys %$self;
     $self->view and $self->view->refresh;
@@ -183,35 +188,17 @@ sub _backspace :Action(view::Backspace) {
     $self->position($self->position->remove);
 }
 
-sub _treble_clef :Action(view::ClefTreble) {
-    my ($self) = @_;
+sub _insert_clef {
+    my ($self, $type) = @_;
     $self->position($self->position->insert(
-        App::Jacana::Music::Clef->new(preset => "treble")));
+        App::Jacana::Music::Clef->new(type => $type)));
     $self->view->refresh;
 }
-sub _soprano_clef :Action(view::ClefSoprano) {
-    my ($self) = @_;
-    $self->position($self->position->insert(
-        App::Jacana::Music::Clef->new(preset => "soprano")));
-    $self->view->refresh;
-}
-sub _alto_clef :Action(view::ClefAlto) {
-    my ($self) = @_;
-    $self->position($self->position->insert(
-        App::Jacana::Music::Clef->new(preset => "alto")));
-    $self->view->refresh;
-}
-sub _tenor_clef :Action(view::ClefTenor) {
-    my ($self) = @_;
-    $self->position($self->position->insert(
-        App::Jacana::Music::Clef->new(preset => "tenor")));
-    $self->view->refresh;
-}
-sub _bass_clef :Action(view::ClefBass) {
-    my ($self) = @_;
-    $self->position($self->position->insert(
-        App::Jacana::Music::Clef->new(preset => "bass")));
-    $self->view->refresh;
+
+for my $c (qw/Treble Alto Tenor Bass Soprano/) {
+    my $m = "_clef_\L$c";
+    fresh $m, sub { $_[0]->_insert_clef(lc $c) };
+    method_attrs $m, "Action(view::Clef$c)";
 }
 
 1;

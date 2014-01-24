@@ -168,14 +168,15 @@ sub _build_actions {
 YAML
     
     my $grp = Gtk2::ActionGroup->new("edit");
-    $grp->add_actions([
-        map +{ name => $_, %{$$actions{$_} || {}} },
-        keys %$actions
-    ]);
-    for (keys %$actions) {
-        my $meth = $$actions{$_}{method};
-        $meth and $grp->get_action($_)->signal_connect(
-            "activate", $self->weak_method($meth));
+    for my $nm (keys %$actions) {
+        my $def = $$actions{$nm};
+        my $act = Gtk2::Action->new(
+            name        => $nm,
+            label       => $$def{label},
+        );
+        $$def{icon_name} and $act->set_icon_name($$def{icon_name});
+        $$def{stock_id} and $act->set_stock_id($$def{stock_id});
+        $grp->add_action_with_accel($act, "");
     }
 
     my $radios = YAML::XS::Load <<'YAML';
@@ -327,6 +328,11 @@ sub _build_uimgr {
             <toolitem action="Sharp"/>
             <toolitem action="Flat"/>
             <toolitem action="Natural"/>
+            <separator/>
+            <toolitem action="ClefTreble"/>
+            <toolitem action="ClefAlto"/>
+            <toolitem action="ClefTenor"/>
+            <toolitem action="ClefBass"/>
             <separator/>
             <toolitem action="MidiPlay"/>
         </toolbar>
