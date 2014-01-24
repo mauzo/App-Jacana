@@ -35,6 +35,7 @@ sub _build_view {
     my ($self) = @_;
     App::Jacana::View->new(
         copy_from   => $self,
+        window      => $self,
         doc         => $self->doc,
     );
 }
@@ -347,7 +348,7 @@ sub status_flash {
     Glib::Timeout->add(5000, sub { $b->remove(1, $id) });
 }
 
-sub _silly {
+sub silly {
     my ($self) = @_;
     $self->status_flash("Don't be *silly*.");
     return;

@@ -60,7 +60,7 @@ sub start {
 
     my $res = $self->resource;
     Gtk2::AccelMap->load($res->find_user_file("accelmap"));
-
+    
     $self->window->show;
     Gtk2->main;
 

@@ -82,26 +82,21 @@ sub move_to_start :Action(view::Home) {
     $self->position($self->view->doc->music);
 }
 
-sub _silly { $_[0]->view->app->window->_silly }
-sub status_flash { $_[0]->view->app->window->status_flash(@_[1..$#_]) }
 
-sub sharpen :Action(view::Sharpen) {
-    my ($self) = @_;
-    my $chrm = $self->chroma;
-    $chrm > 1 and return $self->_silly;
-    $self->chroma($chrm + 1);
+sub _adjust_chroma {
+    my ($self, $by) = @_;
+
+    my $new = $self->chroma + $by;
+    abs($new) > 2 and return $self->view->silly;
+    $self->chroma($new);
 }
 
-sub flatten :Action(view::Flatten) {
-    my ($self) = @_;
-    my $chrm = $self->chroma;
-    $chrm < -1 and return $self->_silly;
-    $self->chroma($chrm - 1);
-}
+sub sharpen :Action(view::Sharpen) { $_[0]->_adjust_chroma(+1) }
+sub flatten :Action(view::Flatten) { $_[0]->_adjust_chroma(-1) }
 
-method_attrs pitch => map "Action(view::Pitch$_)", "A".."G";
+method_attrs change_pitch => map "Action(view::Pitch$_)", "A".."G";
 
-sub pitch {
+sub change_pitch {
     my ($self, $action) = @_;
 
     my $note    = $action->get_name =~ s/^Pitch([A-G])$/lc $1/er
@@ -119,13 +114,15 @@ sub _add_dot :Action(view::AddDot) {
     my $note = $self->position;
     $note->isa("App::Jacana::Music::Note") or return;
 
+    my $view = $self->view;
+
     my $dots = $note->dots + 1;
-    $dots > 6 and return $self->_silly;
+    $dots > 6 and return $view->silly;
     $note->dots($dots);
 
     $note->duration != int($note->duration) and
-        $self->status_flash("Divisions this small will not play correctly.");
-    $self->view->refresh;
+        $view->status_flash("Divisions this small will not play correctly.");
+    $view->refresh;
 }
 
 sub _backspace :Action(view::Backspace) {

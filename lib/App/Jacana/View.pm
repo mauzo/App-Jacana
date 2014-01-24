@@ -16,6 +16,7 @@ with qw/
     MooX::Gtk2
     App::Jacana::HasApp
     App::Jacana::HasActions
+    App::Jacana::HasWindow
 /;
 
 has doc         => is => "ro";
