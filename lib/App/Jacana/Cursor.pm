@@ -82,6 +82,10 @@ sub move_to_start :Action(view::Home) {
     $self->position($self->view->doc->music);
 }
 
+sub _play_note {
+    my ($self) = @_;
+    $self->view->app->midi->play_note($self->pitch, 8);
+}
 
 sub _adjust_chroma {
     my ($self, $by) = @_;
@@ -103,9 +107,11 @@ sub change_pitch {
         or return;
     $self->nearest($note);
 
+    # this must come before position, because that resets chroma
+    $self->_play_note;
+
     my $new = App::Jacana::Music::Note->new(copy_from => $self);
     $self->position($self->position->insert($new));
-    $self->view->app->midi->play_note($new->pitch, 8);
 }
 
 sub _add_dot :Action(view::AddDot) {

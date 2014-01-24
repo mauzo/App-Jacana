@@ -54,7 +54,8 @@ sub remove_active {
 sub BUILD {
     my ($self) = @_;
 
-    $self->synth->program_select(0, $self->sfont, 0, 68);
+    $self->synth->program_select($_, $self->sfont, 0, 68)
+        for 0..1;
     $self->driver;
 }
 
@@ -77,19 +78,20 @@ sub play_note {
 
 sub _note_on {
     my ($self, $note) = @_;
-    eval { $self->synth->noteon(0, $note->pitch, 85) };
-    return $note->duration;
+    my $pitch = $note->pitch;
+    $pitch and eval { $self->synth->noteon(1, $pitch, 85) };
+    return ($pitch, $note->duration);
 }
 
 sub _note_off {
-    my ($self, $note) = @_;
-    eval { $self->synth->noteoff(0, $note->pitch) };
+    my ($self, $pitch) = @_;
+    $pitch and eval { $self->synth->noteoff(1, $pitch) };
 }
 
 sub play_music {
     my ($self, $note, $start_note, $stop_note, $finish) = @_;
 
-    my $when = $self->_note_on($note);
+    my ($pitch, $when) = $self->_note_on($note);
     $start_note->($note);
 
     my $id;
@@ -98,7 +100,7 @@ sub play_music {
 
         $when-- > 1 and return 1;
 
-        $self->_note_off($note);
+        $self->_note_off($pitch);
         $stop_note->($note);
 
         if ($note->is_list_end) {
@@ -107,8 +109,8 @@ sub play_music {
             return 0;
         }
 
-        $note   = $note->next;
-        $when   = $self->_note_on($note);
+        $note           = $note->next;
+        ($pitch, $when) = $self->_note_on($note);
         $start_note->($note);
         return 1;
     }));
