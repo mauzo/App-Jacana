@@ -8,6 +8,7 @@ use Moo;
 use MooX::MethodAttributes
     use     => [qw/MooX::Gtk2/];
 
+use App::Jacana::Gtk2::RadioGroup;
 use App::Jacana::View;
 
 use YAML::XS ();
@@ -152,7 +153,8 @@ YAML
     }
 
     my $radios = YAML::XS::Load <<'YAML';
-    -   Breve:
+    NoteLength:
+        Breve:
             label:      Breve
             value:      0
         Semibreve:
@@ -180,12 +182,13 @@ YAML
             value:      32
         HDSquaver:
            label:       H.d.s.quaver
-           value:       4
+           value:       64
         QHDSquaver:
             label:      Q.h.d.s.quaver
             value:      128
 
-    -   Natural:
+    NoteChroma:
+        Natural:
             label:      Natural
             icon_name:  icon-natural
             value:      0
@@ -207,20 +210,20 @@ YAML
             value:      -2
 YAML
 
-    # Build the RadioActions by hand, because the GtkPerl implementation
-    # of ActionGroup->add_radio_actions doesn't set icon_name properly.
-    for my $rgrp (@$radios) {
-        my $first;
-        for my $nm (keys %$rgrp) {
-            my $def = $$rgrp{$nm};
-            my $act = Gtk2::RadioAction->new(
-                name    => $nm,
-                label   => $$def{label},
-                value   => $$def{value},
+    for my $gnm (keys %$radios) {
+        my $gact = App::Jacana::Gtk2::RadioGroup->new(
+            name => $gnm,
+        );
+        $grp->add_action_with_accel($gact, "");
+        for my $nm (keys %{$$radios{$gnm}}) {
+            my $def = $$radios{$gnm}{$nm};
+            my $act = App::Jacana::Gtk2::RadioMember->new(
+                name        => $nm,
+                label       => $$def{label},
+                value       => $$def{value},
             );
+            $gact->add_member($act);
             $$def{icon_name} and $act->set_icon_name($$def{icon_name});
-            if ($first) { $act->set_group($first) }
-            else        { $first = $act }
             $grp->add_action_with_accel($act, "");
         }
     }

@@ -20,11 +20,11 @@ has position    => (
 
 has "+chroma"   => (
     default  => 0,
-    gtk_prop => "view.get_action(Natural)::current-value",
+    gtk_prop => "view.get_action(NoteChroma)::current-value",
 );
 has "+length"   => (
     default  => 4,
-    gtk_prop => "view.get_action(Breve)::current-value",
+    gtk_prop => "view.get_action(NoteLength)::current-value",
 );
 
 sub _trigger_position {
