@@ -172,4 +172,15 @@ sub _show_cursor {
     $c->restore;
 }
 
+sub _show_lily :Action(ToLily) {
+    my ($self, $action) = @_;
+    my $lily = $self->doc->music->to_lily;
+    my $dlg = Gtk2::MessageDialog->new_with_markup(
+        $self->_window->frame,
+        "modal", "info", "close", "<tt>$lily</tt>"
+    );
+    $dlg->run;
+    $dlg->destroy;
+}
+
 1;

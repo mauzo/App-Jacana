@@ -8,7 +8,7 @@ use Moo;
 extends "App::Jacana::Music";
 with    qw/ App::Jacana::HasPitch App::Jacana::HasLength /;
 
-my @Chroma = ("", qw/is es isis eses/);
+my %Chroma = (0, "", qw/1 is -1 es 2 isis -2 eses/);
 
 sub to_lily {
     my ($self) = @_;
@@ -19,7 +19,7 @@ sub to_lily {
         $oct < 0 ? "," x -$oct  :
         "");
     $dots = "." x $dots;
-    "$note$Chroma[$chrm]$oct$len$dots";
+    "$note$Chroma{$chrm}$oct$len$dots";
 }
 
 sub _glyph {

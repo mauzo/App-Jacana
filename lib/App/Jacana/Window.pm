@@ -89,6 +89,9 @@ sub _build_actions {
     my $actions = YAML::XS::Load <<'YAML';
         FileMenu:
             label:      File
+        ToLily:
+            label:      Show Lilypond source
+            icon_name:  icon-lily
         Quit:
             label:      Quit
 
@@ -265,6 +268,7 @@ sub _build_uimgr {
     $ui->add_ui_from_string(<<XML);
         <menubar>
             <menu action="FileMenu">
+                <menuitem action="ToLily"/>
                 <menuitem action="Quit"/>
             </menu>
             <menu action="EditMenu">
@@ -335,6 +339,7 @@ sub _build_uimgr {
             <toolitem action="ClefBass"/>
             <separator/>
             <toolitem action="MidiPlay"/>
+            <toolitem action="ToLily"/>
         </toolbar>
 
         <accelerator action="Backspace"/>

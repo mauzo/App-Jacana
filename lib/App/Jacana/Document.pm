@@ -7,7 +7,7 @@ use Moo;
 
 use App::Jacana::Music::Clef;
 use App::Jacana::Music::Note;
-use App::Jacana::Music::Start;
+use App::Jacana::Music::Voice;
 use App::Jacana::Util::Types;
 
 # We always have a Music::Start item at the head of the list. This is
@@ -15,7 +15,7 @@ use App::Jacana::Util::Types;
 has music => (
     is      => "ro",
     isa     => Music,
-    default => sub { App::Jacana::Music::Start->new },
+    default => sub { App::Jacana::Music::Voice->new },
 );
 
 my %Chroma = ("", 0, qw/is 1 es -1 isis 2 eses -2/);

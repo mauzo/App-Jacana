@@ -23,6 +23,10 @@ has type => (
     isa => Enum[keys %Type],
 );
 
+sub to_lily {
+    "\\clef " . $_[0]->type;
+}
+
 sub staff_line {
     my ($self, $centre) = @_;
     $Type{$self->type}[1];
