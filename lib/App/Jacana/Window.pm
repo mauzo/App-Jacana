@@ -249,6 +249,15 @@ sub _build_uimgr {
                     <separator/>
                     <menuitem action="OctaveUp"/>
                     <menuitem action="OctaveDown"/>
+                    <separator/>
+                    <menuitem action="Natural"/>
+                    <menuitem action="Sharp"/>
+                    <menuitem action="Flat"/>
+                    <menuitem action="DoubleSharp"/>
+                    <menuitem action="DoubleFlat"/>
+                    <separator/>
+                    <menuitem action="Sharpen"/>
+                    <menuitem action="Flatten"/>
                 </menu>
                 <menu action="NoteLengthMenu">
                     <menuitem action="Breve"/>
@@ -262,16 +271,6 @@ sub _build_uimgr {
                     <menuitem action="QHDSquaver"/>
                     <separator/>
                     <menuitem action="AddDot"/>
-                </menu>
-                <menu action="NoteAccidentalMenu">
-                    <menuitem action="Natural"/>
-                    <menuitem action="Sharp"/>
-                    <menuitem action="Flat"/>
-                    <menuitem action="DoubleSharp"/>
-                    <menuitem action="DoubleFlat"/>
-                    <separator/>
-                    <menuitem action="Sharpen"/>
-                    <menuitem action="Flatten"/>
                 </menu>
             </menu>
             <menu action="MidiMenu">
