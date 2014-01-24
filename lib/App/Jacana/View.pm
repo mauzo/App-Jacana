@@ -122,11 +122,14 @@ sub _show_music {
     my $cursor  = $self->cursor;
     my $curpos  = $cursor->position;
     my $mode    = $cursor->mode;
+    my $centre  = 14;
 
     my $x = 4;
 
     for (;;) {
-        my $pos = $item->staff_line(7);
+        $item->isa("App::Jacana::Music::Clef")
+            and $centre = $item->centre_line;
+        my $pos = $item->staff_line($centre);
         $c->save;
             $c->translate($x, 12 - $pos);
             $c->move_to(0, 0);
@@ -138,7 +141,7 @@ sub _show_music {
         $c->restore;
 
         $mode eq "insert" && $item == $curpos 
-            and $self->_show_cursor($c, $x - 1);
+            and $self->_show_cursor($c, $x - 1, $centre);
 
         $item->is_list_end and last;
         $item = $item->next;
@@ -148,7 +151,7 @@ sub _show_music {
 }
 
 sub _show_cursor {
-    my ($self, $c, $x) = @_;
+    my ($self, $c, $x, $centre) = @_;
 
     $c->save;
         $c->move_to($x, 7);
@@ -158,7 +161,7 @@ sub _show_cursor {
         $c->stroke;
     $c->restore;
 
-    my $curs = 12 - $self->cursor->staff_line(7);
+    my $curs = 12 - $self->cursor->staff_line($centre);
     $c->save;
         $c->set_source_rgb(0, 0, 1);
         $c->move_to($x - 1.5, $curs);

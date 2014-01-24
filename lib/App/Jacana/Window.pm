@@ -99,6 +99,24 @@ sub _build_actions {
         EditMode:
             label:      Edit mode
 
+        StaffMenu:
+            label:      Staff
+        ClefTreble:
+            label:      Treble clef
+            icon_name:  icon-treble
+        ClefSoprano:
+            label:      Soprano clef
+            icon_name:  icon-soprano
+        ClefAlto:
+            label:      Alto clef
+            icon_name:  icon-alto
+        ClefTenor:
+            label:      Tenor clef
+            icon_name:  icon-tenor
+        ClefBass:
+            label:      Bass clef
+            icon_name:  icon-bass
+
         NoteMenu:
             label:      Note
         NotePitchMenu:
@@ -251,6 +269,13 @@ sub _build_uimgr {
             <menu action="EditMenu">
                 <menuitem action="InsertMode"/>
                 <menuitem action="EditMode"/>
+            </menu>
+            <menu action="StaffMenu">
+                <menuitem action="ClefTreble"/>
+                <menuitem action="ClefBass"/>
+                <menuitem action="ClefTenor"/>
+                <menuitem action="ClefAlto"/>
+                <menuitem action="ClefSoprano"/>
             </menu>
             <menu action="NoteMenu">
                 <menu action="NotePitchMenu">

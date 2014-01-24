@@ -15,12 +15,12 @@ has note    => (
 has octave  => is => "rw", copiable => 1;
 has chroma  => is => "rw", default => "", copiable => 1;
 
-my %Staff = qw/c 1 d 2 e 3 f 4 g 5 a 6 b 7/;
+my %Staff = qw/c 0 d 1 e 2 f 3 g 4 a 5 b 6/;
 
 sub staff_line {
     my ($self, $centre) = @_;
 
-    my $oct = $self->octave - 1;
+    my $oct = $self->octave;
     my $off = $Staff{$self->note};
     $oct * 7 + $off - $centre;
 }

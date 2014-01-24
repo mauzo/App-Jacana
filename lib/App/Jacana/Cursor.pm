@@ -183,4 +183,35 @@ sub _backspace :Action(view::Backspace) {
     $self->position($self->position->remove);
 }
 
+sub _treble_clef :Action(view::ClefTreble) {
+    my ($self) = @_;
+    $self->position($self->position->insert(
+        App::Jacana::Music::Clef->new(preset => "treble")));
+    $self->view->refresh;
+}
+sub _soprano_clef :Action(view::ClefSoprano) {
+    my ($self) = @_;
+    $self->position($self->position->insert(
+        App::Jacana::Music::Clef->new(preset => "soprano")));
+    $self->view->refresh;
+}
+sub _alto_clef :Action(view::ClefAlto) {
+    my ($self) = @_;
+    $self->position($self->position->insert(
+        App::Jacana::Music::Clef->new(preset => "alto")));
+    $self->view->refresh;
+}
+sub _tenor_clef :Action(view::ClefTenor) {
+    my ($self) = @_;
+    $self->position($self->position->insert(
+        App::Jacana::Music::Clef->new(preset => "tenor")));
+    $self->view->refresh;
+}
+sub _bass_clef :Action(view::ClefBass) {
+    my ($self) = @_;
+    $self->position($self->position->insert(
+        App::Jacana::Music::Clef->new(preset => "bass")));
+    $self->view->refresh;
+}
+
 1;

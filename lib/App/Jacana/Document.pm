@@ -5,6 +5,7 @@ use warnings;
 
 use Moo;
 
+use App::Jacana::Music::Clef;
 use App::Jacana::Music::Note;
 use App::Jacana::Util::Types;
 
@@ -21,7 +22,8 @@ my %Chroma = ("", 0, qw/is 1 es -1 isis 2 eses -2/);
 sub parse_music {
     my ($self, $text) = @_;
 
-    my $music = $self->music->prev;
+    my $music = $self->music->prev->insert(
+        App::Jacana::Music::Clef->new(preset => "bass"));
 
     $text =~ s/^\s+//;
     while ($text =~ s(
