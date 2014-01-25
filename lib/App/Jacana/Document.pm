@@ -7,6 +7,7 @@ use Moo;
 
 use App::Jacana::Music::Clef;
 use App::Jacana::Music::Note;
+use App::Jacana::Music::Rest;
 use App::Jacana::Music::Voice;
 use App::Jacana::Util::Types;
 
@@ -19,6 +20,7 @@ has music => (
 );
 
 my %Chroma = ("", 0, qw/is 1 es -1 isis 2 eses -2/);
+my %Length = qw/ \breve 0 1 1 2 2 4 3 8 4 16 5 32 6 64 7 128 8 /;
 
 sub parse_music {
     my ($self, $text) = @_;
@@ -29,7 +31,7 @@ sub parse_music {
         $text =~ s/^\s+//;
         if ($text =~ s(
             ^ (?<note>[a-g]) (?<chroma>[eis]*) (?<octave>[',]*)
-              (?<length>[0-9]+) (?<dots>\.*)
+              (?<length>\\breve|[0-9]+) (?<dots>\.*)
         )()x) {
             my %n = %+;
             my $octave = $n{octave}
@@ -39,8 +41,16 @@ sub parse_music {
                 note    => $n{note},
                 chroma  => $Chroma{$n{chroma}},
                 octave  => $octave,
-                length  => $n{length},
+                length  => $Length{$n{length}},
                 dots    => length $n{dots},
+            ));
+        }
+        elsif ($text =~ s(
+            ^ r (?<length>\\breve|[0-9]+) (?<dots>\.*)
+        )()x) {
+            $music = $music->insert(App::Jacana::Music::Rest->new(
+                length  => $Length{$+{length}},
+                dots    => length $+{dots},
             ));
         }
         elsif ($text =~ s(

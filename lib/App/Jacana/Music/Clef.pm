@@ -7,7 +7,10 @@ use App::Jacana::Util::Types;
 use Carp ();
 
 extends "App::Jacana::Music";
-with    qw/ App::Jacana::HasCentre /;
+with    qw/
+    App::Jacana::HasCentre
+    App::Jacana::HasGlyphs
+/;
 
 my %Type = (
     treble      => [qw/G -2/],
@@ -35,20 +38,6 @@ sub staff_line {
 sub centre_line {
     my ($self) = @_;
     $Centre{$Type{$self->type}[0]} - $self->staff_line;
-}
-
-sub _glyph {
-    my ($self, $font, $gly) = @_;
-    +{
-        index   => $font->get_name_index($gly),
-        x       => 0,
-        y       => 0,
-    };
-}
-
-sub _glyph_width {
-    my ($self, $c, $gly) = @_;
-    $c->glyph_extents($gly)->{x_advance};
 }
 
 sub draw {

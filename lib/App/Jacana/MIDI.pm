@@ -78,14 +78,20 @@ sub play_note {
 
 sub _note_on {
     my ($self, $note) = @_;
-    my $pitch = $note->pitch;
-    $pitch and eval { $self->synth->noteon(1, $pitch, 85) };
-    return ($pitch, $note->duration);
+    my $pitch;
+    if ($note->DOES("App::Jacana::HasPitch")) {
+        $pitch = $note->pitch;
+        eval { $self->synth->noteon(1, $pitch, 85) };
+    }
+    my $duration = $note->DOES("App::Jacana::HasLength")
+        ? $note->duration : undef;
+    return ($pitch, $duration);
 }
 
 sub _note_off {
     my ($self, $pitch) = @_;
-    $pitch and eval { $self->synth->noteoff(1, $pitch) };
+    defined $pitch 
+        and eval { $self->synth->noteoff(1, $pitch) };
 }
 
 sub play_music {

@@ -138,6 +138,9 @@ sub _build_actions {
             label:      F
         PitchG:
             label:      G
+        Rest:
+            label:      Rest
+            icon_name:  icon-rest-1
         
         NoteLengthMenu:
             label:      Length
@@ -198,24 +201,24 @@ YAML
         Crotchet:
             label:      Crotchet
             icon_name:  icon-note-3
-            value:      4
+            value:      3
         Quaver:
             label:      Quaver
             icon_name:  icon-note-4
-            value:      8
+            value:      4
         Semiquaver:
             label:      Semiquaver
             icon_name:  icon-note-5
-            value:      16
+            value:      5
         DSquaver:
             label:      D.s.quaver
-            value:      32
+            value:      6
         HDSquaver:
            label:       H.d.s.quaver
-           value:       64
+           value:       7
         QHDSquaver:
             label:      Q.h.d.s.quaver
-            value:      128
+            value:      8
 
     NoteChroma:
         Natural:
@@ -317,6 +320,7 @@ sub _build_uimgr {
                     <separator/>
                     <menuitem action="AddDot"/>
                 </menu>
+                <menuitem action="Rest"/>
             </menu>
             <menu action="MidiMenu">
                 <menuitem action="MidiPlay"/>
@@ -328,6 +332,7 @@ sub _build_uimgr {
             <toolitem action="Crotchet"/>
             <toolitem action="Quaver"/>
             <toolitem action="Semiquaver"/>
+            <toolitem action="Rest"/>
             <separator/>
             <toolitem action="Sharp"/>
             <toolitem action="Flat"/>

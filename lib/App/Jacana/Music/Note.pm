@@ -6,38 +6,27 @@ use warnings;
 use Moo;
 
 extends "App::Jacana::Music";
-with    qw/ App::Jacana::HasPitch App::Jacana::HasLength /;
+with    qw/
+    App::Jacana::HasGlyphs
+    App::Jacana::HasPitch 
+    App::Jacana::HasLength 
+/;
 
 my %Chroma = (0, "", qw/1 is -1 es 2 isis -2 eses/);
 
 sub to_lily {
     my ($self) = @_;
-    my ($note, $chrm, $oct, $len, $dots) = 
-        map $self->$_, qw/note chroma octave length dots/;
+    my ($note, $chrm, $oct, $len) = 
+        map $self->$_, qw/note chroma octave _length_to_lily/;
     $oct = (
         $oct > 0 ? "'" x $oct   :
         $oct < 0 ? "," x -$oct  :
         "");
-    $dots = "." x $dots;
-    "$note$Chroma{$chrm}$oct$len$dots";
+    "$note$Chroma{$chrm}$oct$len";
 }
 
-sub _glyph {
-    my ($self, $font, $gly) = @_;
-    +{
-        index   => $font->get_name_index($gly),
-        x       => 0,
-        y       => 0,
-    };
-}
-
-sub _glyph_width {
-    my ($self, $c, $gly) = @_;
-    $c->glyph_extents($gly)->{x_advance};
-}
-
-my %Heads   = qw/1 s0 2 s1/;
-my %Tails   = qw/8 3 16 4 32 5 64 6 128 7/;
+my %Heads   = qw/0 sM1 1 s0 2 s1/;
+my %Tails   = qw/4 3 5 4 6 5 7 6 8 7/;
 my %Acci    = qw/0 natural 1 sharp -1 flat 2 doublesharp -2 flatflat/;
 
 sub _notehead {
@@ -133,25 +122,6 @@ sub _draw_head {
     $c->restore;
 
     return $wd;
-}
-
-sub _draw_dots {
-    my ($self, $c, $wd, $pos) = @_;
-
-    my $dots    = $self->dots   or return 0;
-    my $yoff    = ($pos % 2) ? 0 : -1;
-
-    $c->save;
-        $c->set_line_width(0.8);
-        $c->set_line_cap("round");
-        for (1..$dots) {
-            $c->move_to($wd + $_ * 1.6 - 0.8, $yoff);
-            $c->close_path;
-            $c->stroke;
-        }
-    $c->restore;
-
-    return $dots * 1.6;
 }
 
 sub draw {

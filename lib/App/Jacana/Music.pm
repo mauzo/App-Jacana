@@ -19,10 +19,4 @@ sub staff_line { 0 }
 # the feta font is selected and scaled appropriately.
 sub draw { return }
 
-# Returns a MIDI pitch number, or undef.
-sub pitch { return }
-
-# Returns duration, or undef.
-sub duration { return }
-
 1;

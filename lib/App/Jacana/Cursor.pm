@@ -33,8 +33,10 @@ has "+chroma"   => (
     gtk_prop => "view.get_action(NoteChroma)::current-value",
 );
 has "+length"   => (
-    default  => 4,
-    gtk_prop => "view.get_action(NoteLength)::current-value",
+    # default doesn't fire the trigger, set it in BUILD instead
+    #default     => 3,
+    gtk_prop    => "view.get_action(NoteLength)::current-value",
+    trigger     => 1,
 );
 
 sub _trigger_mode { 
@@ -57,6 +59,17 @@ sub _trigger_position {
         and $self->copy_from($note, "App::Jacana::HasLength");
     warn "POSITION " . join ",", map "$_=>$$self{$_}", keys %$self;
     $self->view and $self->view->refresh;
+}
+
+sub BUILD {
+    my ($self) = @_;
+    $self->length(3);
+}
+
+sub _trigger_length {
+    my ($self, $new) = @_;
+    my $view = $self->view;
+    $self->view->get_action("Rest")->set_icon_name("icon-rest-$new");
 }
 
 sub _reset_length :Action(view::NoteLength) {
@@ -164,13 +177,14 @@ sub change_pitch {
     else {
         $self->position->copy_from($self, "App::Jacana::HasPitch");
     }
+    $self->view->refresh;
 }
 
 sub _add_dot :Action(view::AddDot) {
     my ($self) = @_;
 
     my $note = $self->position;
-    $note->isa("App::Jacana::Music::Note") or return;
+    $note->DOES("App::Jacana::HasLength") or return;
 
     my $view = $self->view;
 
@@ -181,6 +195,13 @@ sub _add_dot :Action(view::AddDot) {
     $note->duration != int($note->duration) and
         $view->status_flash("Divisions this small will not play correctly.");
     $view->refresh;
+}
+
+sub _insert_rest :Action(view::Rest) {
+    my ($self) = @_;
+    $self->mode eq "insert" or return;
+    $self->position($self->position->insert(
+        App::Jacana::Music::Rest->new(copy_from => $self)));
 }
 
 sub _backspace :Action(view::Backspace) {
