@@ -146,6 +146,7 @@ sub _build_actions {
             label:      Length
         AddDot:
             label:      Add dot
+            icon_name:  icon-dot
         NoteAccidentalMenu:
             label:      Accidental
         Sharpen:
@@ -333,6 +334,7 @@ sub _build_uimgr {
             <toolitem action="Quaver"/>
             <toolitem action="Semiquaver"/>
             <toolitem action="Rest"/>
+            <toolitem action="AddDot"/>
             <separator/>
             <toolitem action="Sharp"/>
             <toolitem action="Flat"/>

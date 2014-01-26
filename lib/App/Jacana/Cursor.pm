@@ -51,14 +51,16 @@ sub edit_mode :Action(view::EditMode)       { $_[0]->mode("edit") }
 
 sub _trigger_position {
     my ($self, $note) = @_;
-    my $view = $self->view;
+    my $view = $self->view or return;
 
+    $view->get_action("AddDot")->set_sensitive(
+        $note->DOES("App::Jacana::HasLength"));
     $self->copy_from($note, "App::Jacana::HasPitch");
     $self->mode eq "insert" and $self->chroma(0);
     $self->mode eq "edit"
         and $self->copy_from($note, "App::Jacana::HasLength");
     warn "POSITION " . join ",", map "$_=>$$self{$_}", keys %$self;
-    $self->view and $self->view->refresh;
+    $self->view->refresh;
 }
 
 sub BUILD {
