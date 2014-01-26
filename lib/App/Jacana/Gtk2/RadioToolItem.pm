@@ -9,8 +9,6 @@ use Glib::Object::Subclass
 sub UPDATE {
     my ($self, $action, $prop) = @_;
 
-    warn "UPDATE TOOL ITEM FOR " . $action->get_name;
-
     $self->Gtk2::ToolButton::UPDATE($action, $prop);
     
     if ($prop eq "active") {
@@ -24,7 +22,6 @@ sub SYNC_ACTION_PROPERTIES {
     my ($self, $action) = @_;
 
     $action or return;
-    warn "SYNC TOOL ITEM FOR " . $action->get_name;
 
     $self->Gtk2::ToolButton::SYNC_ACTION_PROPERTIES($action);
 

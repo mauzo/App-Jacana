@@ -11,8 +11,6 @@ use Glib::Object::Subclass
 sub UPDATE {
     my ($self, $action, $prop) = @_;
 
-    warn "UPDATE MENU ITEM FOR " . $action->get_name;
-
     $self->Gtk2::MenuItem::UPDATE($action, $prop);
     
     if ($prop eq "active") {
@@ -26,7 +24,6 @@ sub SYNC_ACTION_PROPERTIES {
     my ($self, $action) = @_;
 
     $action or return;
-    warn "SYNC MENU ITEM FOR " . $action->get_name;
 
     $self->Gtk2::MenuItem::SYNC_ACTION_PROPERTIES($action);
 

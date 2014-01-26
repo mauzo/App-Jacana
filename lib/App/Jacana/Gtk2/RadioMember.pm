@@ -37,7 +37,6 @@ use Glib::Object::Subclass
 sub SET_PROPERTY {
     my ($self, $prop, $value) = @_;
     my $name = $prop->get_name;
-    warn "SET PROPERTY [$self].[$name] TO [$value]";
     $self->{$name} = $value;
 }
 
@@ -48,7 +47,6 @@ sub get_value {
 
 sub _do_activate {
     my ($self) = @_;
-    warn "ACTIVATE ON " . $self->get_name;
     my $grp = $self->{radio_group} or return;
     $grp->set_current($self);
     $grp->activate;
@@ -65,17 +63,14 @@ sub set_group {
 
 sub create_menu_item {
     my ($self) = @_;
-    warn "CREATING MENU ITEM FOR " . $self->get_name;
     require App::Jacana::Gtk2::RadioMenuItem;
     my $i = App::Jacana::Gtk2::RadioMenuItem->new;
     $i->set_draw_as_radio(1);
-    warn "CREATED MENU ITEM [$i]";
     $i;
 }
 
 sub create_tool_item {
     my ($self) = @_;
-    warn "CREATING TOOL ITEM FOR " . $self->get_name;
     require App::Jacana::Gtk2::RadioToolItem;
     App::Jacana::Gtk2::RadioToolItem->new;
 }

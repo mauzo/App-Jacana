@@ -45,8 +45,7 @@ sub SET_PROPERTY {
 
 sub get_current { 
     my ($self) = @_;
-    my $cur = $self->{current};
-    $cur;
+    $self->{current};
 }
 sub set_current {
     my ($self, $new) = @_;
