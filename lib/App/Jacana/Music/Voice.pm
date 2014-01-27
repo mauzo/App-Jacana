@@ -3,7 +3,7 @@ package App::Jacana::Music::Voice;
 use Moo;
 
 extends "App::Jacana::Music";
-with    qw/ App::Jacana::HasCentre /;
+with    qw/ App::Jacana::HasClef /;
 
 sub to_lily {
     my ($self) = @_;
@@ -17,6 +17,8 @@ sub to_lily {
     $lily;
 }
 
+# We default to treble clef, because Lily does.
+sub clef { "treble" }
 sub centre_line { 13 }
 
 1;

@@ -9,6 +9,7 @@ use MooX::MethodAttributes
     use     => [qw/ MooX::Gtk2 /];
 
 use App::Jacana::Cursor;
+use App::Jacana::DrawCtx;
 
 use Hash::Util::FieldHash ();
 
@@ -83,30 +84,25 @@ sub _build_widget {
 
 sub _expose_event :Signal {
     my ($self, $widget, $event) = @_;
-    my $w = $widget->get_window;
-    my ($wd, undef) = $w->get_size;
-    my $c = Gtk2::Gdk::Cairo::Context->create($w);
 
-    $c->set_antialias("gray");
-    $c->scale(5, 5);
+    my $c = App::Jacana::DrawCtx->new(
+        copy_from   => $self,
+        widget      => $widget,
+    );
 
-    $self->_show_stave($c, $wd);
-
-    my $fn = $self->_resource("cairo_feta_font");
+    $self->_show_stave($c);
     $c->save;
-        $c->set_font_face($fn);
-        $c->set_font_size(8);
         $self->_show_music($c, $self->doc->music);
     $c->restore;
 }
 
 sub _show_stave {
-    my ($self, $c, $wd) = @_;
+    my ($self, $c) = @_;
 
     $c->save;
         for (4..8) {
             $c->move_to(0, 2*$_);
-            $c->line_to($wd, 2*$_);
+            $c->line_to($c->width, 2*$_);
         }
         $c->set_line_width(0.1);
         $c->stroke;
@@ -127,8 +123,10 @@ sub _show_music {
     my $x = 4;
 
     for (;;) {
-        $item->DOES("App::Jacana::HasCentre")
-            and $centre = $item->centre_line($centre);
+        if ($item->DOES("App::Jacana::HasClef")) {
+            $centre = $item->centre_line($centre);
+            $c->clef($item);
+        }
         my $pos = $item->staff_line($centre);
         $c->save;
             $c->translate($x, 12 - $pos);
@@ -137,7 +135,7 @@ sub _show_music {
                 and $c->set_source_rgb(0, 0, 1);
             $playing->{$item}
                 and $c->set_source_rgb(1, 0, 0);
-            $x += $item->draw($c, $ftfont, $pos) + 2;
+            $x += $item->draw($c, $pos) + 2;
         $c->restore;
 
         $mode eq "insert" && $item == $curpos 

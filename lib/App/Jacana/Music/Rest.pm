@@ -4,7 +4,6 @@ use Moo;
 
 extends "App::Jacana::Music";
 with    qw/
-    App::Jacana::HasGlyphs
     App::Jacana::HasLength
 /;
 
@@ -18,15 +17,15 @@ sub to_lily {
 }
 
 sub draw {
-    my ($self, $c, $font, $pos) = @_;
+    my ($self, $c, $pos) = @_;
 
-    my $gly = $self->_glyph($font, "rests.$Glyph[$self->length]");
+    my $gly = $c->glyph("rests.$Glyph[$self->length]");
     $c->save;
         $c->translate(0.5, ($self->length == 1) ? -2 : 0);
         $c->show_glyphs($gly);
     $c->restore;
 
-    my $wd = $self->_glyph_width($c, $gly) + 1;
+    my $wd = $c->glyph_width($gly) + 1;
     # rests always show dots in the first space
     return $wd + $self->_draw_dots($c, $wd, $pos);
 }

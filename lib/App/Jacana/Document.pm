@@ -6,6 +6,7 @@ use warnings;
 use Moo;
 
 use App::Jacana::Music::Clef;
+use App::Jacana::Music::KeySig;
 use App::Jacana::Music::Note;
 use App::Jacana::Music::Rest;
 use App::Jacana::Music::Voice;
@@ -54,10 +55,17 @@ sub parse_music {
             ));
         }
         elsif ($text =~ s(
-            ^ \\clef \s+ (?: "(?<type>[a-z]+)" | (?<type>[a-z]+) )
+            ^ \\clef \s+ (?: "(?<clef>[a-z]+)" | (?<clef>[a-z]+) )
         )()x) {
             $music = $music->insert(
-                App::Jacana::Music::Clef->new(type => $+{type}));
+                App::Jacana::Music::Clef->new(clef => $+{clef}));
+        }
+        elsif ($text =~ s(
+            ^ \\key \s+ (?<note>[a-g] (?:[ei]s)?)
+                \s* \\(?<mode>major|minor)
+        )()x) {
+            $music = $music->insert(
+                App::Jacana::Music::KeySig->from_lily(%+));
         }
         else {
             last;

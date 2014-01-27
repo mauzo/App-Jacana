@@ -7,7 +7,6 @@ use Moo;
 
 extends "App::Jacana::Music";
 with    qw/
-    App::Jacana::HasGlyphs
     App::Jacana::HasPitch 
     App::Jacana::HasLength 
 /;
@@ -30,31 +29,31 @@ my %Tails   = qw/4 3 5 4 6 5 7 6 8 7/;
 my %Acci    = qw/0 natural 1 sharp -1 flat 2 doublesharp -2 flatflat/;
 
 sub _notehead {
-    my ($self, $font) = @_;
+    my ($self, $c) = @_;
     my $len = $Heads{$self->length} || "s2";
-    $self->_glyph($font, "noteheads.$len");
+    $c->glyph("noteheads.$len");
 }
 
 sub _tail {
-    my ($self, $font, $up) = @_;
+    my ($self, $c, $up) = @_;
     my $len = $Tails{$self->length} or return;
     my $dir = $up ? "u" : "d";
-    my $gly = $self->_glyph($font, "flags.$dir$len");
+    my $gly = $c->glyph("flags.$dir$len");
     my $off = ($len - 2) * 1.5;
     return ($gly, $off);
 }
 
 sub _accidental {
-    my ($self, $font) = @_;
+    my ($self, $c) = @_;
     my $chroma = $self->chroma or return;
-    $self->_glyph($font, "accidentals.$Acci{$chroma}");
+    $c->glyph("accidentals.$Acci{$chroma}");
 }
 
 sub _draw_accidental {
-    my ($self, $c, $font) = @_;
+    my ($self, $c) = @_;
 
-    my $gly = $self->_accidental($font) or return 0;
-    my $wd  = $self->_glyph_width($c, $gly);
+    my $gly = $self->_accidental($c) or return 0;
+    my $wd  = $c->glyph_width($gly);
 
     $c->save;
         $c->translate($wd/2, 0);
@@ -110,11 +109,10 @@ sub _draw_ledgers {
 }
 
 sub _draw_head {
-    my ($self, $c, $font) = @_;
+    my ($self, $c) = @_;
 
-    my $head    = $self->_notehead($font);
-    my $ext     = $c->glyph_extents($head);
-    my $wd      = $ext->{x_advance} + 1;
+    my $head    = $self->_notehead($c);
+    my $wd      = $c->glyph_width($head) + 1;
 
     $c->save;
         $c->translate(0.5, 0);
@@ -125,23 +123,23 @@ sub _draw_head {
 }
 
 sub draw {
-    my ($self, $c, $font, $pos) = @_;
+    my ($self, $c, $pos) = @_;
 
     $c->set_line_width(0.4);
     $c->set_line_cap("round");
 
-    my $awd = $self->_draw_accidental($c, $font);
+    my $awd = $self->_draw_accidental($c);
     $c->save;
     $c->translate($awd, 0);
 
-    my $wd  = $self->_draw_head($c, $font);
+    my $wd  = $self->_draw_head($c);
 
     my $len = $self->length;
     my $up  = $pos < 0;
 
     if ($len >= 2) {
         my ($ex, $ey) = $self->_draw_stem($c, $up, $wd);
-        if (my ($tail, $tlen) = $self->_tail($font, $up)) {
+        if (my ($tail, $tlen) = $self->_tail($up)) {
             $ey += ($up ? -1 : 1) * $tlen;
             $self->_draw_tail($c, $tail, $ex, $ey);
         }

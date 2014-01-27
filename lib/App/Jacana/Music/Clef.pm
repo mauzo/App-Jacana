@@ -7,12 +7,8 @@ use App::Jacana::Util::Types;
 use Carp ();
 
 extends "App::Jacana::Music";
-with    qw/
-    App::Jacana::HasCentre
-    App::Jacana::HasGlyphs
-/;
 
-my %Type = (
+my %Clef = (
     treble      => [qw/G -2/],
     alto        => [qw/C 0/],
     tenor       => [qw/C 2/],
@@ -21,33 +17,37 @@ my %Type = (
 );
 my %Centre = qw/C 7 F 3 G 11/;
 
-has type => (
+has clef => (
     is  => "rw",
-    isa => Enum[keys %Type],
+    isa => Enum[keys %Clef],
 );
 
+# This must be applied after 'has clef', because that is a requirement.
+with    qw/
+    App::Jacana::HasClef
+/;
+
 sub to_lily {
-    "\\clef " . $_[0]->type;
+    "\\clef " . $_[0]->clef;
 }
 
 sub staff_line {
     my ($self, $centre) = @_;
-    $Type{$self->type}[1];
+    $Clef{$self->clef}[1];
 }
 
 sub centre_line {
     my ($self) = @_;
-    $Centre{$Type{$self->type}[0]} - $self->staff_line;
+    $Centre{$Clef{$self->clef}[0]} - $self->staff_line;
 }
 
 sub draw {
-    my ($self, $c, $font, $pos) = @_;
+    my ($self, $c, $pos) = @_;
 
-    my $gly = $self->_glyph($font, "clefs." . 
-        $Type{$self->type}[0]);
+    my $gly = $c->glyph("clefs.$Clef{$self->clef}[0]");
     $c->show_glyphs($gly);
 
-    return $self->_glyph_width($c, $gly);
+    return $c->glyph_width($gly);
 }
 
 1;

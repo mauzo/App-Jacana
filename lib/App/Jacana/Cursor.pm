@@ -6,6 +6,8 @@ use Class::Method::Modifiers qw/:all/;
 
 use App::Jacana::Util::Types;
 
+use Try::Tiny;
+
 use namespace::clean;
 
 with qw/ 
@@ -151,8 +153,20 @@ sub _play_note {
 sub _adjust_chroma {
     my ($self, $by) = @_;
 
+    my $pos     = $self->position;
+    my $view    = $self->view;
+
+    if ($self->mode eq "edit" && 
+        $pos->isa("App::Jacana::Music::KeySig")
+    ) {
+        try     { $pos->key($pos->key + $by) }
+        catch   { $view->silly };
+        $view->refresh;
+        return;
+    }
+
     my $new = $self->chroma + $by;
-    abs($new) > 2 and return $self->view->silly;
+    abs($new) > 2 and return $view->silly;
     $self->chroma($new);
     $self->_reset_chroma;
 }
