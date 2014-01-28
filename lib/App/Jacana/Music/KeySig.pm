@@ -5,6 +5,7 @@ use Moo;
 use YAML::XS ();
 
 extends "App::Jacana::Music";
+with    qw/ App::Jacana::HasKey /;
 
 my @Fifths = qw/
     fes ces ges des aes ees bes
@@ -46,6 +47,18 @@ sub from_lily {
         mode    => $c{mode},
         key     => $Fifths{$c{note}} - $Mode{$c{mode}},
     );
+}
+
+sub chroma {
+    my ($self, $note) = @_;
+    my $key     = $self->key
+        or return 0;
+    my $count   = abs $key;
+    my $fifth   = 
+        $key > 0 ? $Fifths{$note} - 7
+        : 13 - $Fifths{$note};
+
+    $count > $fifth ? $key/$count : 0;
 }
 
 my %Staff = %{YAML::XS::Load <<YAML};

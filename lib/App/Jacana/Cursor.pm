@@ -30,6 +30,9 @@ has mode        => (
     trigger     => 1,
 );
 
+has "+note"     => (
+    trigger     => 1,
+);
 has "+chroma"   => (
     default  => 0,
     gtk_prop => "view.get_action(NoteChroma)::current-value",
@@ -58,11 +61,18 @@ sub _trigger_position {
     $view->get_action("AddDot")->set_sensitive(
         $note->DOES("App::Jacana::HasLength"));
     $self->copy_from($note, "App::Jacana::HasPitch");
-    $self->mode eq "insert" and $self->chroma(0);
     $self->mode eq "edit"
         and $self->copy_from($note, "App::Jacana::HasLength");
     warn "POSITION " . join ",", map "$_=>$$self{$_}", keys %$self;
     $self->view->refresh;
+}
+
+sub _trigger_note {
+    my ($self, $note) = @_;
+    $self->mode eq "insert" or return;
+    my $key = $self->position or return;
+    $key = $key->prev until $key->DOES("App::Jacana::HasKey");
+    $self->chroma($key->chroma($self->note));
 }
 
 sub BUILD {
@@ -86,7 +96,6 @@ sub _reset_length :Action(view::NoteLength) {
 
 sub _reset_chroma :Action(view::NoteChroma) {
     my ($self) = @_;
-    $self->mode eq "edit" or return;
     $self->position->copy_from($self, { only => "chroma" });
     $self->_play_note;
     $self->view->refresh;
@@ -157,9 +166,7 @@ sub _adjust_chroma {
     my $pos     = $self->position;
     my $view    = $self->view;
 
-    if ($self->mode eq "edit" && 
-        $pos->isa("App::Jacana::Music::KeySig")
-    ) {
+    if ($pos->isa("App::Jacana::Music::KeySig")) {
         try     { $pos->key($pos->key + $by) }
         catch   { $view->silly };
         $view->refresh;

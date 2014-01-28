@@ -127,11 +127,13 @@ sub _show_music {
             $centre = $item->centre_line($centre);
             $c->clef($item);
         }
+        $item->DOES("App::Jacana::HasKey")
+            and $c->key($item);
         my $pos = $item->staff_line($centre);
         $c->save;
             $c->translate($x, 12 - $pos);
             $c->move_to(0, 0);
-            $mode eq "edit" && $item == $curpos
+            $item == $curpos
                 and $c->set_source_rgb(0, 0, 1);
             $playing->{$item}
                 and $c->set_source_rgb(1, 0, 0);

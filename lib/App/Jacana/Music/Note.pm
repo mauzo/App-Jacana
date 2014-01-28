@@ -45,7 +45,11 @@ sub _tail {
 
 sub _accidental {
     my ($self, $c) = @_;
-    my $chroma = $self->chroma or return;
+    my $chroma  = $self->chroma;
+    my $note    = $self->note;
+    my $key     = $c->key->chroma($self->note);
+
+    $chroma == $key and return;
     $c->glyph("accidentals.$Acci{$chroma}");
 }
 

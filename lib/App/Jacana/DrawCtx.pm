@@ -29,6 +29,10 @@ has clef    => (
     is      => "rw",
     isa     => ConsumerOf["App::Jacana::HasClef"],
 );
+has key     => (
+    is      => "rw",
+    isa     => ConsumerOf["App::Jacana::HasKey"],
+);
 
 sub _build_c {
     my ($self) = @_;
