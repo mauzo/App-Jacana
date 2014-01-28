@@ -150,9 +150,9 @@ sub _build_actions {
         NoteAccidentalMenu:
             label:      Accidental
         Sharpen:
-            label:      Semitone sharper
+            label:      Sharpen
         Flatten:
-            label:      Semitone flatter
+            label:      Flatten
 
         Left:
         Right:

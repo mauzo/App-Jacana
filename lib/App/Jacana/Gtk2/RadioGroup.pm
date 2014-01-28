@@ -39,6 +39,8 @@ sub SET_PROPERTY {
         and return $self->set_current($new);
     $name eq "current_value"
         and return $self->set_current_value($new);
+    $name eq "sensitive"
+        and return $self->set_sensitive($new);
 
     $self->{$name} = $new;
 }
@@ -52,7 +54,7 @@ sub set_current {
     my $old = $self->{current};
 
     $old and $old != $new and $old->set_property("active", 0);
-    $new->set_property("active", 1);
+    $new and $new->set_property("active", 1);
     $self->{current} = $new;
     $self->notify("current");
     $self->notify("current-value");
@@ -66,6 +68,8 @@ sub get_current_value {
 
 sub set_current_value {
     my ($self, $val) = @_;
+
+    defined $val or return $self->set_current(undef);
     
     my @new = grep $_->get_value eq $val, @{$self->{members}};
     @new or return;
@@ -73,6 +77,13 @@ sub set_current_value {
         join ", ", map $_->get_name, @new;
 
     $self->set_current($new[0]);
+}
+
+sub set_sensitive {
+    my ($self, $val) = @_;
+    $self->{sensitive} = $val;
+    $_->set_sensitive($val) for @{$self->{members}};
+    $val or $self->set_current(undef);
 }
 
 sub _do_activate {

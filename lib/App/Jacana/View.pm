@@ -160,16 +160,6 @@ sub _show_cursor {
         $c->set_line_cap("round");
         $c->stroke;
     $c->restore;
-
-    my $curs = 12 - $self->cursor->staff_line($centre);
-    $c->save;
-        $c->set_source_rgb(0, 0, 1);
-        $c->move_to($x - 1.5, $curs);
-        $c->line_to($x + 1.5, $curs);
-        $c->set_line_width(1);
-        $c->set_line_cap("butt");
-        $c->stroke;
-    $c->restore;
 }
 
 sub _show_lily :Action(ToLily) {
