@@ -99,6 +99,7 @@ after qw/ octave_up octave_down /, sub {
     my ($self) = @_;
     if ($self->mode eq "edit") {
         $self->position->copy_from($self, { only => "octave" });
+        $self->_play_note;
     }
     $self->view->refresh;
 };
@@ -228,7 +229,7 @@ sub _backspace :Action(view::Backspace) {
 sub _insert_clef {
     my ($self, $type) = @_;
     $self->position($self->position->insert(
-        App::Jacana::Music::Clef->new(type => $type)));
+        App::Jacana::Music::Clef->new(clef => $type)));
     $self->view->refresh;
 }
 

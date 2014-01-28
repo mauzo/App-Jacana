@@ -139,7 +139,7 @@ sub draw {
 
     if ($len >= 2) {
         my ($ex, $ey) = $self->_draw_stem($c, $up, $wd);
-        if (my ($tail, $tlen) = $self->_tail($up)) {
+        if (my ($tail, $tlen) = $self->_tail($c, $up)) {
             $ey += ($up ? -1 : 1) * $tlen;
             $self->_draw_tail($c, $tail, $ex, $ey);
         }

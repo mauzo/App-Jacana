@@ -18,8 +18,9 @@ my %Clef = (
 my %Centre = qw/C 7 F 3 G 11/;
 
 has clef => (
-    is  => "rw",
-    isa => Enum[keys %Clef],
+    is          => "rw",
+    isa         => Enum[keys %Clef],
+    required    => 1,
 );
 
 # This must be applied after 'has clef', because that is a requirement.

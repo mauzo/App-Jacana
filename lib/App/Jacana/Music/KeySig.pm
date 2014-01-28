@@ -5,7 +5,6 @@ use Moo;
 use YAML::XS ();
 
 extends "App::Jacana::Music";
-with    qw/ App::Jacana::HasGlyphs /;
 
 my @Fifths = qw/
     fes ces ges des aes ees bes
@@ -69,30 +68,30 @@ sub draw {
 
     my $key     = $self->key;
     my $clef    = $c->clef->clef;
+    my $staff   = $Staff{$clef};
     my $count   = abs $key;
     my $chroma  = $key > 0 ? "sharp" : $key < 0 ? "flat" : "natural";
     my $glyph   = $c->glyph("accidentals.$chroma");
     my $gwd     = $c->glyph_width($glyph) + 0.2;
 
     my $wd = 0;
-    if ($count) {
-        for (1..$count) {
-            my $pos = $Staff{$clef}{$chroma}[$_];
+    my $show = sub {
+        my ($y) = @_;
+        $c->save;
+            $c->translate($wd, -$y);
+            $c->show_glyphs($glyph);
+        $c->restore;
+        $wd += $gwd;
+    };
 
-            $c->save;
-                $c->translate($wd, -$pos);
-                $c->show_glyphs($glyph);
-            $c->restore;
-            $wd += $gwd;
-        }
+    if ($count) {
+        $show->($$staff{$chroma}[$_])
+            for 1..$count;
     }
     else {
-        my $pos = $Staff{$clef}{sharp}[1];
-
         $c->save;
             $c->push_group;
-                $c->translate($wd, -$pos);
-                $c->show_glyphs($glyph);
+                $show->($$staff{sharp}[1]);
             $c->pop_group_to_source;
             $c->paint_with_alpha(0.3);
         $c->restore;
