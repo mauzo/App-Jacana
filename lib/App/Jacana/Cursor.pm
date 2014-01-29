@@ -141,7 +141,7 @@ sub _play_note {
     my ($self) = @_;
     my $pos = $self->position;
     $pos->DOES("App::Jacana::HasPitch") or return;
-    $self->view->app->midi->play_note($pos->pitch, 8);
+    $self->view->midi->play_note($pos->pitch, 8);
 }
 
 sub _adjust_chroma {

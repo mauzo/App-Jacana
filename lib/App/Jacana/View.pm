@@ -1,8 +1,6 @@
 package App::Jacana::View;
 
-use 5.012;
-use warnings;
-
+use utf8;
 use Gtk2;
 use Moo;
 use MooX::MethodAttributes
@@ -40,6 +38,7 @@ has "+zoom"    => default => 4, trigger => 1;
 
 sub _trigger_zoom { $_[0]->refresh }
 
+has _midi_id    => is => "rw";
 has _playing    => (
     is      => "ro",
     lazy    => 1,
@@ -64,7 +63,60 @@ sub playing_off {
 sub clear_playing {
     my ($self) = @_;
     undef %{$self->_playing};
+    $self->set_status("");
     $self->refresh;
+}
+
+sub BUILD {
+    my ($self) = @_;
+    $self->get_action("MidiStop")->set_sensitive(0);
+}
+
+sub midi {
+    my ($self) = @_;
+
+    $self->set_busy("Initialising MIDI…");
+    my $midi = $self->app->midi;
+    $midi;
+}
+
+sub _play_music {
+    my ($self, $music) = @_;
+
+    $self->get_action("MidiPlay")->set_sensitive(0);
+    $self->get_action("MidiPlayHere")->set_sensitive(0);
+    my $midi = $self->midi;
+
+    $self->set_status("Playing");
+    my $id = $midi->play_music(
+        $music,
+        $self->weak_method("playing_on"),
+        $self->weak_method("playing_off"),
+        $self->weak_method("_stop_playing"),
+    );
+    $self->_midi_id($id);
+    $self->get_action("MidiStop")->set_sensitive(1);
+}
+
+sub _play_all :Action(MidiPlay) { 
+    $_[0]->_play_music($_[0]->doc->music);
+}
+sub _play_here :Action(MidiPlayHere) { 
+    $_[0]->_play_music($_[0]->cursor->position);
+}
+
+sub _stop_playing :Action(MidiStop) {
+    # don't rely on getting passed the action
+    my ($self) = @_;
+
+    my $id = $self->_midi_id;
+    $id and $self->midi->remove_active($id);
+    $self->_midi_id(undef);
+    $self->clear_playing;
+
+    $self->get_action("MidiStop")->set_sensitive(0);
+    $self->get_action("MidiPlay")->set_sensitive(1);
+    $self->get_action("MidiPlayHere")->set_sensitive(1);
 }
 
 has widget      => is => "lazy";

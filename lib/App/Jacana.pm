@@ -13,6 +13,9 @@ use App::Jacana::MIDI;
 use App::Jacana::Resource;
 use App::Jacana::Window;
 
+use Gtk2;
+use Gtk2::Ex::WidgetCursor;
+
 use File::ShareDir ();
 
 with qw/ App::Jacana::HasApp /;
@@ -28,6 +31,7 @@ has resource => (
     default => sub { App::Jacana::Resource->new(dist => "App-Jacana") },
 );
 
+sub busy  { Gtk2::Ex::WidgetCursor->busy }
 sub yield { Gtk2::Gdk::Window->process_all_updates }
 
 has window      => is => "lazy";

@@ -17,7 +17,7 @@ has settings    => is => "lazy";
 has synth       => is => "lazy";
 has driver      => is => "lazy";
 has sfont       => is => "lazy";
-has active      => is => "ro", default => sub { [] };
+has active      => is => "ro", default => sub { +{} };
 
 sub _build_settings {
     my $s = Audio::FluidSynth::Settings->new;
@@ -41,14 +41,15 @@ sub _build_sfont {
 }
 
 sub add_active {
-    my ($s, $id) = @_;
-    push @{$s->active}, $id;
+    my ($s, $id, @chan) = @_;
+    $s->active->{$id} = \@chan;
 }
 
 sub remove_active {
     my ($s, $id) = @_;
-    my $ac = $s->active;
-    @$ac = grep $_ != $id, @$ac;
+    my $ch = delete $s->active->{$id};
+    Glib::Source->remove($id);
+    $s->_all_notes_off($_) for @$ch;
 }
 
 sub BUILD {
@@ -61,7 +62,7 @@ sub BUILD {
 
 sub DESTROY {
     my ($self) = @_;
-    Glib::Source->remove($_) for @{$self->active};
+    $self->remove_active($_) for keys %{$self->active};
 }
 
 sub play_note {
@@ -94,6 +95,11 @@ sub _note_off {
         and eval { $self->synth->noteoff(1, $pitch) };
 }
 
+sub _all_notes_off {
+    my ($self, $chan) = @_;
+    eval { $self->synth->cc($chan, 123, 0) };
+}
+
 sub play_music {
     my ($self, $note, $start_note, $stop_note, $finish) = @_;
 
@@ -120,7 +126,8 @@ sub play_music {
         $start_note->($note);
         return 1;
     }));
-    $self->add_active($id);
+    $self->add_active($id, 1);
+    $id;
 }
 
 1;

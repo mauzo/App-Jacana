@@ -177,8 +177,14 @@ sub _build_actions {
         MidiMenu:
             label:      MIDI
         MidiPlay:
-            stock_id:   gtk-media-play
             label:      Play
+            icon_name:  icon-play
+        MidiPlayHere:
+            label:      Play from cursor
+            icon_name:  icon-play-here
+        MidiStop:
+            label:      Stop
+            icon_name:  icon-stop
 
         ViewMenu:
             label:      View
@@ -345,6 +351,8 @@ sub _build_uimgr {
             </menu>
             <menu action="MidiMenu">
                 <menuitem action="MidiPlay"/>
+                <menuitem action="MidiPlayHere"/>
+                <menuitem action="MidiStop"/>
             </menu>
             <menu action="ViewMenu">
                 <menuitem action="ZoomIn"/>
@@ -371,6 +379,8 @@ sub _build_uimgr {
             <toolitem action="ClefBass"/>
             <separator/>
             <toolitem action="MidiPlay"/>
+            <toolitem action="MidiPlayHere"/>
+            <toolitem action="MidiStop"/>
             <toolitem action="ToLily"/>
         </toolbar>
 
@@ -383,28 +393,6 @@ XML
 
     $ui->insert_action_group($self->actions, 0);
     $ui;
-}
-
-sub _play_music :Action(MidiPlay) {
-    my ($self, $action) = @_;
-    my $app     = $self->app;
-    my $view    = $self->view;
-
-    $self->set_status("Initialising MIDI…");
-    $action->set_sensitive(0);
-    $app->yield;
-    my $midi = $app->midi;
-
-    $self->set_status("Playing");
-    $midi->play_music(
-        $self->doc->music,
-        $view->weak_method("playing_on"),
-        $view->weak_method("playing_off"),
-        $self->weak_closure(sub {
-            $_[0] and $_[0]->set_status("");
-            $action->set_sensitive(1);
-        }),
-    );
 }
 
 # status bar
@@ -425,7 +413,8 @@ sub _build_status_bar {
     $m->pack_start($f, 0, 0, 0);
     $m->reorder_child($f, 0);
 
-    $b->push(0, "loading…");
+    my $id = $b->push(0, "loading…");
+    Glib::Idle->add(sub { $b->remove(0, $id) });
     $b;
 }
 
@@ -447,6 +436,18 @@ sub silly {
     my ($self) = @_;
     $self->status_flash("Don't be *silly*.");
     return;
+}
+
+sub set_busy {
+    my ($self, $msg) = @_;
+    my $a = $self->app;
+    my $b = $self->status_bar;
+    my $id = $b->push(2, $msg);
+    Glib::Idle->add(sub { $b->remove(2, $id) }, undef,
+        # This is what ->busy uses
+        Glib::G_PRIORITY_DEFAULT_IDLE - 10);
+    $a->busy;
+    $a->yield;
 }
 
 # show
