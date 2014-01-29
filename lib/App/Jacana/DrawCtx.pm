@@ -3,7 +3,10 @@ package App::Jacana::DrawCtx;
 use Moo;
 use App::Jacana::Util::Types;
 
-with qw/ App::Jacana::HasApp /;
+with qw/ 
+    App::Jacana::HasApp
+    App::Jacana::HasZoom
+/;
 
 has widget  => (
     is          => "ro",
@@ -40,8 +43,10 @@ sub _build_c {
     my $w = $self->widget->get_window;
     my $c = Gtk2::Gdk::Cairo::Context->create($w);
 
+    my $zoom = $self->zoom;
+
     $c->set_antialias("gray");
-    $c->scale(5, 5);
+    $c->scale($zoom, $zoom); # zoooom!
     $c->set_font_face(Cairo::FtFontFace->create($self->font));
     $c->set_font_size(8);
     $c;

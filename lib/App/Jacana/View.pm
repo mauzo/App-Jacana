@@ -11,12 +11,16 @@ use MooX::MethodAttributes
 use App::Jacana::Cursor;
 use App::Jacana::DrawCtx;
 
+use Data::Dump qw/pp/;
 use Hash::Util::FieldHash ();
+
+use namespace::clean;
 
 with qw/ 
     MooX::Gtk2
     App::Jacana::HasApp
     App::Jacana::HasActions
+    App::Jacana::HasZoom
     App::Jacana::HasWindow
 /;
 
@@ -32,20 +36,9 @@ sub _build_cursor {
     );
 }
 
-sub refresh {
-    my ($self) = @_;
-    $self->widget->get_window->invalidate_rect(undef, 0);
-}
+has "+zoom"    => default => 4, trigger => 1;
 
-has selected    => (
-    is      => "rw",
-    trigger => 1,
-);
-
-sub _trigger_selected {
-    my ($self, $new) = @_;
-    $self->refresh;
-}
+sub _trigger_zoom { $_[0]->refresh }
 
 has _playing    => (
     is      => "ro",
@@ -79,7 +72,22 @@ has widget      => is => "lazy";
 sub _build_widget {
     my $d = Gtk2::DrawingArea->new;
     $d->modify_bg("normal", Gtk2::Gdk::Color->new(65535, 65535, 65535));
+
     $d;
+}
+
+sub _realize :Signal {
+    my ($self, $widget) = @_;
+
+    my $w = $widget->get_window;
+    my $e = $w->get_events;
+    $e |= "button-press-mask";
+    $w->set_events($e);
+}
+
+sub refresh {
+    my ($self) = @_;
+    $self->widget->get_window->invalidate_rect(undef, 0);
 }
 
 sub _expose_event :Signal {
@@ -90,17 +98,20 @@ sub _expose_event :Signal {
         widget      => $widget,
     );
 
+    $c->translate(0, 12);
     $self->_show_stave($c);
-    $c->save;
-        $self->_show_music($c, $self->doc->music);
-    $c->restore;
+    my $wd = $self->_show_music($c, $self->doc->music);
+
+    my ($x1, $y1) = $c->c->user_to_device(0, -12);
+    my ($x2, $y2) = $c->c->user_to_device($wd, 12);
+    $widget->set_size_request($x2 - $x1, $y2 - $y1);
 }
 
 sub _show_stave {
     my ($self, $c) = @_;
 
     $c->save;
-        for (4..8) {
+        for (-2..2) {
             $c->move_to(0, 2*$_);
             $c->line_to($c->width, 2*$_);
         }
@@ -131,7 +142,7 @@ sub _show_music {
             and $c->key($item);
         my $pos = $item->staff_line($centre);
         $c->save;
-            $c->translate($x, 12 - $pos);
+            $c->translate($x, -$pos);
             $c->move_to(0, 0);
             $item == $curpos
                 and $c->set_source_rgb(0, 0, 1);
@@ -154,8 +165,8 @@ sub _show_cursor {
     my ($self, $c, $x, $centre) = @_;
 
     $c->save;
-        $c->move_to($x, 7);
-        $c->line_to($x, 17);
+        $c->move_to($x, -5);
+        $c->line_to($x, +5);
         $c->set_line_width(0.7);
         $c->set_line_cap("round");
         $c->stroke;
@@ -171,6 +182,22 @@ sub _show_lily :Action(ToLily) {
     );
     $dlg->run;
     $dlg->destroy;
+}
+
+sub _adjust_zoom {
+    my ($self, $by) = @_;
+    $self->zoom($self->zoom * $by);
+}
+
+sub _zoom_in  :Action(ZoomIn)  { $_[0]->_adjust_zoom(1.2)   }
+sub _zoom_out :Action(ZoomOut) { $_[0]->_adjust_zoom(1/1.2) }
+sub _zoom_off :Action(ZoomOff) { $_[0]->zoom(4) }
+
+sub _scroll_event :Signal {
+    my ($self, $widget, $event) = @_;
+    
+    $event->state == "control-mask" or return;
+    $self->_adjust_zoom($event->direction eq "up" ? 1.2 : 1/1.2);
 }
 
 1;

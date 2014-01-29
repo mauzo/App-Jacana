@@ -64,7 +64,10 @@ sub _build_frame {
         $vb->pack_start($tb, 0, 0, 0);
     }
 
-    $vb->pack_start($self->view->widget, 1, 1, 0);
+    my $scr = Gtk2::ScrolledWindow->new;
+    $scr->set_policy("automatic", "automatic");
+    $scr->add_with_viewport($self->view->widget);
+    $vb->pack_start($scr, 1, 1, 0);
 
     $vb->pack_start($self->status_bar, 0, 0, 0);
 
@@ -176,6 +179,15 @@ sub _build_actions {
         MidiPlay:
             stock_id:   gtk-media-play
             label:      Play
+
+        ViewMenu:
+            label:      View
+        ZoomIn:
+            label:      Zoom in
+        ZoomOut:
+            label:      Zoom out
+        ZoomOff:
+            label:      Reset zoom
 YAML
     
     my $grp = Gtk2::ActionGroup->new("edit");
@@ -333,6 +345,11 @@ sub _build_uimgr {
             </menu>
             <menu action="MidiMenu">
                 <menuitem action="MidiPlay"/>
+            </menu>
+            <menu action="ViewMenu">
+                <menuitem action="ZoomIn"/>
+                <menuitem action="ZoomOut"/>
+                <menuitem action="ZoomOff"/>
             </menu>
         </menubar>
         <toolbar>
