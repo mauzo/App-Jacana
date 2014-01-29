@@ -183,11 +183,18 @@ sub change_pitch {
 
     my $pos = $self->position;
     my $Dp  = $pos->DOES("App::Jacana::HasPitch");
+    my $Ik  = $pos->isa("App::Jacana::Music::KeySig");
 
-    $Dp || $self->mode eq "insert" or return;
+    $Dp || $Ik || $self->mode eq "insert" or return;
 
     my ($note) = $action->get_name =~ /^Pitch([A-Z])$/ or return;
     $note = lc $note;
+
+    if ($Ik && $self->mode eq "edit") {
+        $pos->set_from_note($note);
+        $self->view->refresh;
+        return;
+    }
 
     # find the pitch we want
     my $ref     = $Dp ? $pos : $self->_find_ambient("Clef")->centre_pitch;
@@ -253,6 +260,15 @@ for my $c (qw/Treble Alto Tenor Bass Soprano/) {
     my $m = "_clef_\L$c";
     fresh $m, sub { $_[0]->_insert_clef(lc $c) };
     method_attrs $m, "Action(view::Clef$c)";
+}
+
+sub _insert_key :Action(view::KeySig) {
+    my ($self) = @_;
+    $self->mode eq "insert" or return;
+
+    my $key = $self->_find_ambient("Key");
+    $self->position($self->position->insert(
+        App::Jacana::Music::KeySig->new(copy_from => $key)));
 }
 
 1;

@@ -24,7 +24,7 @@ sub to_lily {
 sub clef { "treble" }
 sub centre_line { 13 }
 
-# C major
-sub chroma { 0 }
+has "+key" => default => 0;
+has "+mode" => default => "major";
 
 1;

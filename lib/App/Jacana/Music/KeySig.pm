@@ -7,60 +7,6 @@ use YAML::XS ();
 extends "App::Jacana::Music";
 with    qw/ App::Jacana::HasKey /;
 
-my @Fifths = qw/
-    fes ces ges des aes ees bes
-    f   c   g   d   a   e   b
-    fis cis gis dis ais eis bis
-/;
-my %Fifths = map +($Fifths[$_], $_), 0..$#Fifths;
-my %Mode = qw/ major 8 minor 11 /;
-
-has key     => (
-    is      => "rw",
-    isa     => sub {
-        $_[0] =~ /^0|-?[1-7]$/
-            or die "Bad key signature [$_[0]]";
-    },
-    copiable => 1,
-);
-has mode    => (
-    is      => "rw",
-    isa     => sub {
-        exists $Mode{$_[0]}
-            or die "Bad key signature mode [$_[0]]";
-    },
-    copiable => 1,
-);
-
-sub staff_line { 0 }
-
-sub to_lily {
-    my ($self) = @_;
-    sprintf "\\key %s \\%s", 
-        $Fifths[$self->key + $Mode{$self->mode}],
-        $self->mode;
-}
-
-sub from_lily {
-    my ($self, %c) = @_;
-    $self->new(
-        mode    => $c{mode},
-        key     => $Fifths{$c{note}} - $Mode{$c{mode}},
-    );
-}
-
-sub chroma {
-    my ($self, $note) = @_;
-    my $key     = $self->key
-        or return 0;
-    my $count   = abs $key;
-    my $fifth   = 
-        $key > 0 ? $Fifths{$note} - 7
-        : 13 - $Fifths{$note};
-
-    $count > $fifth ? $key/$count : 0;
-}
-
 my %Staff = %{YAML::XS::Load <<YAML};
     treble:
         sharp:  [x, 4, 1, 5, 2, -1, 3, 0]
