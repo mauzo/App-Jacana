@@ -168,47 +168,40 @@ sub _adjust_chroma {
 sub sharpen :Action(view::Sharpen) { $_[0]->_adjust_chroma(+1) }
 sub flatten :Action(view::Flatten) { $_[0]->_adjust_chroma(-1) }
 
-my %Nearest = (
-    cg => -1, ca => -1, cb => -1, cc =>  0, cd =>  0, ce =>  0, cf =>  0,
-    da => -1, db => -1, dc =>  0, dd =>  0, de =>  0, df =>  0, dg =>  0,
-    eb => -1, ec =>  0, ed =>  0, ee =>  0, ef =>  0, eg =>  0, ea =>  0,
-    fc =>  0, fd =>  0, fe =>  0, ff =>  0, fg =>  0, fa =>  0, fb =>  0,
-    gd =>  0, ge =>  0, gf =>  0, gg =>  0, ga =>  0, gb =>  0, gc =>  1,
-    ae =>  0, af =>  0, ag =>  0, aa =>  0, ab =>  0, ac =>  1, ad =>  1,
-    bf =>  0, bg =>  0, ba =>  0, bb =>  0, bc =>  1, bd =>  1, be =>  1,
-);
-    
+sub _find_ambient {
+    my ($self, $role) = @_;
+    my $pos = $self->position;
+    $pos = $pos->prev until $pos->is_list_start 
+        || $pos->DOES("App::Jacana::Has$role");
+    $pos;
+}
+
 method_attrs change_pitch => map "Action(view::Pitch$_)", "A".."G";
 
 sub change_pitch {
     my ($self, $action) = @_;
 
     my $pos = $self->position;
+    my $Dp  = $pos->DOES("App::Jacana::HasPitch");
+
+    $Dp || $self->mode eq "insert" or return;
 
     my ($note) = $action->get_name =~ /^Pitch([A-Z])$/ or return;
     $note = lc $note;
 
+    # find the pitch we want
+    my $ref     = $Dp ? $pos : $self->_find_ambient("Clef")->centre_pitch;
+    my $pitch   = $ref->nearest($note);
+
     # changing note always resets chroma
-    my $key     = $pos;
-    $key        = $key->prev until $key->DOES("App::Jacana::HasKey");
-    my $chroma  = $key->chroma($note);
+    my $key     = $self->_find_ambient("Key");
+    $pitch->chroma($key->chroma($note));
 
     if ($self->mode eq "insert") {
-        my $oct = $pos->DOES("App::Jacana::HasPitch")
-            ? $pos->octave + $Nearest{$pos->note . $note}
-            : 1;
-        my $new = App::Jacana::Music::Note->new(
-            copy_from   => $self,
-            note        => $note,
-            octave      => $oct,
-            chroma      => $chroma,
-        );
-        $self->position($pos->insert($new));
+        my $new = App::Jacana::Music::Note->new(copy_from => $self);
+        $pos = $self->position($pos->insert($new));
     }
-    else {
-        $pos->note($note);
-        $pos->chroma($chroma);
-    }
+    $pos->copy_from($pitch);
     $self->_play_note;
     $self->view->refresh;
 }
