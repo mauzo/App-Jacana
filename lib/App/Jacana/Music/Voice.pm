@@ -6,6 +6,7 @@ extends "App::Jacana::Music";
 with    qw/ 
     App::Jacana::HasClef 
     App::Jacana::HasKey
+    App::Jacana::HasTime
 /;
 
 sub to_lily {
@@ -26,5 +27,8 @@ sub centre_line { 13 }
 
 has "+key" => default => 0;
 has "+mode" => default => "major";
+
+has "+beats" => default => 4;
+has "+divisor" => default => 4;
 
 1;

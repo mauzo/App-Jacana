@@ -140,6 +140,7 @@ sub _show_music {
         }
         $item->DOES("App::Jacana::HasKey")
             and $c->key($item);
+
         my $pos = $item->staff_line($centre);
         $c->save;
             $c->translate($x, -$pos);
@@ -154,6 +155,9 @@ sub _show_music {
         $mode eq "insert" && $item == $curpos 
             and $self->_show_cursor($c, $x - 1, $centre);
 
+        $c->add_to_bar($x, $item)
+            and $x += $self->_show_barline($c, $x);
+
         $item->is_list_end and last;
         $item = $item->next;
     }
@@ -161,12 +165,26 @@ sub _show_music {
     return $x;
 }
 
+sub _show_barline {
+    my ($self, $c, $x) = @_;
+
+    $c->save;
+        $c->bar_length and $c->set_source_rgb(0.9, 0, 0);
+        $c->set_line_width(0.5);
+        $c->set_line_cap("butt");
+        $c->move_to($x + 1, -4);
+        $c->line_to($x + 1, 4);
+        $c->stroke;
+    $c->restore;
+    return 3;
+}
+
 sub _show_cursor {
     my ($self, $c, $x, $centre) = @_;
 
     $c->save;
-        $c->move_to($x, -5);
-        $c->line_to($x, +5);
+        $c->move_to($x, -6);
+        $c->line_to($x, +6);
         $c->set_line_width(0.7);
         $c->set_line_cap("round");
         $c->stroke;

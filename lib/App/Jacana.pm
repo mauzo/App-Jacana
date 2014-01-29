@@ -36,7 +36,7 @@ sub _build_window {
 
     my $doc = App::Jacana::Document->new;
     $doc->parse_music(<<'LILY');
-        \clef bass \key bes \major
+        \clef bass \key bes \major \time 3/4 \partial 4
         ees4 f2 c'4 bes2 g4 ees4 f2
         bes,2 g,4 c2 d4 g4 f2 bes1.
 LILY

@@ -15,20 +15,28 @@ has length  => (
 );
 has dots    => is => "rw", default => 0, copiable => 1;
 
+my @Length = qw/ \breve 1 2 4 8 16 32 64 128 /;
+my %Length = map +($Length[$_], $_), 0..$#Length;
+
+sub _length_from_lily {
+    my ($self, $length, $dots) = @_;
+    +(  length => $Length{$length}, 
+        dots => length $dots//""
+    );
+}
+
+sub _length_to_lily {
+    my ($self) = @_;
+    my $dots = "." x $self->dots;
+    "$Length[$self->length]$dots";
+}
+
 sub duration { 
     my ($self) = @_;
     my $base = my $bit = 128;
     $base += $bit >>= 1 for 1..$self->dots;
     my $len = $self->length;
     $len > 0 ? $base >> ($len - 1) : $base * 2;
-}
-
-my @Length = qw/ \breve 1 2 4 8 16 32 64 128 /;
-
-sub _length_to_lily {
-    my ($self) = @_;
-    my $dots = "." x $self->dots;
-    "$Length[$self->length]$dots";
 }
 
 sub _draw_dots {

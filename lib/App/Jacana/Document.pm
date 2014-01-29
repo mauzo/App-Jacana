@@ -9,6 +9,7 @@ use App::Jacana::Music::Clef;
 use App::Jacana::Music::KeySig;
 use App::Jacana::Music::Note;
 use App::Jacana::Music::Rest;
+use App::Jacana::Music::TimeSig;
 use App::Jacana::Music::Voice;
 use App::Jacana::Util::Types;
 
@@ -66,6 +67,13 @@ sub parse_music {
         )()x) {
             $music = $music->insert(
                 App::Jacana::Music::KeySig->from_lily(%+));
+        }
+        elsif ($text =~ s(
+            ^ \\time \s+ (?<beats>[0-9]+) / (?<divisor>[0-9]+)
+            (?: \s* \\partial \s+ (?<plen>[0-9]+) (?<pdots>\.*) )?
+        )()x) {
+            $music = $music->insert(
+                App::Jacana::Music::TimeSig->from_lily(%+));
         }
         else {
             last;

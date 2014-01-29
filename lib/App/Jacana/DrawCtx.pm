@@ -36,6 +36,15 @@ has key     => (
     is      => "rw",
     isa     => ConsumerOf["App::Jacana::HasKey"],
 );
+has time    => (
+    is      => "rw",
+    isa     => ConsumerOf["App::Jacana::HasTime"],
+);
+has bar_length => (
+    is      => "rw",
+    isa     => Int,
+    default => 0,
+);
 
 sub _build_c {
     my ($self) = @_;
@@ -75,6 +84,27 @@ sub glyph {
 sub glyph_width {
     my ($self, $gly) = @_;
     $self->c->glyph_extents($gly)->{x_advance};
+}
+
+sub add_to_bar {
+    my ($self, $x, $note) = @_;
+
+    if ($note->DOES("App::Jacana::HasTime")) {
+        $self->time($note);
+        my $par = $note->partial;
+        $par and $self->bar_length($note->length - $par->duration);
+        return 0;
+    }
+
+    my $time = $self->time                  or return;
+    $note->DOES("App::Jacana::HasLength")   or return;
+
+    my $new = $self->bar_length + $note->duration;
+    my $bar = $time->length;
+    $new < $bar and $self->bar_length($new), return 0;
+
+    $self->bar_length($new - $bar);
+    return 1;
 }
 
 1;
