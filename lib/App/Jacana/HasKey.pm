@@ -46,6 +46,11 @@ sub from_lily {
     );
 }
 
+sub _keys_for_mode {
+    my ($self, $mode) = @_;
+    map $Fifths[$_ + $Mode{$mode}], -7..7;
+}
+
 sub set_from_note {
     my ($self, $note) = @_;
     

@@ -9,8 +9,9 @@ use MooX::MethodAttributes
 use App::Jacana::Cursor;
 use App::Jacana::DrawCtx;
 
-use Data::Dump qw/pp/;
-use Hash::Util::FieldHash ();
+use Data::Dump              qw/pp/;
+use Hash::Util::FieldHash   qw/idhash/;
+use Module::Runtime         qw/use_module/;
 
 use namespace::clean;
 
@@ -42,10 +43,7 @@ has _midi_id    => is => "rw";
 has _playing    => (
     is      => "ro",
     lazy    => 1,
-    default => sub {
-        Hash::Util::FieldHash::idhash my %h;
-        \%h;
-    },
+    default => sub { idhash my %h; \%h },
 );
 
 sub playing_on {
@@ -268,6 +266,15 @@ sub _scroll_event :Signal {
     
     $event->state == "control-mask" or return;
     $self->_adjust_zoom($event->direction eq "up" ? 1.2 : 1/1.2);
+}
+
+sub run_dialog {
+    my ($self, $which, @args) = @_;
+
+    my $dlg = use_module("App::Jacana::Dialog::$which")
+        ->new(copy_from => $self, @args);
+    $dlg->run eq "ok" or return;
+    $dlg;
 }
 
 1;

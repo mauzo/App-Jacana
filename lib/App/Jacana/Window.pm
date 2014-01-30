@@ -11,6 +11,7 @@ use MooX::MethodAttributes
 use App::Jacana::Gtk2::RadioGroup;
 use App::Jacana::View;
 
+use Encode ();
 use YAML::XS ();
 
 with qw/
@@ -89,7 +90,7 @@ sub _destroy :Signal(frame::destroy) {
 
 sub _build_actions {
     my ($self) = @_;
-    my $actions = YAML::XS::Load <<'YAML';
+    my $actions = YAML::XS::Load Encode::encode "utf8", <<'YAML';
         FileMenu:
             label:      File
         ToLily:
@@ -125,7 +126,7 @@ sub _build_actions {
             label:      Bass clef
             icon_name:  icon-bass
         KeySig:
-            label:      Key signature
+            label:      Key signature…
 
         NoteMenu:
             label:      Note

@@ -266,9 +266,12 @@ sub _insert_key :Action(view::KeySig) {
     my ($self) = @_;
     $self->mode eq "insert" or return;
 
-    my $key = $self->_find_ambient("Key");
+    my $dlg = $self->view->run_dialog("KeySig",
+        key => 0, mode => "major")
+        or return;
     $self->position($self->position->insert(
-        App::Jacana::Music::KeySig->new(copy_from => $key)));
+        App::Jacana::Music::KeySig->new(copy_from => $dlg)));
+    $self->view->refresh;
 }
 
 1;
