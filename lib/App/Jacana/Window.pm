@@ -143,6 +143,8 @@ sub _build_actions {
         TimeSig:
             label:      Time signature…
             icon_name:  icon-timesig
+        GotoPosition:
+            label:      Goto position…
 
         NoteMenu:
             label:      Note
@@ -333,6 +335,7 @@ sub _build_uimgr {
                 </menu>
                 <menuitem action="KeySig"/>
                 <menuitem action="TimeSig"/>
+                <menuitem action="GotoPosition"/>
             </menu>
             <menu action="NoteMenu">
                 <menu action="NotePitchMenu">

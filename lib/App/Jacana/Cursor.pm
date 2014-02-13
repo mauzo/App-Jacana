@@ -138,6 +138,16 @@ sub move_to_start :Action(view::Home) {
     $self->position($self->view->doc->music);
 }
 
+sub goto_position :Action(view::GotoPosition) {
+    my ($self) = @_;
+
+    my $dlg = $self->view->run_dialog("GotoPosition", undef,
+        pos => $self->position->get_time);
+    my $pos = $self->view->doc->music->find_time($dlg->pos);
+    warn "GOTO POSITION [$pos]";
+    $self->position($pos);
+}
+
 sub _play_note {
     my ($self) = @_;
     my $pos = $self->position;

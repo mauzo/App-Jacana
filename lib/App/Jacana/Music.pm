@@ -22,4 +22,17 @@ sub staff_line { 0 }
 # the feta font is selected and scaled appropriately.
 sub draw { return }
 
+sub get_time {
+    my ($self) = @_;
+
+    my $dur = 0;
+    while (!$self->is_list_start) {
+        $self->DOES("App::Jacana::HasLength")
+            and $dur += $self->duration;
+        $self = $self->prev;
+    }
+
+    $dur;
+}
+
 1;

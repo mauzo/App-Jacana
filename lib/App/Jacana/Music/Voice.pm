@@ -35,6 +35,16 @@ sub to_lily {
 sub clef { "treble" }
 sub centre_line { 13 }
 
+sub find_time {
+    my ($self, $dur) = @_;
 
+    while ($dur > 0 && !$self->is_list_end) {
+        $self = $self->next;
+        $self->DOES("App::Jacana::HasLength")
+            and $dur -= $self->duration;
+    }
+
+    $self;
+}
 
 1;
