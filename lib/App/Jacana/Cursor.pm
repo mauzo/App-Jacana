@@ -15,7 +15,9 @@ with qw/
     App::Jacana::HasLength
 /;
 
+has staff       => is => "rw", isa => Num, default => 0;
 has view        => is => "ro", weak_ref => 1;
+
 has position    => (
     is      => "rw",
     isa     => Music,
@@ -35,6 +37,11 @@ has "+length"   => (
     gtk_prop    => "view.get_action(NoteLength)::current-value",
     trigger     => 1,
 );
+
+sub voice {
+    my ($self) = @_;
+    $self->view->doc->music->[$self->staff];
+}
 
 sub _trigger_mode { 
     my ($self, $mode) = @_;
@@ -130,12 +137,12 @@ sub move_right :Action(view::Right)  {
 
 sub move_to_end :Action(view::End) {
     my ($self) = @_;
-    $self->position($self->view->doc->music->prev);
+    $self->position($self->voice->prev);
 }
 
 sub move_to_start :Action(view::Home) {
     my ($self) = @_;
-    $self->position($self->view->doc->music);
+    $self->position($self->voice);
 }
 
 sub goto_position :Action(view::GotoPosition) {
@@ -143,9 +150,31 @@ sub goto_position :Action(view::GotoPosition) {
 
     my $dlg = $self->view->run_dialog("GotoPosition", undef,
         pos => $self->position->get_time);
-    my $pos = $self->view->doc->music->find_time($dlg->pos);
+    my $pos = $self->voice->find_time($dlg->pos);
     warn "GOTO POSITION [$pos]";
     $self->position($pos);
+}
+
+sub _set_staff {
+    my ($self, $n) = @_;
+    
+    $n < 0 || $n >= @{$self->view->doc->music}
+        and return;
+
+    my $pos = $self->position->get_time;
+    $self->staff($n);
+    $self->position($self->voice->find_time($pos));
+}
+
+sub up_staff :Action(view::Up)      { $_[0]->_set_staff($_[0]->staff - 1) }
+sub down_staff :Action(view::Down)  { $_[0]->_set_staff($_[0]->staff + 1) }
+
+sub insert_staff :Action(view::InsertStaff) {
+    my ($self) = @_;
+    
+    push @{$self->view->doc->music}, 
+        App::Jacana::Music::Voice->new(name => "voice");
+    $self->view->refresh;
 }
 
 sub _play_note {

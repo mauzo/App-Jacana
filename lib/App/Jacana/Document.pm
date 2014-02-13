@@ -6,6 +6,7 @@ use warnings;
 use Moo;
 
 use File::Slurp     qw/read_file write_file/;
+use Regexp::Common;
 
 use App::Jacana::Music::Clef;
 use App::Jacana::Music::KeySig;
@@ -33,8 +34,10 @@ has dirty => (
 # invisible and inaudible, but it makes the list traversal easier.
 has music => (
     is      => "ro",
-    isa     => Music,
-    default => sub { App::Jacana::Music::Voice->new },
+    isa     => ArrayRef[Music],
+    default => sub { 
+        [ App::Jacana::Music::Voice->new(name => "voice") ];
+    },
 );
 
 sub open {
@@ -51,7 +54,10 @@ sub save {
     my ($self) = @_;
 
     $self->has_filename or die "No filename";
-    write_file $self->filename, $self->music->to_lily;
+    write_file $self->filename, 
+        join "\n",
+        map $_->to_lily,
+        @{$self->music};
 }
 
 my %Chroma = ("", 0, qw/is 1 es -1 isis 2 eses -2/);
@@ -60,7 +66,29 @@ my %Length = qw/ \breve 0 1 1 2 2 4 3 8 4 16 5 32 6 64 7 128 8 /;
 sub parse_music {
     my ($self, $text) = @_;
 
-    my $music = $self->music->prev;
+    my $voices = $self->music();
+    @$voices = ();
+
+    while ($text) {
+        $text =~ s/^\s+//;
+        if ($text =~ s(
+            ^ ([-a-zA-Z]+) \s* = \s*
+              $RE{balanced}{-parens => "{}"}
+        )()x) {
+            my $v = App::Jacana::Music::Voice->new(name => $1);
+            s/^\{//, s/\}$// for my $l = $2;
+            $self->parse_voice($v, $l);
+            push @$voices, $v;
+        }
+        else { last }
+    }
+    $text and die "Unparsable music [$text]";
+
+    warn "PARSED MUSIC: " . Data::Dump::pp $voices;
+}
+
+sub parse_voice {
+    my ($self, $music, $text) = @_;
 
     while ($text) {
         $text =~ s/^\s+//;
@@ -112,7 +140,7 @@ sub parse_music {
             last;
         }
     }
-    $text and die "Can't parse music '$text'";
+    $text and die "Unparsable music [$text]";
 }
 
 1;

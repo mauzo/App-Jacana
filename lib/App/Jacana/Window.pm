@@ -145,6 +145,8 @@ sub _build_actions {
             icon_name:  icon-timesig
         GotoPosition:
             label:      Goto position…
+        InsertStaff:
+            label:      Insert staff
 
         NoteMenu:
             label:      Note
@@ -184,6 +186,8 @@ sub _build_actions {
         Right:
         Home:
         End:
+        Up:
+        Down:
 
         Backspace:
             label:      Backspace
@@ -339,6 +343,8 @@ sub _build_uimgr {
                 <menuitem action="KeySig"/>
                 <menuitem action="TimeSig"/>
                 <menuitem action="GotoPosition"/>
+                <separator/>
+                <menuitem action="InsertStaff"/>
             </menu>
             <menu action="NoteMenu">
                 <menu action="NotePitchMenu">
@@ -421,6 +427,8 @@ sub _build_uimgr {
         <accelerator action="Right"/>
         <accelerator action="Home"/>
         <accelerator action="End"/>
+        <accelerator action="Up"/>
+        <accelerator action="Down"/>
 XML
 
     $ui->insert_action_group($self->actions, 0);

@@ -11,6 +11,7 @@ use App::Jacana::DrawCtx;
 
 use Data::Dump              qw/pp/;
 use Hash::Util::FieldHash   qw/idhash/;
+use List::Util              qw/max/;
 use Module::Runtime         qw/use_module/;
 use Scalar::Util            qw/blessed/;
 
@@ -32,7 +33,7 @@ has cursor      => is => "lazy";
 sub _build_cursor { 
     App::Jacana::Cursor->new(
         view        => $_[0],
-        position    => $_[0]->doc->music,
+        position    => $_[0]->doc->music->[0],
         note        => "c", 
         octave      => 1
     );
@@ -108,7 +109,7 @@ sub open :Action(Open) {
     $dlg->destroy;
 
     $self->doc($doc);
-    $self->cursor->position($doc->music);
+    $self->cursor->position($doc->music->[0]);
 }
 
 sub midi {
@@ -120,7 +121,7 @@ sub midi {
 }
 
 sub _play_music {
-    my ($self, $music) = @_;
+    my ($self, $time) = @_;
 
     $self->get_action("MidiPlay")->set_sensitive(0);
     $self->get_action("MidiPlayHere")->set_sensitive(0);
@@ -128,7 +129,7 @@ sub _play_music {
 
     $self->set_status("Playing");
     my $id = $midi->play_music(
-        $music,
+        $self->doc->music, $time,
         $self->weak_method("playing_on"),
         $self->weak_method("playing_off"),
         $self->weak_method("_stop_playing"),
@@ -137,11 +138,12 @@ sub _play_music {
     $self->get_action("MidiStop")->set_sensitive(1);
 }
 
-sub _play_all :Action(MidiPlay) { 
-    $_[0]->_play_music($_[0]->doc->music);
-}
-sub _play_here :Action(MidiPlayHere) { 
-    $_[0]->_play_music($_[0]->cursor->position);
+sub _play_all :Action(MidiPlay) { $_[0]->_play_music(0) }
+sub _play_here :Action(MidiPlayHere) {
+    my ($self) = @_;
+    my $pos = $self->cursor->position;
+    my $dur = $pos->DOES("App::Jacana::HasLength") ? $pos->duration : 0;
+    $self->_play_music($pos->get_time - $dur + 1);
 }
 
 sub _stop_playing :Action(MidiStop) {
@@ -189,13 +191,31 @@ sub _expose_event :Signal {
         widget      => $widget,
     );
 
-    $c->translate(0, 12);
-    $self->_show_stave($c);
-    my $wd = $self->_show_music($c, $self->doc->music);
+    my ($wd, $ht) = $self->_show_music($c);
 
-    my ($x1, $y1) = $c->c->user_to_device(0, -12);
-    my ($x2, $y2) = $c->c->user_to_device($wd, 12);
+    my ($x1, $y1) = $c->c->user_to_device(0, 0);
+    my ($x2, $y2) = $c->c->user_to_device($wd, $ht);
     $widget->set_size_request($x2 - $x1, $y2 - $y1);
+}
+
+sub _show_music {
+    my ($self, $c) = @_;
+
+    my $voices  = $self->doc->music;
+    my $wd      = 0;
+
+    for my $n (0..$#$voices) {
+        my $v = $$voices[$n];
+
+        $c->reset;
+        $c->save;
+            $c->translate(0, 24*$n + 12);
+            $self->_show_stave($c);
+            $wd = max $wd, $self->_show_voice($c, $v);
+        $c->restore;
+    }
+
+    ($wd, 24*@$voices);
 }
 
 sub _show_stave {
@@ -211,7 +231,7 @@ sub _show_stave {
     $c->restore;
 }
 
-sub _show_music {
+sub _show_voice {
     my ($self, $c, $item) = @_;
     no warnings "uninitialized";
 

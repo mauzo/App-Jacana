@@ -31,14 +31,17 @@ has font    => (
 has clef    => (
     is      => "rw",
     isa     => ConsumerOf["App::Jacana::HasClef"],
+    clearer => 1,
 );
 has key     => (
     is      => "rw",
     isa     => ConsumerOf["App::Jacana::HasKey"],
+    clearer => 1,
 );
 has time    => (
     is      => "rw",
     isa     => ConsumerOf["App::Jacana::HasTime"],
+    clearer => 1,
 );
 has bar_length => (
     is      => "rw",
@@ -67,6 +70,14 @@ sub _build_font {
 }
 
 sub BUILD { }
+
+sub reset {
+    my ($self) = @_;
+    $self->clear_clef;
+    $self->clear_key;
+    $self->clear_time;
+    $self->bar_length(0);
+}
 
 sub width {
     my ($self) = @_;

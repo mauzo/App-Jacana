@@ -13,6 +13,8 @@ with    qw/
     App::Jacana::HasTime
 /;
 
+has name => is => "rw", required => 1;
+
 has "+key" => default => 0;
 has "+mode" => default => "major";
 
@@ -21,20 +23,27 @@ has "+divisor" => default => 4;
 
 sub to_lily {
     my ($self) = @_;
-    my $lily;
+    
+    my $name = $self->name;
 
+    my $lily;
     until ($self->is_list_end) {
         $self = $self->next;
         $lily .= $self->to_lily . " ";
     }
 
-    $lily;
+    local $Text::Wrap::huge     = "overflow";
+    local $Text::Wrap::unexpand = 0;
+    $lily = wrap "  ", "  ", $lily;
+
+    "$name = {\n$lily\n}\n";
 }
 
 # We default to treble clef, because Lily does.
 sub clef { "treble" }
 sub centre_line { 13 }
 
+# Returns a Music item and the length of time left in that item
 sub find_time {
     my ($self, $dur) = @_;
 
@@ -44,7 +53,7 @@ sub find_time {
             and $dur -= $self->duration;
     }
 
-    $self;
+    ($self, -$dur);
 }
 
 1;

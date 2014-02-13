@@ -55,8 +55,8 @@ sub remove_active {
 sub BUILD {
     my ($self) = @_;
 
-    $self->synth->program_select($_, $self->sfont, 0, 68)
-        for 0..1;
+    $self->synth->program_select($_, $self->sfont, 0, 68+$_)
+        for 0..10;
     $self->driver;
 }
 
@@ -78,11 +78,11 @@ sub play_note {
 }
 
 sub _note_on {
-    my ($self, $note) = @_;
+    my ($self, $chan, $note) = @_;
     my $pitch;
     if ($note->DOES("App::Jacana::HasPitch")) {
         $pitch = $note->pitch;
-        eval { $self->synth->noteon(1, $pitch, 85) };
+        eval { $self->synth->noteon($chan, $pitch, 85) };
     }
     my $duration = $note->DOES("App::Jacana::HasLength")
         ? $note->duration : undef;
@@ -90,9 +90,9 @@ sub _note_on {
 }
 
 sub _note_off {
-    my ($self, $pitch) = @_;
+    my ($self, $chan, $pitch) = @_;
     defined $pitch 
-        and eval { $self->synth->noteoff(1, $pitch) };
+        and eval { $self->synth->noteoff($chan, $pitch) };
 }
 
 sub _all_notes_off {
@@ -101,32 +101,48 @@ sub _all_notes_off {
 }
 
 sub play_music {
-    my ($self, $note, $start_note, $stop_note, $finish) = @_;
+    my ($self, $music, $time, $start_note, $stop_note, $finish) = @_;
 
-    my ($pitch, $when) = $self->_note_on($note);
-    $start_note->($note);
+    my (@note, @pitch, @when);
+
+    for (0..$#$music) {
+        ($note[$_], $when[$_])  = $$music[$_]->find_time($time);
+        ($pitch[$_], undef)     = $self->_note_on($_ + 1, $note[$_]);
+        $start_note->($note[$_]);
+    }
+
+    my $next_note = sub {
+        my ($n) = @_;
+
+        $when[$n]-- > 1 and return;
+        
+        $self->_note_off($n + 1, $pitch[$n]);
+        $stop_note->($note[$n]);
+
+        if ($note[$n]->is_list_end) {
+            splice @$_, $n, 1 for \(@note, @pitch, @when);
+            return;
+        }
+
+        $note[$n] = $note[$n]->next;
+        ($pitch[$n], $when[$n]) = $self->_note_on($n + 1, $note[$n]);
+        $start_note->($note[$n]);
+    };
 
     my $id;
-    $id = Glib::Timeout->add(16, $self->weak_closure(sub {
+    $id = Glib::Timeout->add(32, $self->weak_closure(sub {
         my ($self) = @_;
-
-        $when-- > 1 and return 1;
-
-        $self->_note_off($pitch);
-        $stop_note->($note);
-
-        if ($note->is_list_end) {
+    
+        $next_note->($_) for 0..$#note;
+    
+        unless (@note) {
             $finish->();
             $self and $self->remove_active($id);
             return 0;
         }
-
-        $note           = $note->next;
-        ($pitch, $when) = $self->_note_on($note);
-        $start_note->($note);
         return 1;
     }));
-    $self->add_active($id, 1);
+    $self->add_active($id, 1..@note);
     $id;
 }
 
