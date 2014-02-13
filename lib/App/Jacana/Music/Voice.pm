@@ -2,6 +2,10 @@ package App::Jacana::Music::Voice;
 
 use Moo;
 
+use Text::Wrap  qw/wrap/;
+
+use namespace::clean;
+
 extends "App::Jacana::Music";
 with    qw/ 
     App::Jacana::HasClef 

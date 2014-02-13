@@ -5,6 +5,8 @@ use warnings;
 
 use Moo;
 
+use File::Slurp     qw/read_file write_file/;
+
 use App::Jacana::Music::Clef;
 use App::Jacana::Music::KeySig;
 use App::Jacana::Music::Note;
@@ -13,6 +15,20 @@ use App::Jacana::Music::TimeSig;
 use App::Jacana::Music::Voice;
 use App::Jacana::Util::Types;
 
+use namespace::clean;
+
+has filename => (
+    is          => "rw",
+    isa         => Maybe[Str],
+    predicate   => 1,
+    clearer     => 1,
+);
+has dirty => (
+    is      => "rw",
+    isa     => Bool,
+    default => 0,
+);
+
 # We always have a Music::Start item at the head of the list. This is
 # invisible and inaudible, but it makes the list traversal easier.
 has music => (
@@ -20,6 +36,23 @@ has music => (
     isa     => Music,
     default => sub { App::Jacana::Music::Voice->new },
 );
+
+sub open {
+    my ($self, $file) = @_;
+
+    my $lily    = read_file $file;
+    my $new     = $self->new(filename => $file);
+
+    $new->parse_music($lily);
+    $new;
+}
+
+sub save {
+    my ($self) = @_;
+
+    $self->has_filename or die "No filename";
+    write_file $self->filename, $self->music->to_lily;
+}
 
 my %Chroma = ("", 0, qw/is 1 es -1 isis 2 eses -2/);
 my %Length = qw/ \breve 0 1 1 2 2 4 3 8 4 16 5 32 6 64 7 128 8 /;

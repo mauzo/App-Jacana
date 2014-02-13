@@ -24,7 +24,9 @@ with qw/
     App::Jacana::HasWindow
 /;
 
-has doc         => is => "ro";
+# XXX This is wrong: in the SDI model I should be creating a new View
+# when we open a new document.
+has doc         => is => "rw";
 has cursor      => is => "lazy";
 
 sub _build_cursor { 
@@ -69,6 +71,44 @@ sub clear_playing {
 sub BUILD {
     my ($self) = @_;
     $self->get_action("MidiStop")->set_sensitive(0);
+}
+
+sub save_as :Action(SaveAs) {
+    my ($self)  = @_;
+    my $doc     = $self->doc;
+
+    my $dlg = Gtk2::FileChooserDialog->new(
+        "Save as…", $self->_window->frame, "save",
+        Cancel => "cancel", OK => "ok",
+    );
+    $doc->has_filename and $dlg->set_filename($doc->filename);
+    $dlg->run eq "ok" or $dlg->destroy, return;
+    $doc->filename($dlg->get_filename);
+    $dlg->destroy;
+    $doc->save;
+}
+
+sub save :Action(Save) {
+    my ($self)  = @_;
+    my $doc     = $self->doc;
+
+    $doc->has_filename or return $self->save_as;
+    $doc->save;
+}
+
+sub open :Action(Open) {
+    my ($self) = @_;
+
+    my $dlg = Gtk2::FileChooserDialog->new(
+        "Open…", $self->_window->frame, "open",
+        Cancel => "cancel", OK => "ok",
+    );
+    $dlg->run eq "ok" or $dlg->destroy, return;
+    my $doc = App::Jacana::Document->open($dlg->get_filename);
+    $dlg->destroy;
+
+    $self->doc($doc);
+    $self->cursor->position($doc->music);
 }
 
 sub midi {
