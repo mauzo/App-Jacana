@@ -72,12 +72,12 @@ sub _draw_stem {
 
     my ($x, $y1, $y2);
     if ($up) {
-        $x  = $wd - 0.6;
+        $x  = $wd - 0.7;
         $y1 = -0.5;
         $y2 = -6.5;
     }
     else {
-        $x  = 0.6;
+        $x  = 0.7;
         $y1 = 0.5;
         $y2 = 5.5;
     }
@@ -85,7 +85,7 @@ sub _draw_stem {
     $c->line_to($x, $y2);
     $c->stroke;
 
-    return ($x + ($up ? 0.1 : 0), $y2);
+    return ($x + -0.1, $y2);
 }
 
 sub _draw_tail {
