@@ -209,10 +209,13 @@ sub _build_actions {
             label:      View
         ZoomIn:
             label:      Zoom in
+            stock_id:   gtk-zoom-in
         ZoomOut:
             label:      Zoom out
+            stock_id:   gtk-zoom-out
         ZoomOff:
             label:      Reset zoom
+            stock_id:   gtk-zoom-100
 YAML
     
     my $grp = Gtk2::ActionGroup->new("edit");
