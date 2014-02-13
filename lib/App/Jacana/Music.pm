@@ -7,6 +7,9 @@ with qw/
     App::Jacana::Util::LinkList
 /;
 
+# Otherwise we get a method conflict (grr)
+sub BUILD { }
+
 sub to_lily { "" }
 
 # position($centre)

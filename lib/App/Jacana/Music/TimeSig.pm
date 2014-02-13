@@ -4,19 +4,30 @@ use Moo;
 
 use App::Jacana::Util::Length;
 
-use List::Util qw/sum max/;
+use Data::Dump      qw/pp/;
+use List::Util      qw/sum max/;
+use Scalar::Util    qw/blessed/;
 
 use namespace::clean;
 
 extends "App::Jacana::Music";
-with qw/ App::Jacana::HasTime /;
+with qw/
+    MooX::Role::Coercer
+    App::Jacana::HasTime
+    App::Jacana::HasDialog
+/;
+
+has "+partial" => coerce_to => "App::Jacana::Util::Length";
+
+sub dialog { "TimeSig" }
 
 sub from_lily {
     my ($self, %c) = @_;
     if (my $pl = delete $c{plen}) {
-        $c{partial} = App::Jacana::Util::Length->new(
+        $c{partial} = {
             App::Jacana::HasLength->_length_from_lily(
-                $pl, delete $c{pdots}));
+                $pl, delete $c{pdots})
+        };
     }
     $self->new(\%c);
 }

@@ -52,11 +52,11 @@ sub _trigger_position {
         and return $self->position($note->next);
 
     my %does    = map +($_, $note->DOES("App::Jacana::Has$_")),
-        qw/Pitch Length/;
-    my %isa     = map +($_, $note->isa("App::Jacana::Music::$_")),
-        qw/KeySig/;
-    my %act     = map +($_, $view->get_action($_)),
-        qw/AddDot NoteChroma Sharpen Flatten OctaveUp OctaveDown/;
+        qw/Pitch Length Key Dialog/;
+    my %act     = map +($_, $view->get_action($_)), qw/
+        AddDot NoteChroma Sharpen Flatten OctaveUp OctaveDown
+        Properties
+    /;
 
     $act{AddDot}->set_sensitive($does{Length});
     if ($does{Pitch}) {
@@ -66,19 +66,20 @@ sub _trigger_position {
     else {
         $act{NoteChroma}->set_sensitive(0);
     }
-    $_->set_sensitive($does{Pitch} || $isa{KeySig}) 
+    $_->set_sensitive($does{Pitch} || $does{Key}) 
         for @act{qw/Sharpen Flatten/};
     $_->set_sensitive($does{Pitch})
         for @act{qw/OctaveUp OctaveDown/};
+    $act{Properties}->set_sensitive($does{Dialog});
 
     $self->copy_from($note, "App::Jacana::HasLength");
-    warn "POSITION " . join ",", map "$_=>$$self{$_}", keys %$self;
     $self->view->refresh;
 }
 
 sub BUILD {
     my ($self) = @_;
     $self->length(3);
+    $self->position($self->position);
 }
 
 sub _trigger_length {
@@ -266,11 +267,35 @@ sub _insert_key :Action(view::KeySig) {
     my ($self) = @_;
     $self->mode eq "insert" or return;
 
-    my $dlg = $self->view->run_dialog("KeySig",
+    my $dlg = $self->view->run_dialog("KeySig", undef,
         key => 0, mode => "major")
         or return;
     $self->position($self->position->insert(
         App::Jacana::Music::KeySig->new(copy_from => $dlg)));
+    $self->view->refresh;
+}
+
+sub _insert_time :Action(view::TimeSig) {
+    my ($self) = @_;
+    $self->mode eq "insert" or return;
+
+    require App::Jacana::Dialog::TimeSig;
+    my $dlg = $self->view->run_dialog("TimeSig", undef,
+        beats   => 4, 
+        divisor => 4,
+    ) or return;
+    $self->position($self->position->insert(
+        App::Jacana::Music::TimeSig->new(copy_from => $dlg)));
+    $self->view->refresh;
+}
+
+sub _properties :Action(view::Properties) {
+    my ($self) = @_;
+
+    my $pos = $self->position;
+    $pos->DOES("App::Jacana::HasDialog") or return;
+
+    $pos->run_dialog($self->view);
     $self->view->refresh;
 }
 

@@ -24,7 +24,7 @@ has doc         => is => "ro";
 has view        => is => "lazy";
 
 # we own the canonical copy of the actions
-has "+actions"  => is => "lazy", required => 0;
+has "+actions"  => lazy => 1, builder => 1, required => 0;
 
 has frame       => is => "lazy";
 has status_bar  => is => "lazy";
@@ -105,6 +105,9 @@ sub _build_actions {
             label:      Insert mode
         EditMode:
             label:      Edit mode
+        Properties:
+            label:      Properties…
+            stock_id:   gtk-properties
 
         StaffMenu:
             label:      Staff
@@ -127,6 +130,10 @@ sub _build_actions {
             icon_name:  icon-bass
         KeySig:
             label:      Key signature…
+            icon_name:  icon-keysig
+        TimeSig:
+            label:      Time signature…
+            icon_name:  icon-timesig
 
         NoteMenu:
             label:      Note
@@ -301,6 +308,7 @@ sub _build_uimgr {
             <menu action="EditMenu">
                 <menuitem action="InsertMode"/>
                 <menuitem action="EditMode"/>
+                <menuitem action="Properties"/>
             </menu>
             <menu action="StaffMenu">
                 <menu action="ClefMenu">
@@ -312,6 +320,7 @@ sub _build_uimgr {
                     <menuitem action="ClefSoprano"/>
                 </menu>
                 <menuitem action="KeySig"/>
+                <menuitem action="TimeSig"/>
             </menu>
             <menu action="NoteMenu">
                 <menu action="NotePitchMenu">
@@ -373,6 +382,10 @@ sub _build_uimgr {
             <toolitem action="Sharp"/>
             <toolitem action="Flat"/>
             <toolitem action="Natural"/>
+            <separator/>
+            <toolitem action="KeySig"/>
+            <toolitem action="TimeSig"/>
+            <toolitem action="Properties"/>
             <separator/>
             <toolitem action="ClefTreble"/>
             <toolitem action="ClefAlto"/>

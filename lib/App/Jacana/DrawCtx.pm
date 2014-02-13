@@ -66,6 +66,8 @@ sub _build_font {
     $self->_resource("feta_font");
 }
 
+sub BUILD { }
+
 sub width {
     my ($self) = @_;
     my ($wd) = $self->widget->get_window->get_size;

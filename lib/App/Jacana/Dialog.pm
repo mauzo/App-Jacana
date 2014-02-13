@@ -7,7 +7,7 @@ with qw/ App::Jacana::HasWindow /;
 
 has dialog => is => "lazy";
 
-sub title   { undef }
+sub title   { ... }
 sub buttons { "gtk-cancel" => "cancel", "gtk-ok" => "ok" }
 
 sub _build_dialog {
@@ -19,6 +19,7 @@ sub _build_dialog {
         ["modal", "destroy-with-parent"],
         $self->buttons,
     );
+    $dlg->set_property("has-separator", 1);
     my $vb = $dlg->get_content_area;
     $self->_build_content_area($vb);
     $vb->show_all;

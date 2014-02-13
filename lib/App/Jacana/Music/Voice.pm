@@ -9,6 +9,12 @@ with    qw/
     App::Jacana::HasTime
 /;
 
+has "+key" => default => 0;
+has "+mode" => default => "major";
+
+has "+beats" => default => 4;
+has "+divisor" => default => 4;
+
 sub to_lily {
     my ($self) = @_;
     my $lily;
@@ -25,10 +31,6 @@ sub to_lily {
 sub clef { "treble" }
 sub centre_line { 13 }
 
-has "+key" => default => 0;
-has "+mode" => default => "major";
 
-has "+beats" => default => 4;
-has "+divisor" => default => 4;
 
 1;

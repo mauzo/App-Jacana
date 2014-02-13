@@ -4,4 +4,6 @@ use Moo;
 
 with "App::Jacana::HasPitch";
 
+sub BUILD {}
+
 1;

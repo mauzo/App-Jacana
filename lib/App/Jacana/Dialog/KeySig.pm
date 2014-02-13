@@ -49,10 +49,11 @@ sub _build_content_area {
     my ($self, $vb) = @_;
 
     my $hb = Gtk2::HBox->new;
+    $hb->pack_start(Gtk2::Label->new("Key:"), 1, 1, 5);
     $hb->pack_start($self->_key, 1, 1, 0);
-    $hb->pack_start($self->_mode, 1, 1, 0);
+    $hb->pack_start($self->_mode, 1, 1, 5);
 
-    $vb->pack_start($hb, 1, 1, 0);
+    $vb->pack_start($hb, 1, 1, 5);
 }
     
 1;

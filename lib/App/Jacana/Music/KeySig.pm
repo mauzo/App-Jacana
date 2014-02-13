@@ -5,7 +5,12 @@ use Moo;
 use YAML::XS ();
 
 extends "App::Jacana::Music";
-with    qw/ App::Jacana::HasKey /;
+with    qw/ 
+    App::Jacana::HasDialog
+    App::Jacana::HasKey 
+/;
+
+sub dialog { "KeySig" }
 
 my %Staff = %{YAML::XS::Load <<YAML};
     treble:

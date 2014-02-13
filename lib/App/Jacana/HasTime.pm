@@ -16,9 +16,9 @@ has divisor => (
     copiable => 1,
 );
 has partial => (
-    is      => "rw",
-    isa     => ConsumerOf["App::Jacana::HasLength"],
-    copiable => 1,
+    is          => "rw",
+    isa         => Maybe[ConsumerOf["App::Jacana::HasLength"]],
+    deep_copy   => 1,
 );
 
 # in qhdsqs

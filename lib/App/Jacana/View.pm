@@ -12,6 +12,7 @@ use App::Jacana::DrawCtx;
 use Data::Dump              qw/pp/;
 use Hash::Util::FieldHash   qw/idhash/;
 use Module::Runtime         qw/use_module/;
+use Scalar::Util            qw/blessed/;
 
 use namespace::clean;
 
@@ -269,10 +270,11 @@ sub _scroll_event :Signal {
 }
 
 sub run_dialog {
-    my ($self, $which, @args) = @_;
+    my ($self, $which, $copy, @args) = @_;
 
     my $dlg = use_module("App::Jacana::Dialog::$which")
         ->new(copy_from => $self, @args);
+    $copy and $dlg->copy_from($copy);
     $dlg->run eq "ok" or return;
     $dlg;
 }
