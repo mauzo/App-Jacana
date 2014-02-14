@@ -6,7 +6,6 @@ use App::Jacana::Util::Pitch;
 
 use POSIX ();
 
-
 # A named clef type. This must be provided so key signatures know where
 # to draw their sharps and flats.
 requires "clef";

@@ -26,6 +26,7 @@ has clef => (
 # This must be applied after 'has clef', because that is a requirement.
 with    qw/
     App::Jacana::HasClef
+    App::Jacana::Music::HasAmbient
 /;
 
 sub to_lily {

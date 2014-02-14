@@ -3,7 +3,7 @@ package App::Jacana::Util::LinkList;
 use 5.012;
 use warnings;
 
-use Scalar::Util    qw/ weaken isweak /;
+use Scalar::Util    qw/ refaddr blessed weaken isweak /;
 
 use App::Jacana::Util::Types;
 
@@ -24,14 +24,19 @@ has prev    => (
 
 push @Data::Dump::FILTERS, sub {
     my ($ctx, $obj) = @_;
-    require Scalar::Util;
-    my $class = Scalar::Util::blessed $obj;
+
+    my $class = blessed $obj;
     $class && $obj->DOES(__PACKAGE__) or return;
+
     my %atts = %{$obj};
     delete @atts{qw/prev next/};
-    my $next = $obj->is_list_end ? "" 
+    $atts{ambient} and $atts{ambient} = 1;
+
+    my $next    = $obj->is_list_end ? "" 
         : "->" . Data::Dump::pp($obj->next);
-    +{ dump => $class . Data::Dump::pp(\%atts) . $next };
+    my $atts    = Data::Dump::pp(\%atts);
+
+    +{ dump => "$class$atts$next" };
 };
 
 # This has to manipulate the hash directly, because of the irritating

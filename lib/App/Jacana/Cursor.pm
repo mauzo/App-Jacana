@@ -208,14 +208,6 @@ sub _adjust_chroma {
 sub sharpen :Action(view::Sharpen) { $_[0]->_adjust_chroma(+1) }
 sub flatten :Action(view::Flatten) { $_[0]->_adjust_chroma(-1) }
 
-sub _find_ambient {
-    my ($self, $role) = @_;
-    my $pos = $self->position;
-    $pos = $pos->prev until $pos->is_list_start 
-        || $pos->DOES("App::Jacana::Has$role");
-    $pos;
-}
-
 method_attrs change_pitch => map "Action(view::Pitch$_)", "A".."G";
 
 sub change_pitch {
@@ -237,11 +229,12 @@ sub change_pitch {
     }
 
     # find the pitch we want
-    my $ref     = $Dp ? $pos : $self->_find_ambient("Clef")->centre_pitch;
+    my $ref     = $Dp ? $pos 
+        : $pos->ambient->find_role("HasClef")->centre_pitch;
     my $pitch   = $ref->nearest($note);
 
     # changing note always resets chroma
-    my $key     = $self->_find_ambient("Key");
+    my $key     = $pos->ambient->find_role("HasKey");
     $pitch->chroma($key->chroma($note));
 
     if ($self->mode eq "insert") {
@@ -286,8 +279,9 @@ sub _insert_clef {
     my ($self, $type) = @_;
     my $pos = $self->position;
     if ($self->mode eq "insert") {
-        $self->position($self->position->insert(
+        $self->position($pos->insert(
             App::Jacana::Music::Clef->new(clef => $type)));
+        $pos->ambient->owner->clear_ambient;
     }
     else {
         $pos->isa("App::Jacana::Music::Clef") or return;
@@ -309,8 +303,10 @@ sub _insert_key :Action(view::KeySig) {
     my $dlg = $self->view->run_dialog("KeySig", undef,
         key => 0, mode => "major")
         or return;
-    $self->position($self->position->insert(
+    my $pos = $self->position;
+    $self->position($pos->insert(
         App::Jacana::Music::KeySig->new(copy_from => $dlg)));
+    $pos->ambient->owner->clear_ambient;
     $self->view->refresh;
 }
 
@@ -323,8 +319,10 @@ sub _insert_time :Action(view::TimeSig) {
         beats   => 4, 
         divisor => 4,
     ) or return;
-    $self->position($self->position->insert(
+    my $pos = $self->position;
+    $self->position($pos->insert(
         App::Jacana::Music::TimeSig->new(copy_from => $dlg)));
+    $pos->ambient->owner->clear_ambient;
     $self->view->refresh;
 }
 

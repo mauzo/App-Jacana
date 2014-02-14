@@ -247,10 +247,7 @@ sub _show_voice {
     for (;;) {
         if ($item->DOES("App::Jacana::HasClef")) {
             $centre = $item->centre_line($centre);
-            $c->clef($item);
         }
-        $item->DOES("App::Jacana::HasKey")
-            and $c->key($item);
 
         my $pos = $item->staff_line($centre);
         $c->save;

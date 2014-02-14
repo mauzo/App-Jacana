@@ -28,21 +28,6 @@ has font    => (
     is      => "lazy",
     isa     => InstanceOf["Font::FreeType::Face"],
 );
-has clef    => (
-    is      => "rw",
-    isa     => ConsumerOf["App::Jacana::HasClef"],
-    clearer => 1,
-);
-has key     => (
-    is      => "rw",
-    isa     => ConsumerOf["App::Jacana::HasKey"],
-    clearer => 1,
-);
-has time    => (
-    is      => "rw",
-    isa     => ConsumerOf["App::Jacana::HasTime"],
-    clearer => 1,
-);
 has bar_length => (
     is      => "rw",
     isa     => Int,
@@ -73,9 +58,6 @@ sub BUILD { }
 
 sub reset {
     my ($self) = @_;
-    $self->clear_clef;
-    $self->clear_key;
-    $self->clear_time;
     $self->bar_length(0);
 }
 
@@ -103,13 +85,13 @@ sub add_to_bar {
     my ($self, $x, $note) = @_;
 
     if ($note->DOES("App::Jacana::HasTime")) {
-        $self->time($note);
         my $par = $note->partial;
         $par and $self->bar_length($note->length - $par->duration);
         return 0;
     }
 
-    my $time = $self->time                  or return;
+    my $time = $note->ambient->find_role("HasTime")
+        or return;
     $note->DOES("App::Jacana::HasLength")   or return;
 
     my $new = $self->bar_length + $note->duration;

@@ -8,6 +8,7 @@ extends "App::Jacana::Music";
 with    qw/ 
     App::Jacana::HasDialog
     App::Jacana::HasKey 
+    App::Jacana::Music::HasAmbient
 /;
 
 sub dialog { "KeySig" }
@@ -31,7 +32,7 @@ sub draw {
     my ($self, $c, $pos) = @_;
 
     my $key     = $self->key;
-    my $clef    = $c->clef->clef;
+    my $clef    = $self->ambient->find_role("HasClef")->clef;
     my $staff   = $Staff{$clef};
     my $count   = abs $key;
     my $chroma  = $key > 0 ? "sharp" : $key < 0 ? "flat" : "natural";

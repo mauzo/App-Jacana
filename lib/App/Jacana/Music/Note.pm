@@ -47,9 +47,12 @@ sub _accidental {
     my ($self, $c) = @_;
     my $chroma  = $self->chroma;
     my $note    = $self->note;
-    my $key     = $c->key->chroma($self->note);
+    my $ambient = $self->ambient
+        or die "Can't find ambient for: " . Data::Dump::pp($self);
+    my $key     = $self->ambient->find_role("HasKey")
+        or return;
 
-    $chroma == $key and return;
+    $chroma == $key->chroma($note) and return;
     $c->glyph("accidentals.$Acci{$chroma}");
 }
 

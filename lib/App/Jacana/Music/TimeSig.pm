@@ -1,6 +1,8 @@
 package App::Jacana::Music::TimeSig;
 
 use Moo;
+use MooX::AccessorMaker
+    apply => [qw/ MooX::MakerRole::Coercer /];
 
 use App::Jacana::Util::Length;
 
@@ -12,9 +14,9 @@ use namespace::clean;
 
 extends "App::Jacana::Music";
 with qw/
-    MooX::Role::Coercer
     App::Jacana::HasTime
     App::Jacana::HasDialog
+    App::Jacana::Music::HasAmbient
 /;
 
 has "+partial" => coerce_to => "App::Jacana::Util::Length";

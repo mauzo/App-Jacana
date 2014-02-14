@@ -11,6 +11,7 @@ with    qw/
     App::Jacana::HasClef 
     App::Jacana::HasKey
     App::Jacana::HasTime
+    App::Jacana::Music::HasAmbient
 /;
 
 has name => is => "rw", required => 1;

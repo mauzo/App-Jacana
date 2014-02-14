@@ -2,6 +2,9 @@ package App::Jacana::Dialog::TimeSig;
 
 use 5.012;
 use Moo;
+use MooX::AccessorMaker
+    apply => [qw/ MooX::MakerRole::Coercer /];
+
 use App::Jacana::Gtk2::ComboBox;
 use App::Jacana::Util::Types;
 
@@ -13,7 +16,6 @@ use namespace::clean;
 extends "App::Jacana::Dialog";
 with    qw/ 
     MooX::Gtk2
-    MooX::Role::Coercer
     App::Jacana::HasTime
 /;
 

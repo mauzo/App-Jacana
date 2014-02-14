@@ -1,11 +1,40 @@
 package App::Jacana::Music;
 
 use Moo;
+use MooX::AccessorMaker
+    apply => [qw/ MooX::MakerRole::IgnoreUndef /];
+
+use App::Jacana::Util::Types;
+
+use namespace::clean;
 
 with qw/
     MooX::Role::Copiable
     App::Jacana::Util::LinkList
 /;
+
+has ambient     => (
+    is          => "rw",
+    lazy        => 1,
+    builder     => 1,
+    isa         => InstanceOf["App::Jacana::Music::Ambient"],
+    weak_ref    => 1,
+    ignore_undef    => 1,
+    clearer     => 1,
+);
+
+has rendered    => (
+    is      => "lazy",
+    clearer => 1,
+    isa     => InstanceOf["Cairo::RecordingSurface"],
+);
+
+sub _build_ambient {
+    my ($self) = @_;
+
+    $self->is_list_start and die "Start of list must be HasAmbient";
+    $self->prev->ambient;
+}
 
 # Otherwise we get a method conflict (grr)
 sub BUILD { }
