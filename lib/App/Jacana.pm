@@ -20,6 +20,11 @@ use File::ShareDir ();
 
 with qw/ App::Jacana::HasApp /;
 
+has args    => (
+    is          => "ro",
+    required    => 1,
+);
+
 has "+app" => (
     required    => 0, 
     default     => sub { $_[0] },
@@ -38,9 +43,14 @@ has window      => is => "lazy";
 sub _build_window {
     my ($self) = @_;
 
+    my $args    = $self->args;
+    my $doc     = @$args 
+        ? App::Jacana::Document->open($$args[0])
+        : App::Jacana::Document->new;
+
     App::Jacana::Window->new(
         copy_from   => $self,
-        doc         => App::Jacana::Document->new,
+        doc         => $doc,
     );
 }
 
