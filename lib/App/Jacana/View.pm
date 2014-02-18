@@ -6,12 +6,13 @@ use Moo;
 use MooX::MethodAttributes
     use     => [qw/ MooX::Gtk2 /];
 
+use App::Jacana::BarCtx;
 use App::Jacana::Cursor;
 use App::Jacana::DrawCtx;
 
 use Data::Dump              qw/pp/;
 use Hash::Util::FieldHash   qw/idhash/;
-use List::Util              qw/max/;
+use List::Util              qw/min max/;
 use Module::Runtime         qw/use_module/;
 use Scalar::Util            qw/blessed/;
 
@@ -198,97 +199,133 @@ sub _expose_event :Signal {
     $widget->set_size_request($x2 - $x1, $y2 - $y1);
 }
 
+#        $c->save;
+#            $c->set_line_width(0.1);
+#            $c->set_source_rgb(0.8, 0, 0);
+#            $c->move_to($x, 0);
+#            $c->line_to($x, 24*@voices);
+#            $c->stroke;
+#        $c->restore;
+#            $c->save;
+#                $c->set_line_width(0.1);
+#                if (my $lsb = $item->lsb($c)) {
+#                    $c->set_source_rgb(0.8, 0, 0.8);
+#                    $c->move_to($x - $lsb, $y - 6);
+#                    $c->line_to($x - $lsb, $y + 6);
+#                    $c->stroke;
+#                }
+#                $c->set_source_rgb(0, 0.8, 0);
+#                $c->move_to($x + $mywd, $y - 10);
+#                $c->line_to($x + $mywd, $y + 10);
+#                $c->stroke;
+#            $c->restore;
+
 sub _show_music {
     my ($self, $c) = @_;
 
     my $voices  = $self->doc->music;
-    my $wd      = 0;
+    my @voices  =
+        map App::Jacana::BarCtx->new(
+            item    => $$voices[$_],
+            y       => 24*$_ + 12,
+        ),
+        0..$#$voices;
 
-    for my $n (0..$#$voices) {
-        my $v = $$voices[$n];
+    $c->set_source_rgb(0, 0, 0);
+    $self->_show_stave($c, $_) for map $_->y, @voices;
 
-        $c->reset;
-        $c->save;
-            $c->translate(0, 24*$n + 12);
-            $self->_show_stave($c);
-            $wd = max $wd, $self->_show_voice($c, $v);
-        $c->restore;
+    my $x = 4;
+
+    for (;;) {
+        my $wd = 0;
+
+        my $skip = min map $_->when, @voices;
+        $_->skip($skip) for @voices;
+
+        my @draw = grep !$_->when, @voices;
+        $x += max 0, 
+            map $self->_show_barline($c, $x, $_),
+            grep $_->barline,
+            @draw;
+        $x += max map $_->lsb($c), map $_->item, @draw;
+
+        for my $v (@draw) {
+            my $y       = $v->y;
+            my $item    = $v->item;
+
+            $c->save;
+                $c->translate($x, $y);
+                $wd = max $wd, $self->_show_item($c, $item);
+            $c->restore;
+
+            $v->next;
+        }
+        $x += $wd;
+
+        @voices = grep $_->has_item, @voices or last;
     }
 
-    ($wd, 24*@$voices);
+    ($x + 4, 24*@$voices);
 }
 
 sub _show_stave {
-    my ($self, $c) = @_;
+    my ($self, $c, $y) = @_;
 
     $c->save;
         for (-2..2) {
-            $c->move_to(0, 2*$_);
-            $c->line_to($c->width, 2*$_);
+            $c->move_to(0, 2*$_ + $y);
+            $c->line_to($c->width, 2*$_ + $y);
         }
         $c->set_line_width(0.1);
         $c->stroke;
     $c->restore;
 }
 
-sub _show_voice {
+sub _show_item {
     my ($self, $c, $item) = @_;
     no warnings "uninitialized";
 
     my $playing = $self->_playing;
-    my $ftfont  = $self->_resource("feta_font");
     my $cursor  = $self->cursor;
     my $curpos  = $cursor->position;
     my $mode    = $cursor->mode;
-    my $centre;
 
-    my $x = 4;
+    my $x = 0;
 
-    for (;;) {
-        if ($item->DOES("App::Jacana::HasClef")) {
-            $centre = $item->centre_line($centre);
-        }
+    my $pos = $item->staff_line;
+    $c->save;
+        $c->translate($x, -$pos);
+        $c->move_to(0, 0);
+        $item == $curpos
+            and $c->set_source_rgb(0, 0, 1);
+        $playing->{$item}
+            and $c->set_source_rgb(1, 0, 0);
+        $x += $item->draw($c, $pos) + 2;
+    $c->restore;
 
-        my $pos = $item->staff_line($centre);
-        $c->save;
-            $c->translate($x, -$pos);
-            $c->move_to(0, 0);
-            $item == $curpos
-                and $c->set_source_rgb(0, 0, 1);
-            $playing->{$item}
-                and $c->set_source_rgb(1, 0, 0);
-            $x += $item->draw($c, $pos) + 2;
-        $c->restore;
-
-        $mode eq "insert" && $item == $curpos 
-            and $self->_show_cursor($c, $x - 1, $centre);
-
-        $c->add_to_bar($x, $item)
-            and $x += $self->_show_barline($c, $x);
-
-        $item->is_list_end and last;
-        $item = $item->next;
-    }
+    $mode eq "insert" && $item == $curpos 
+        and $self->_show_cursor($c, $x - 1);
 
     return $x;
 }
 
 sub _show_barline {
-    my ($self, $c, $x) = @_;
+    my ($self, $c, $x, $bar) = @_;
 
+    my $y = $bar->y;
     $c->save;
-        $c->bar_length and $c->set_source_rgb(0.9, 0, 0);
+        $bar->pos and $c->set_source_rgb(0.9, 0, 0);
         $c->set_line_width(0.5);
         $c->set_line_cap("butt");
-        $c->move_to($x + 1, -4);
-        $c->line_to($x + 1, 4);
+        $c->move_to($x + 1, $y - 4);
+        $c->line_to($x + 1, $y + 4);
         $c->stroke;
     $c->restore;
     return 3;
 }
 
 sub _show_cursor {
-    my ($self, $c, $x, $centre) = @_;
+    my ($self, $c, $x) = @_;
 
     $c->save;
         $c->move_to($x, -6);

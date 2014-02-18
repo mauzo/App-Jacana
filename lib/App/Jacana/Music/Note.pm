@@ -56,6 +56,14 @@ sub _accidental {
     $c->glyph("accidentals.$Acci{$chroma}");
 }
 
+sub lsb {
+    my ($self, $c) = @_;
+
+    my $gly = $self->_accidental($c) or return 0;
+    $c->glyph_width($gly) + 1;
+}
+
+
 sub _draw_accidental {
     my ($self, $c) = @_;
 
@@ -63,11 +71,9 @@ sub _draw_accidental {
     my $wd  = $c->glyph_width($gly);
 
     $c->save;
-        $c->translate($wd/2, 0);
+        $c->translate(-$wd/2 - 1, 0);
         $c->show_glyphs($gly);
     $c->restore;
-
-    return $wd + 1;
 }
 
 sub _draw_stem {
@@ -135,14 +141,13 @@ sub draw {
     $c->set_line_width(0.4);
     $c->set_line_cap("round");
 
-    my $awd = $self->_draw_accidental($c);
-    $c->save;
-    $c->translate($awd, 0);
+    $self->_draw_accidental($c);
 
     my $wd  = $self->_draw_head($c);
 
     my $len = $self->length;
     my $up  = $pos < 0;
+    $up and warn "HEAD WIDTH [$wd]";
 
     if ($len >= 2) {
         my ($ex, $ey) = $self->_draw_stem($c, $up, $wd);
@@ -156,8 +161,7 @@ sub draw {
 
     $wd += $self->_draw_dots($c, $wd, $pos);
 
-    $c->restore;
-    return $wd + $awd;
+    return $wd;
 }
 
 1;

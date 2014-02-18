@@ -46,10 +46,14 @@ sub to_lily { "" }
 # Returns the staff line on which this should be drawn.
 sub staff_line { 0 }
 
-# draw($cairo)
+# draw($drawctx)
 # Draws this object. $cairo is positioned at the requested height, and
 # the feta font is selected and scaled appropriately.
 sub draw { return }
+
+# lsb($drawctx)
+# Returns the left-side-bearing of this object.
+sub lsb { 0 }
 
 sub get_time {
     my ($self) = @_;

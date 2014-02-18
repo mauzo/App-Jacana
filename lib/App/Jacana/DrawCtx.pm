@@ -28,11 +28,6 @@ has font    => (
     is      => "lazy",
     isa     => InstanceOf["Font::FreeType::Face"],
 );
-has bar_length => (
-    is      => "rw",
-    isa     => Int,
-    default => 0,
-);
 
 sub _build_c {
     my ($self) = @_;
@@ -60,11 +55,6 @@ sub _build_font {
 
 sub BUILD { }
 
-sub reset {
-    my ($self) = @_;
-    $self->bar_length(0);
-}
-
 sub width {
     my ($self) = @_;
     my ($wd) = $self->widget->get_window->get_size;
@@ -83,27 +73,6 @@ sub glyph {
 sub glyph_width {
     my ($self, $gly) = @_;
     $self->c->glyph_extents($gly)->{x_advance};
-}
-
-sub add_to_bar {
-    my ($self, $x, $note) = @_;
-
-    if ($note->DOES("App::Jacana::HasTime")) {
-        my $par = $note->partial;
-        $par and $self->bar_length($note->length - $par->duration);
-        return 0;
-    }
-
-    my $time = $note->ambient->find_role("HasTime")
-        or return;
-    $note->DOES("App::Jacana::HasLength")   or return;
-
-    my $new = $self->bar_length + $note->duration;
-    my $bar = $time->length;
-    $new < $bar and $self->bar_length($new), return 0;
-
-    $self->bar_length($new - $bar);
-    return 1;
 }
 
 1;
