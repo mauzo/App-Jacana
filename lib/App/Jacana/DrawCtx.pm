@@ -40,12 +40,16 @@ sub _build_c {
     my $w = $self->widget->get_window;
     my $c = Gtk2::Gdk::Cairo::Context->create($w);
 
-    my $zoom = $self->zoom;
-
     $c->set_antialias("gray");
-    $c->scale($zoom, $zoom); # zoooom!
     $c->set_font_face(Cairo::FtFontFace->create($self->font));
     $c->set_font_size(8);
+    my $o = Cairo::FontOptions->create;
+    #$o->set_hint_style("none");
+    $o->set_hint_metrics("off");
+    $c->set_font_options($o);
+
+    my $zoom = $self->zoom;
+    $c->scale($zoom, $zoom); # zoooom!
     $c;
 }
 

@@ -49,7 +49,7 @@ has feta_font   => is => "lazy";
 sub _build_feta_font {
     my ($self) = @_;
     my $font = $self->_find("emmentaler-26.otf");
-    $self->_freetype->face($font);
+    $self->_freetype->face($font, load_flags => FT_LOAD_NO_HINTING);
 }
 
 sub cairo_feta_font { 
