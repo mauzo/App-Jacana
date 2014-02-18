@@ -34,7 +34,7 @@ sub to_lily {
 }
 
 sub staff_line {
-    my ($self, $centre) = @_;
+    my ($self) = @_;
     $Clef{$self->clef}[1];
 }
 

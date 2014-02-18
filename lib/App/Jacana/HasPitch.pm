@@ -20,11 +20,12 @@ has chroma  => is => "rw", default => "", copiable => 1;
 my %Staff = qw/c 0 d 1 e 2 f 3 g 4 a 5 b 6/;
 
 sub staff_line {
-    my ($self, $centre) = @_;
+    my ($self) = @_;
 
+    my $cen = $self->ambient->find_role("HasClef")->centre_line;
     my $oct = $self->octave;
     my $off = $Staff{$self->note};
-    $oct * 7 + $off - $centre;
+    $oct * 7 + $off - $cen;
 }
 
 sub octave_up       { $_[0]->octave($_[0]->octave + 1) }
