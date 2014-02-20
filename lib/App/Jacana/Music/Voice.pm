@@ -44,6 +44,8 @@ sub to_lily {
 sub clef { "treble" }
 sub centre_line { 13 }
 
+sub draw { 4 }
+
 # Returns a Music item and the length of time left in that item
 sub find_time {
     my ($self, $dur) = @_;

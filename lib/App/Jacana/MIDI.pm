@@ -5,11 +5,15 @@ use warnings;
 
 use Moo;
 
+use App::Jacana::StaffCtx::MIDI;
+
 use Audio::FluidSynth;
 use Glib;
 use Time::HiRes     qw/usleep/;
-use List::Util      qw/min/;
+use List::Util      qw/min first/;
 use Scalar::Util    qw/refaddr/;
+
+use namespace::clean;
 
 with qw/ MooX::WeakClosure /;
 
@@ -18,6 +22,7 @@ has synth       => is => "lazy";
 has driver      => is => "lazy";
 has sfont       => is => "lazy";
 has active      => is => "ro", default => sub { +{} };
+has in_use      => is => "ro", default => sub { +[] };
 
 sub _build_settings {
     my $s = Audio::FluidSynth::Settings->new;
@@ -49,7 +54,21 @@ sub remove_active {
     my ($s, $id) = @_;
     my $ch = delete $s->active->{$id};
     Glib::Source->remove($id);
-    $s->_all_notes_off($_) for @$ch;
+    $s->free_chan($_) for @$ch;
+}
+
+sub alloc_chan {
+    my ($s) = @_;
+    my $used = $s->in_use;
+    my $c = first { !$$used[$_] } 0..16;
+    $$used[$c] = 1;
+    $c;
+}
+
+sub free_chan {
+    my ($s, $c) = @_;
+    $s->_all_notes_off($c);
+    $s->in_use->[$c] = 0;
 }
 
 sub BUILD {
@@ -66,30 +85,28 @@ sub DESTROY {
 }
 
 sub play_note {
-    my ($self, $pitch, $length) = @_;
+    my ($self, $chan, $pitch, $length) = @_;
     my $time = (16*128)/$length;
     my $syn = $self->synth;
 
-    eval { $syn->noteon(0, $pitch, 85) };
+    eval { $syn->noteon($chan, $pitch, 85) };
     Glib::Timeout->add($time, sub {
-        eval { $syn->noteoff(0, $pitch) };
+        eval { $syn->noteoff($chan, $pitch) };
         return 0;
     });
 }
 
-sub _note_on {
+sub note_on {
     my ($self, $chan, $note) = @_;
     my $pitch;
     if ($note->DOES("App::Jacana::HasPitch")) {
         $pitch = $note->pitch;
         eval { $self->synth->noteon($chan, $pitch, 85) };
     }
-    my $duration = $note->DOES("App::Jacana::HasLength")
-        ? $note->duration : undef;
-    return ($pitch, $duration);
+    return $pitch;
 }
 
-sub _note_off {
+sub note_off {
     my ($self, $chan, $pitch) = @_;
     defined $pitch 
         and eval { $self->synth->noteoff($chan, $pitch) };
@@ -103,46 +120,38 @@ sub _all_notes_off {
 sub play_music {
     my ($self, $music, $time, $start_note, $stop_note, $finish) = @_;
 
-    my (@note, @pitch, @when);
-
-    for (0..$#$music) {
-        ($note[$_], $when[$_])  = $$music[$_]->find_time($time);
-        ($pitch[$_], undef)     = $self->_note_on($_ + 1, $note[$_]);
-        $start_note->($note[$_]);
-    }
-
-    my $next_note = sub {
-        my ($n) = @_;
-
-        $when[$n]-- > 1 and return;
-        
-        $self->_note_off($n + 1, $pitch[$n]);
-        $stop_note->($note[$n]);
-
-        if ($note[$n]->is_list_end) {
-            splice @$_, $n, 1 for \(@note, @pitch, @when);
-            return;
-        }
-
-        $note[$n] = $note[$n]->next;
-        ($pitch[$n], $when[$n]) = $self->_note_on($n + 1, $note[$n]);
-        $start_note->($note[$n]);
-    };
+    my @music = 
+        map App::Jacana::StaffCtx::MIDI->new(
+            midi => $self, chan => $self->alloc_chan,
+            on_start => $start_note, on_stop => $stop_note,
+            item => $$_[0], when => $$_[1]
+        ), 
+        map [$_->find_time($time)],
+        @$music;
+    $_->start_note for @music;
 
     my $id;
     $id = Glib::Timeout->add(32, $self->weak_closure(sub {
         my ($self) = @_;
-    
-        $next_note->($_) for 0..$#note;
-    
-        unless (@note) {
+        
+        for (grep !$_->when, @music) {
+            while (!$_->when) {
+                $_->stop_note;
+                $_->next and $_->start_note;
+            }
+        }
+
+        @music = grep $_->has_item, @music;
+        unless (@music) {
             $finish->();
             $self and $self->remove_active($id);
             return 0;
         }
+
+        $_->skip(1) for @music;
         return 1;
     }));
-    $self->add_active($id, 1..@note);
+    $self->add_active($id, map $_->chan, @music);
     $id;
 }
 

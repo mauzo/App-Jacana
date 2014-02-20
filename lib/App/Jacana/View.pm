@@ -6,9 +6,9 @@ use Moo;
 use MooX::MethodAttributes
     use     => [qw/ MooX::Gtk2 /];
 
-use App::Jacana::BarCtx;
 use App::Jacana::Cursor;
 use App::Jacana::DrawCtx;
+use App::Jacana::StaffCtx::Draw;
 
 use Data::Dump              qw/pp/;
 use Hash::Util::FieldHash   qw/idhash/;
@@ -225,7 +225,7 @@ sub _show_music {
 
     my $voices  = $self->doc->music;
     my @voices  =
-        map App::Jacana::BarCtx->new(
+        map App::Jacana::StaffCtx::Draw->new(
             item    => $$voices[$_],
             y       => 24*$_ + 12,
         ),
@@ -234,26 +234,24 @@ sub _show_music {
     $c->set_source_rgb(0, 0, 0);
     $self->_show_stave($c, $_) for map $_->y, @voices;
 
-    my $x = 4;
+    my $x = max map $self->_show_item($c, 0, $_), @voices;
 
     for (;;) {
-        my $wd = 0;
-
         my $skip = min map $_->when, @voices;
         $_->skip($skip) for @voices;
 
-        my @draw = grep !$_->when, @voices;
+        my @draw = grep $_->next, grep !$_->when, @voices;
         $x += max 0, 
             map $self->_show_barline($c, $x, $_),
             grep $_->barline,
             @draw;
-        $x += max map $_->lsb($c), map $_->item, @draw;
-        $x += max map $self->_show_item($c, $x, $_), @draw;
+        $x += max 0, map $_->lsb($c), map $_->item, @draw;
+        $x += max 0, map $self->_show_item($c, $x, $_), @draw;
 
         @voices = grep $_->has_item, @voices or last;
     }
 
-    ($x + 4, 24*@$voices);
+    ($x + 6, 24*@$voices);
 }
 
 sub _show_stave {
@@ -283,7 +281,6 @@ sub _show_item {
 
     $item->isa("App::Jacana::Music::Note") && $item->tie
         and $v->start_tie($x + $wd);
-    $v->next;
 
     ($wd // 0) + $item->rsb;
 }

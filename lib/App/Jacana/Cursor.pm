@@ -31,12 +31,19 @@ has mode        => (
     trigger     => 1,
 );
 
+has midi_chan   => is => "lazy";
+
 has "+length"   => (
     # default doesn't fire the trigger, set it in BUILD instead
     #default     => 3,
     gtk_prop    => "view.get_action(NoteLength)::current-value",
     trigger     => 1,
 );
+
+sub _build_midi_chan {
+    my ($self) = @_;
+    $self->view->midi->alloc_chan;
+}
 
 sub voice {
     my ($self) = @_;
@@ -98,6 +105,11 @@ sub BUILD {
     my ($self) = @_;
     $self->length(3);
     $self->position($self->position);
+}
+
+sub DEMOLISH {
+    my ($self) = @_;
+    $self->view->midi->free_chan($self->midi_chan);
 }
 
 sub _trigger_length {
@@ -192,7 +204,7 @@ sub _play_note {
     my ($self) = @_;
     my $pos = $self->position;
     $pos->DOES("App::Jacana::HasPitch") or return;
-    $self->view->midi->play_note($pos->pitch, 8);
+    $self->view->midi->play_note($self->midi_chan, $pos->pitch, 8);
 }
 
 sub _adjust_chroma {
