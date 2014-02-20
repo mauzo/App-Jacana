@@ -58,14 +58,25 @@ sub _trigger_position {
     $self->mode eq "edit" and $note->is_list_start
         and return $self->position($note->next);
 
+    my %isa     = map +($_, $note->isa("App::Jacana::Music::$_")),
+        qw/ Note /;
     my %does    = map +($_, $note->DOES("App::Jacana::Has$_")),
         qw/Pitch Length Key Dialog/;
     my %act     = map +($_, $view->get_action($_)), qw/
         AddDot NoteChroma Sharpen Flatten OctaveUp OctaveDown
-        Properties
+        Tie Properties
     /;
 
     $act{AddDot}->set_sensitive($does{Length});
+    if ($isa{Note}) {
+        $act{Tie}->set_sensitive(1);
+        $act{Tie}->set_active($note->tie);
+        warn "TIE [" . $note->tie . "]";
+    }
+    else {
+        $act{Tie}->set_sensitive(0);
+        $act{Tie}->set_active(0);
+    }
     if ($does{Pitch}) {
         $act{NoteChroma}->set_current_value($note->chroma);
         $act{NoteChroma}->set_sensitive(1);
@@ -261,6 +272,15 @@ sub _add_dot :Action(view::AddDot) {
     $note->duration != int($note->duration) and
         $view->status_flash("Divisions this small will not play correctly.");
     $view->refresh;
+}
+
+sub _toggle_tie :Action(view::Tie) {
+    my ($self, $act) = @_;
+
+    my $note = $self->position;
+    $note->isa("App::Jacana::Music::Note") or return;
+    $note->tie($act->get_active);
+    $self->view->refresh;
 }
 
 sub _insert_rest :Action(view::Rest) {

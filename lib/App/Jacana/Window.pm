@@ -175,6 +175,10 @@ sub _build_actions {
         AddDot:
             label:      Add dot
             icon_name:  icon-dot
+        Tie:
+            label:      Tie
+            icon_name:  icon-tie
+            toggle:     1
         NoteAccidentalMenu:
             label:      Accidental
         Sharpen:
@@ -224,8 +228,10 @@ YAML
     
     my $grp = Gtk2::ActionGroup->new("edit");
     for my $nm (keys %$actions) {
-        my $def = $$actions{$nm};
-        my $act = Gtk2::Action->new(
+        my $def     = $$actions{$nm};
+        my $class   = delete $$def{toggle} 
+            ? "Gtk2::ToggleAction" : "Gtk2::Action";
+        my $act     = $class->new(
             name        => $nm,
             label       => $$def{label},
         );
@@ -380,6 +386,7 @@ sub _build_uimgr {
                     <menuitem action="QHDSquaver"/>
                     <separator/>
                     <menuitem action="AddDot"/>
+                    <menuitem action="Tie"/>
                 </menu>
                 <menuitem action="Rest"/>
             </menu>
@@ -402,6 +409,7 @@ sub _build_uimgr {
             <toolitem action="Semiquaver"/>
             <toolitem action="Rest"/>
             <toolitem action="AddDot"/>
+            <toolitem action="Tie"/>
             <separator/>
             <toolitem action="Sharp"/>
             <toolitem action="Flat"/>

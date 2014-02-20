@@ -94,7 +94,7 @@ sub parse_voice {
         $text =~ s/^\s+//;
         if ($text =~ s(
             ^ (?<note>[a-g]) (?<chroma>[eis]*) (?<octave>[',]*)
-              (?<length>\\breve|[0-9]+) (?<dots>\.*)
+              (?<length>\\breve|[0-9]+) (?<dots>\.*) (?<tie>~)?
         )()x) {
             my %n = %+;
             my $octave = $n{octave}
@@ -106,6 +106,7 @@ sub parse_voice {
                 octave  => $octave,
                 length  => $Length{$n{length}},
                 dots    => length $n{dots},
+                tie     => !!$n{tie},
             ));
         }
         elsif ($text =~ s(

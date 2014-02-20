@@ -54,6 +54,7 @@ sub draw { return }
 # lsb($drawctx)
 # Returns the left-side-bearing of this object.
 sub lsb { 0 }
+sub rsb { 2 }
 
 sub get_time {
     my ($self) = @_;

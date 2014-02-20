@@ -1,7 +1,10 @@
 package App::Jacana::BarCtx;
 
 use Moo;
+
 use App::Jacana::Util::Types;
+
+use Carp;
 
 use namespace::clean;
 
@@ -18,6 +21,18 @@ has when => is => "rw", default => 0;
 
 has bar => is => "rw", default => 0;
 has pos => is => "rw", default => 0;
+
+has tie_from => (
+    is          => "rw",
+    isa         => ConsumerOf["App::Jacana::HasPitch"],
+    weak_ref    => 1,
+    clearer     => "clear_tie",
+    predicate   => "has_tie",
+);
+has tie_x => (
+    is          => "rw",
+    isa         => Num,
+);
 
 sub skip {
     my ($self, $by) = @_;
@@ -64,6 +79,14 @@ sub barline {
 
     $self->pos($pos - $bar);
     return 1;
+}
+
+sub start_tie {
+    my ($self, $x) = @_;
+
+    $self->has_tie and croak "I already have an open tie";
+    $self->tie_x($x);
+    $self->tie_from($self->item);
 }
 
 1;

@@ -19,7 +19,7 @@ has c       => (
     isa     => InstanceOf["Cairo::Context"],
     handles => [qw/
         save restore push_group pop_group pop_group_to_source
-        translate scale move_to line_to close_path
+        translate scale move_to line_to curve_to close_path
         stroke fill show_glyphs paint_with_alpha
         set_line_width set_line_cap set_source_rgb 
     /],

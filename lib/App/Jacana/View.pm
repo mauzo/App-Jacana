@@ -248,19 +248,7 @@ sub _show_music {
             grep $_->barline,
             @draw;
         $x += max map $_->lsb($c), map $_->item, @draw;
-
-        for my $v (@draw) {
-            my $y       = $v->y;
-            my $item    = $v->item;
-
-            $c->save;
-                $c->translate($x, $y);
-                $wd = max $wd, $self->_show_item($c, $item);
-            $c->restore;
-
-            $v->next;
-        }
-        $x += $wd;
+        $x += max map $self->_show_item($c, $x, $_), @draw;
 
         @voices = grep $_->has_item, @voices or last;
     }
@@ -282,6 +270,25 @@ sub _show_stave {
 }
 
 sub _show_item {
+    my ($self, $c, $x, $v) = @_;
+    my $y       = $v->y;
+    my $item    = $v->item;
+
+    $v->has_tie and $self->_show_tie($c, $x, $v);
+
+    $c->save;
+        $c->translate($x, $y);
+        my $wd = $self->_draw_item($c, $item);
+    $c->restore;
+
+    $item->isa("App::Jacana::Music::Note") && $item->tie
+        and $v->start_tie($x + $wd);
+    $v->next;
+
+    ($wd // 0) + $item->rsb;
+}
+
+sub _draw_item {
     my ($self, $c, $item) = @_;
     no warnings "uninitialized";
 
@@ -290,23 +297,49 @@ sub _show_item {
     my $curpos  = $cursor->position;
     my $mode    = $cursor->mode;
 
-    my $x = 0;
-
     my $pos = $item->staff_line;
     $c->save;
-        $c->translate($x, -$pos);
+        $c->translate(0, -$pos);
         $c->move_to(0, 0);
         $item == $curpos
             and $c->set_source_rgb(0, 0, 1);
         $playing->{$item}
             and $c->set_source_rgb(1, 0, 0);
-        $x += $item->draw($c, $pos) + 2;
+        my $wd = $item->draw($c, $pos);
     $c->restore;
 
     $mode eq "insert" && $item == $curpos 
-        and $self->_show_cursor($c, $x - 1);
+        and $self->_show_cursor($c, $wd + 1);
 
-    return $x;
+    return $wd;
+}
+
+sub _show_tie {
+    my ($self, $c, $x, $v) = @_;
+    my $item    = $v->item;
+    my $from    = $v->tie_from;
+
+    $c->save;
+        if ($item->isa("App::Jacana::Music::Note")
+            && $from->pitch == $item->pitch
+        )       { $c->set_source_rgb(0, 0, 0) }
+        else    { $c->set_source_rgb(1, 0, 0) }
+        $c->set_line_width(0.5);
+
+        my $x1  = $v->tie_x;
+        my $x2  = $x - $item->lsb($c);
+        my $xc  = ($x2 - $x1) / 4;
+        my $y   = $v->y - $from->staff_line - 1;
+        $c->move_to($x1, $y);
+        $c->curve_to(
+            $x1 + $xc,  $y - 2,
+            $x2 - $xc,  $y - 2,
+            $x2,        $y,
+        );
+        $c->stroke;
+    $c->restore;
+
+    $v->clear_tie;
 }
 
 sub _show_barline {

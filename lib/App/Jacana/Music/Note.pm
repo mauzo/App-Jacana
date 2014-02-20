@@ -4,12 +4,16 @@ use 5.012;
 use warnings;
 
 use Moo;
+use App::Jacana::Util::Types;
+use namespace::clean;
 
 extends "App::Jacana::Music";
 with    qw/
     App::Jacana::HasPitch 
     App::Jacana::HasLength 
 /;
+
+has tie => is => "rw", isa => Bool, default => 0;
 
 my %Chroma = (0, "", qw/1 is -1 es 2 isis -2 eses/);
 
@@ -21,7 +25,8 @@ sub to_lily {
         $oct > 0 ? "'" x $oct   :
         $oct < 0 ? "," x -$oct  :
         "");
-    "$note$Chroma{$chrm}$oct$len";
+    my $tie = $self->tie ? "~" : "";
+    "$note$Chroma{$chrm}$oct$len$tie";
 }
 
 my %Heads   = qw/0 sM1 1 s0 2 s1/;
@@ -147,7 +152,6 @@ sub draw {
 
     my $len = $self->length;
     my $up  = $pos < 0;
-    $up and warn "HEAD WIDTH [$wd]";
 
     if ($len >= 2) {
         my ($ex, $ey) = $self->_draw_stem($c, $up, $wd);
