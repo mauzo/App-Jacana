@@ -65,10 +65,7 @@ sub _build_frame {
         $vb->pack_start($tb, 0, 0, 0);
     }
 
-    my $scr = Gtk2::ScrolledWindow->new;
-    $scr->set_policy("automatic", "automatic");
-    $scr->add_with_viewport($self->view->widget);
-    $vb->pack_start($scr, 1, 1, 0);
+    $vb->pack_start($self->view->scrolled, 1, 1, 0);
 
     $vb->pack_start($self->status_bar, 0, 0, 0);
 

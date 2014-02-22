@@ -29,6 +29,8 @@ has rendered    => (
     isa     => InstanceOf["Cairo::RecordingSurface"],
 );
 
+has bbox => is => "rw", default => sub { +[] };
+
 sub _build_ambient {
     my ($self) = @_;
 

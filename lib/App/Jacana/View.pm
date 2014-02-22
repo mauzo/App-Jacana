@@ -12,7 +12,7 @@ use App::Jacana::StaffCtx::Draw;
 
 use Data::Dump              qw/pp/;
 use Hash::Util::FieldHash   qw/idhash/;
-use List::Util              qw/min max/;
+use List::Util              qw/min max first/;
 use Module::Runtime         qw/use_module/;
 use Scalar::Util            qw/blessed/;
 
@@ -41,6 +41,8 @@ sub _build_cursor {
 }
 
 has "+zoom"    => default => 4, trigger => 1;
+
+has bbox => is => "ro", default => sub { +[] };
 
 sub _trigger_zoom { $_[0]->refresh }
 
@@ -170,12 +172,35 @@ sub _build_widget {
     $d;
 }
 
+has scrolled    => is => "lazy";
+
+sub _build_scrolled {
+    my ($self) = @_;
+
+    my $scr = Gtk2::ScrolledWindow->new;
+    $scr->set_policy("automatic", "automatic");
+    $scr->add_with_viewport($self->widget);
+    $scr;
+}
+
+sub scroll_to {
+    my ($self, $item) = @_;
+
+    my $scr = $self->scrolled;
+    my $haj = $scr->get_hadjustment;
+    my $vaj = $scr->get_vadjustment;
+    my $bbx = $item->bbox or return;
+
+    $haj->clamp_page($$bbx[0] - 6, $$bbx[2] + 6);
+    $vaj->clamp_page($$bbx[1] - 6, $$bbx[3] + 6);
+}
+
 sub _realize :Signal {
     my ($self, $widget) = @_;
 
     my $w = $widget->get_window;
     my $e = $w->get_events;
-    $e |= "button-press-mask";
+    $e |= ["button-press-mask", "button-release-mask"];
     $w->set_events($e);
 }
 
@@ -220,6 +245,25 @@ sub _expose_event :Signal {
 #                $c->stroke;
 #            $c->restore;
 
+sub _reset_bb { @{$_[0]->bbox} = () }
+
+sub _add_to_bb {
+    my ($self, $c, $x, @voices) = @_;
+
+    my $bb = [
+        ($c->c->user_to_device($x, 0))[0],
+        map [
+            ($c->c->user_to_device(0, $_->y + 12))[1],
+            $_->item,
+        ], @voices,
+    ];
+    Scalar::Util::weaken $_ for
+        map $_->[1],
+        @$bb[1..$#$bb];
+
+    push @{$self->bbox}, $bb;
+}
+
 sub _show_music {
     my ($self, $c) = @_;
 
@@ -235,12 +279,23 @@ sub _show_music {
     $self->_show_stave($c, $_) for map $_->y, @voices;
 
     my $x = max map $self->_show_item($c, 0, $_), @voices;
+    $self->_reset_bb;
+    $self->_add_to_bb($c, $x, @voices);
+    @{$_->item->bbox}[0,1] = $c->c->user_to_device(0, $_->y - 12) 
+        for @voices;
 
     for (;;) {
         my $skip = min map $_->when, @voices;
         $_->skip($skip) for @voices;
 
-        my @draw = grep $_->next, grep !$_->when, @voices;
+        my @draw = grep !$_->when, @voices;
+        @{$_->item->bbox}[2,3] = $c->c->user_to_device($x, $_->y + 12) 
+            for @draw;
+
+        @draw = grep $_->next, @draw;
+        @{$_->item->bbox}[0,1] = $c->c->user_to_device($x, $_->y - 12) 
+            for @draw;
+
         $x += max 0, 
             map $self->_show_barline($c, $x, $_),
             grep $_->barline,
@@ -249,6 +304,7 @@ sub _show_music {
         $x += max 0, map $self->_show_item($c, $x, $_), @draw;
 
         @voices = grep $_->has_item, @voices or last;
+        $self->_add_to_bb($c, $x, @voices);
     }
 
     ($x + 6, 24*@$voices);
@@ -305,7 +361,7 @@ sub _draw_item {
         my $wd = $item->draw($c, $pos);
     $c->restore;
 
-    $mode eq "insert" && $item == $curpos 
+    $mode eq "insert" && $item == $curpos
         and $self->_show_cursor($c, $wd + 1);
 
     return $wd;
@@ -364,6 +420,17 @@ sub _show_cursor {
         $c->set_line_cap("round");
         $c->stroke;
     $c->restore;
+}
+
+sub _button_release_event :Signal {
+    my ($self, $widget, $event) = @_;
+
+    $event->button == 1 or return;
+    my $bb = first { $$_[0] > $event->x } @{$self->bbox}
+        or return;
+    my $it = first { $$_[0] > $event->y } @$bb[1..$#$bb]
+        or return;
+    $self->cursor->position($$it[1]);
 }
 
 sub _show_lily :Action(ToLily) {

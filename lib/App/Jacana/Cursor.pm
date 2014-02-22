@@ -98,7 +98,9 @@ sub _trigger_position {
     $act{Properties}->set_sensitive($does{Dialog});
 
     $self->copy_from($note, "App::Jacana::HasLength");
-    $self->view->refresh;
+
+    $view->scroll_to($note);
+    $view->refresh;
 }
 
 sub BUILD {
