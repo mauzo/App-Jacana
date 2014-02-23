@@ -14,6 +14,10 @@ has widget  => (
     isa         => InstanceOf["Gtk2::Widget"],
     weak_ref    => 1,
 );
+has surface => (
+    is      => "ro",
+    isa     => InstanceOf["Cairo::Surface"],
+);
 has c       => (
     is      => "lazy",
     isa     => InstanceOf["Cairo::Context"],
@@ -32,8 +36,7 @@ has font    => (
 sub _build_c {
     my ($self) = @_;
 
-    my $w = $self->widget->get_window;
-    my $c = Gtk2::Gdk::Cairo::Context->create($w);
+    my $c = Cairo::Context->create($self->surface);
 
     $c->set_antialias("gray");
     $c->set_font_face(Cairo::FtFontFace->create($self->font));
@@ -57,7 +60,7 @@ sub BUILD { }
 
 sub width {
     my ($self) = @_;
-    my ($wd) = $self->widget->get_window->get_size;
+    my ($wd) = $self->widget->get_size_request;
     $wd;
 }
 

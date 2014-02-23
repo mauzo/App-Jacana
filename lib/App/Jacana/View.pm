@@ -14,6 +14,7 @@ use Data::Dump              qw/pp/;
 use Hash::Util::FieldHash   qw/idhash/;
 use List::Util              qw/min max first/;
 use Module::Runtime         qw/use_module/;
+use POSIX                   qw/ceil/;
 use Scalar::Util            qw/blessed/;
 
 use namespace::clean;
@@ -41,6 +42,8 @@ sub _build_cursor {
 }
 
 has "+zoom"    => default => 4, trigger => 1;
+
+has rendered    => is => "lazy", clearer => 1;
 
 has bbox => is => "ro", default => sub { +[] };
 
@@ -206,22 +209,45 @@ sub _realize :Signal {
 
 sub refresh {
     my ($self) = @_;
+    $self->clear_rendered;
     $self->widget->get_window->invalidate_rect(undef, 0);
 }
 
 sub _expose_event :Signal {
     my ($self, $widget, $event) = @_;
 
-    my $c = App::Jacana::DrawCtx->new(
-        copy_from   => $self,
-        widget      => $widget,
-    );
+    my $surf = $self->rendered;
+    my $c = Gtk2::Gdk::Cairo::Context->create($widget->get_window);
 
-    my ($wd, $ht) = $self->_show_music($c);
+    $c->set_source_surface($surf, 0, 0);
+    $c->paint;
+}
 
-    my ($x1, $y1) = $c->c->user_to_device(0, 0);
-    my ($x2, $y2) = $c->c->user_to_device($wd, $ht);
-    $widget->set_size_request($x2 - $x1, $y2 - $y1);
+sub _build_rendered {
+    my ($self) = @_;
+
+    my $widget = $self->widget;
+    my $surf;
+
+    RENDER: {
+        my ($ox, $oy)   = $widget->get_size_request;
+        $surf           = $widget->get_window->create_similar_surface(
+            "color-alpha", $ox, $oy);
+
+        my $c = App::Jacana::DrawCtx->new(
+            copy_from   => $self,
+            surface     => $surf,
+            widget      => $widget,
+        );
+
+        my ($wd, $ht) = $self->_show_music($c);
+        my ($nx, $ny) = map ceil($_), $c->c->user_to_device($wd, $ht);
+
+        $widget->set_size_request($nx, $ny);
+        $nx == $ox && $ny == $oy or redo RENDER;
+    }
+
+    $surf;
 }
 
 #        $c->save;
