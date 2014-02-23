@@ -241,6 +241,7 @@ sub _build_rendered {
         );
 
         my ($wd, $ht) = $self->_show_music($c);
+        $ht +=          $self->_show_scale($c, $wd, $ht);
         my ($nx, $ny) = map ceil($_), $c->c->user_to_device($wd, $ht);
 
         $widget->set_size_request($nx, $ny);
@@ -248,6 +249,30 @@ sub _build_rendered {
     }
 
     $surf;
+}
+
+sub _show_scale {
+    my ($self, $c, $wd, $ht) = @_;
+
+    my ($nx) = $c->c->user_to_device($wd, 0);
+
+    $ht += 6;
+    $c->set_line_width(0.2); $c->set_source_rgb(0, 0.7, 0);
+    $c->move_to(0, $ht); $c->line_to($wd, $ht);
+    for (0..($nx / 10)) {
+        my ($x) = $c->c->device_to_user($_*10, 0);
+        $c->move_to($x, $ht);
+        $c->line_to($x, $ht + (
+            $_ % 10 ?
+                $_ % 5 ? 3 : 5
+            : 7));
+        unless ($_ % 10) {
+            $c->move_to($x, $ht + 12);
+            $c->c->show_text($_/10);
+        }
+    }
+    $c->stroke;
+    $ht + 18;
 }
 
 #        $c->save;
