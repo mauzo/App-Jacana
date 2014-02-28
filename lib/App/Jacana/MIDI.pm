@@ -150,7 +150,7 @@ sub play_music {
 
         $_->skip(1) for @music;
         return 1;
-    }));
+    }, sub { Glib::Source->remove($id) }));
     $self->add_active($id, map $_->chan, @music);
     $id;
 }

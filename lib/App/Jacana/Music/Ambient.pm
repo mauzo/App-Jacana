@@ -1,13 +1,14 @@
 package App::Jacana::Music::Ambient;
 
 use Moo;
+use MooX::AccessorMaker
+    apply => [qw/ MooX::MakerRole::IgnoreUndef /];
+
 use App::Jacana::Util::Types;
 
 use Carp;
 
 use namespace::clean;
-
-with qw/ MooX::Role::IgnoreUndef /;
 
 my $Amb     = "App::Jacana::Music::Ambient";
 my $HasAmb  = "App::Jacana::Music::HasAmbient";
