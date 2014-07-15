@@ -30,7 +30,7 @@ with qw/
 # XXX This is wrong: in the SDI model I should be creating a new View
 # when we open a new document.
 has doc         => is => "rw";
-has cursor      => is => "lazy";
+has cursor      => is => "lazy", predicate => 1;
 
 sub _build_cursor { 
     App::Jacana::Cursor->new(
@@ -186,13 +186,24 @@ sub _build_scrolled {
     $scr;
 }
 
-sub scroll_to {
-    my ($self, $item) = @_;
+sub scroll_to_cursor {
+    my ($self) = @_;
+
+    $self->has_cursor                   or return;
+    my $item = $self->cursor->position  or return;
 
     my $scr = $self->scrolled;
     my $haj = $scr->get_hadjustment;
     my $vaj = $scr->get_vadjustment;
-    my $bbx = $item->bbox or return;
+    my $bbx = $item->bbox;
+
+    unless ($bbx && @$bbx) {
+        warn "SCROLL TO [$item]: REFRESHING BBOX";
+        $self->refresh;
+        $self->rendered;
+        $bbx = $item->bbox or return;
+    }
+    warn "SCROLL TO [$item]: " . Data::Dump::pp $bbx;
 
     $haj->clamp_page($$bbx[0] - 6, $$bbx[2] + 6);
     $vaj->clamp_page($$bbx[1] - 6, $$bbx[3] + 6);

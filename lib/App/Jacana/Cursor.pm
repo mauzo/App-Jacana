@@ -61,7 +61,9 @@ sub edit_mode :Action(view::EditMode)       { $_[0]->mode("edit") }
 
 sub _trigger_position {
     my ($self, $note) = @_;
+
     my $view = $self->view or return;
+
     $self->mode eq "edit" and $note->is_list_start
         and return $self->position($note->next);
 
@@ -99,7 +101,7 @@ sub _trigger_position {
 
     $self->copy_from($note, "App::Jacana::HasLength");
 
-    $view->scroll_to($note);
+    $view->scroll_to_cursor;
     $view->refresh;
 }
 
@@ -264,9 +266,11 @@ sub change_pitch {
 
     if ($self->mode eq "insert") {
         my $new = App::Jacana::Music::Note->new(copy_from => $self);
-        $pos = $self->position($pos->insert($new));
+        $pos->insert($new);
+        $pos = $new;
     }
     $pos->copy_from($pitch);
+    $self->position($pos);
     $self->_play_note;
     $self->view->refresh;
 }
