@@ -242,8 +242,7 @@ sub _build_rendered {
 
     RENDER: {
         my ($ox, $oy)   = $widget->get_size_request;
-        $surf           = $widget->get_window->create_similar_surface(
-            "color-alpha", $ox, $oy);
+        $surf           = Cairo::ImageSurface->create("argb32", $ox, $oy);
 
         my $c = App::Jacana::DrawCtx->new(
             copy_from   => $self,
