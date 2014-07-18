@@ -6,8 +6,8 @@ use YAML::XS ();
 
 extends "App::Jacana::Music";
 with    qw/ 
-    App::Jacana::HasDialog
-    App::Jacana::HasKey 
+    App::Jacana::Has::Dialog
+    App::Jacana::Has::Key 
     App::Jacana::Music::HasAmbient
 /;
 
@@ -32,7 +32,7 @@ sub draw {
     my ($self, $c, $pos) = @_;
 
     my $key     = $self->key;
-    my $clef    = $self->ambient->find_role("HasClef")->clef;
+    my $clef    = $self->ambient->find_role("Clef")->clef;
     my $staff   = $Staff{$clef};
     my $count   = abs $key;
     my $chroma  = $key > 0 ? "sharp" : $key < 0 ? "flat" : "natural";

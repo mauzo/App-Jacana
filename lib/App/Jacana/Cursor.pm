@@ -14,7 +14,7 @@ use namespace::clean;
 
 with qw/ 
     MooX::Gtk2 
-    App::Jacana::HasLength
+    App::Jacana::Has::Length
 /;
 
 has staff       => is => "rw", isa => Num, default => 0;
@@ -74,7 +74,7 @@ sub _trigger_position {
 
     my %isa     = map +($_, $note->isa("App::Jacana::Music::$_")),
         qw/ Note /;
-    my %does    = map +($_, $note->DOES("App::Jacana::Has$_")),
+    my %does    = map +($_, $note->DOES("App::Jacana::Has::$_")),
         qw/Pitch Length Key Dialog/;
     my %act     = map +($_, $view->get_action($_)), qw/
         AddDot NoteChroma Sharpen Flatten OctaveUp OctaveDown
@@ -104,7 +104,7 @@ sub _trigger_position {
         for @act{qw/OctaveUp OctaveDown/};
     $act{Properties}->set_sensitive($does{Dialog});
 
-    $self->copy_from($note, "App::Jacana::HasLength");
+    $self->copy_from($note, "App::Jacana::Has::Length");
 
     $view->scroll_to_cursor;
     $view->refresh;
@@ -130,7 +130,7 @@ sub _trigger_length {
 sub _reset_length :Action(view::NoteLength) {
     my ($self) = @_;
     $self->dots(0);
-    $self->position->copy_from($self, "App::Jacana::HasLength");
+    $self->position->copy_from($self, "App::Jacana::Has::Length");
     $self->view->refresh;
 }
 
@@ -144,7 +144,7 @@ sub _reset_chroma :Action(view::NoteChroma) {
 sub _change_octave {
     my ($self, $by) = @_;
     my $pos = $self->position;
-    $pos->DOES("App::Jacana::HasPitch") or return;
+    $pos->DOES("App::Jacana::Has::Pitch") or return;
     $pos->octave($pos->octave + $by);
     $self->_play_note;
     $self->view->refresh;
@@ -229,7 +229,7 @@ sub name_staff :Action(view::NameStaff) {
 sub _play_note {
     my ($self) = @_;
     my $pos = $self->position;
-    $pos->DOES("App::Jacana::HasPitch") or return;
+    $pos->DOES("App::Jacana::Has::Pitch") or return;
     $self->view->midi->play_note($self->midi_chan, $pos->pitch, 8);
 }
 
@@ -246,7 +246,7 @@ sub _adjust_chroma {
         return;
     }
 
-    $pos->DOES("App::Jacana::HasPitch") or return;
+    $pos->DOES("App::Jacana::Has::Pitch") or return;
     my $new = $pos->chroma + $by;
     abs($new) > 2 and return $view->silly;
     $pos->chroma($new);
@@ -263,7 +263,7 @@ sub change_pitch {
     my ($self, $action) = @_;
 
     my $pos = $self->position;
-    my $Dp  = $pos->DOES("App::Jacana::HasPitch");
+    my $Dp  = $pos->DOES("App::Jacana::Has::Pitch");
     my $Ik  = $pos->isa("App::Jacana::Music::KeySig");
 
     $Dp || $Ik || $self->mode eq "insert" or return;
@@ -279,11 +279,11 @@ sub change_pitch {
 
     # find the pitch we want
     my $ref     = $Dp ? $pos 
-        : $pos->ambient->find_role("HasClef")->centre_pitch;
+        : $pos->ambient->find_role("Clef")->centre_pitch;
     my $pitch   = $ref->nearest($note);
 
     # changing note always resets chroma
-    my $key     = $pos->ambient->find_role("HasKey");
+    my $key     = $pos->ambient->find_role("Key");
     $pitch->chroma($key->chroma($note));
 
     if ($self->mode eq "insert") {
@@ -301,7 +301,7 @@ sub _add_dot :Action(view::AddDot) {
     my ($self) = @_;
 
     my $note = $self->position;
-    $note->DOES("App::Jacana::HasLength") or return;
+    $note->DOES("App::Jacana::Has::Length") or return;
 
     my $view = $self->view;
 
@@ -403,7 +403,7 @@ sub _properties :Action(view::Properties) {
     my ($self) = @_;
 
     my $pos = $self->position;
-    $pos->DOES("App::Jacana::HasDialog") or return;
+    $pos->DOES("App::Jacana::Has::Dialog") or return;
 
     $pos->run_dialog($self->view);
     $self->view->refresh;

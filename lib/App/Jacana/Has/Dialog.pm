@@ -1,4 +1,4 @@
-package App::Jacana::HasDialog;
+package App::Jacana::Has::Dialog;
 
 use Moo::Role;
 

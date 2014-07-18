@@ -1,4 +1,4 @@
-package App::Jacana::HasWindow;
+package App::Jacana::Has::Window;
 
 use Moo::Role;
 

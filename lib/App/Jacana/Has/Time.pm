@@ -1,4 +1,4 @@
-package App::Jacana::HasTime;
+package App::Jacana::Has::Time;
 
 use Moo::Role;
 use App::Jacana::Util::Types;
@@ -17,7 +17,7 @@ has divisor => (
 );
 has partial => (
     is          => "rw",
-    isa         => Maybe[ConsumerOf["App::Jacana::HasLength"]],
+    isa         => Maybe[ConsumerOf["App::Jacana::Has::Length"]],
     deep_copy   => 1,
 );
 

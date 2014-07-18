@@ -1,4 +1,4 @@
-package App::Jacana::HasLength;
+package App::Jacana::Has::Length;
 
 use Moo::Role;
 

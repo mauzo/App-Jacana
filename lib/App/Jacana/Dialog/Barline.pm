@@ -9,7 +9,7 @@ use App::Jacana::Gtk2::ComboBox;
 extends "App::Jacana::Dialog";
 with    qw/ 
     MooX::Gtk2 
-    App::Jacana::HasBarline
+    App::Jacana::Has::Barline
 /;
 
 has _barline    => is => "lazy";

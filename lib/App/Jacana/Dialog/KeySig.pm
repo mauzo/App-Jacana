@@ -9,7 +9,7 @@ use App::Jacana::Gtk2::ComboBox;
 extends "App::Jacana::Dialog";
 with    qw/ 
     MooX::Gtk2 
-    App::Jacana::HasKey
+    App::Jacana::Has::Key
 /;
 
 has _key  => is => "lazy";

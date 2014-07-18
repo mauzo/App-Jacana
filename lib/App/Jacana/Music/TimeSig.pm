@@ -14,8 +14,8 @@ use namespace::clean;
 
 extends "App::Jacana::Music";
 with qw/
-    App::Jacana::HasTime
-    App::Jacana::HasDialog
+    App::Jacana::Has::Time
+    App::Jacana::Has::Dialog
     App::Jacana::Music::HasAmbient
 /;
 
@@ -27,7 +27,7 @@ sub from_lily {
     my ($self, %c) = @_;
     if (my $pl = delete $c{plen}) {
         $c{partial} = {
-            App::Jacana::HasLength->_length_from_lily(
+            App::Jacana::Has::Length->_length_from_lily(
                 $pl, delete $c{pdots})
         };
     }

@@ -16,12 +16,12 @@ use namespace::clean;
 extends "App::Jacana::Dialog";
 with    qw/ 
     MooX::Gtk2
-    App::Jacana::HasTime
+    App::Jacana::Has::Time
 /;
 
 package App::Jacana::Dialog::TimeSig::Partial {
     use Moo;
-    with qw/ MooX::Gtk2 App::Jacana::HasLength/;
+    with qw/ MooX::Gtk2 App::Jacana::Has::Length/;
 
     has dialog      => is => "ro", weak_ref => 1;
     has "+length"   => gtk_prop => "dialog._plen::current-value";

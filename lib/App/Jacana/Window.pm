@@ -16,8 +16,8 @@ use YAML::XS ();
 
 with qw/
     MooX::Gtk2
-    App::Jacana::HasApp
-    App::Jacana::HasActions
+    App::Jacana::Has::App
+    App::Jacana::Has::Actions
 /;
 
 has doc         => is => "ro";

@@ -68,7 +68,7 @@ sub get_time {
 
     my $dur = 0;
     while (!$self->is_list_start) {
-        $self->DOES("App::Jacana::HasLength")
+        $self->DOES("App::Jacana::Has::Length")
             and $dur += $self->duration;
         $self = $self->prev;
     }

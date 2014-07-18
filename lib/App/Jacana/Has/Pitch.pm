@@ -1,4 +1,4 @@
-package App::Jacana::HasPitch;
+package App::Jacana::Has::Pitch;
 
 use Moo::Role;
 
@@ -22,7 +22,7 @@ my %Staff = qw/c 0 d 1 e 2 f 3 g 4 a 5 b 6/;
 sub staff_line {
     my ($self) = @_;
 
-    my $cen = $self->ambient->find_role("HasClef")->centre_line;
+    my $cen = $self->ambient->find_role("Clef")->centre_line;
     my $oct = $self->octave;
     my $off = $Staff{$self->note};
     $oct * 7 + $off - $cen;

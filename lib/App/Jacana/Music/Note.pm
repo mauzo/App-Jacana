@@ -9,8 +9,8 @@ use namespace::clean;
 
 extends "App::Jacana::Music";
 with    qw/
-    App::Jacana::HasPitch 
-    App::Jacana::HasLength 
+    App::Jacana::Has::Pitch 
+    App::Jacana::Has::Length 
 /;
 
 has tie => is => "rw", isa => Bool, default => 0;
@@ -54,7 +54,7 @@ sub _accidental {
     my $note    = $self->note;
     my $ambient = $self->ambient
         or die "Can't find ambient for: " . Data::Dump::pp($self);
-    my $key     = $self->ambient->find_role("HasKey")
+    my $key     = $self->ambient->find_role("Key")
         or return;
 
     $chroma == $key->chroma($note) and return;

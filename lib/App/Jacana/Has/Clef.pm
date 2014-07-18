@@ -1,4 +1,4 @@
-package App::Jacana::HasClef;
+package App::Jacana::Has::Clef;
 
 use Moo::Role;
 

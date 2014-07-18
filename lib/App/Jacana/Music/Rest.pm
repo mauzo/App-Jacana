@@ -4,7 +4,7 @@ use Moo;
 
 extends "App::Jacana::Music";
 with    qw/
-    App::Jacana::HasLength
+    App::Jacana::Has::Length
 /;
 
 my @Glyph   = qw/ M1 0 1 2 3 4 5 6 7 /;

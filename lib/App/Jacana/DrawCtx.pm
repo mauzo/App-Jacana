@@ -4,8 +4,8 @@ use Moo;
 use App::Jacana::Util::Types;
 
 with qw/ 
-    App::Jacana::HasApp
-    App::Jacana::HasZoom
+    App::Jacana::Has::App
+    App::Jacana::Has::Zoom
 /;
 
 has widget  => (

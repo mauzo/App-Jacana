@@ -1,4 +1,4 @@
-package App::Jacana::HasBarline;
+package App::Jacana::Has::Barline;
 
 use Moo::Role;
 

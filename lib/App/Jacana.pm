@@ -18,7 +18,7 @@ use Gtk2::Ex::WidgetCursor;
 
 use File::ShareDir ();
 
-with qw/ App::Jacana::HasApp /;
+with qw/ App::Jacana::Has::App /;
 
 has args    => (
     is          => "ro",

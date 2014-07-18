@@ -21,10 +21,10 @@ use namespace::clean;
 
 with qw/ 
     MooX::Gtk2
-    App::Jacana::HasApp
-    App::Jacana::HasActions
-    App::Jacana::HasZoom
-    App::Jacana::HasWindow
+    App::Jacana::Has::App
+    App::Jacana::Has::Actions
+    App::Jacana::Has::Zoom
+    App::Jacana::Has::Window
 /;
 
 # XXX This is wrong: in the SDI model I should be creating a new View
@@ -148,7 +148,7 @@ sub _play_all :Action(MidiPlay) { $_[0]->_play_music(0) }
 sub _play_here :Action(MidiPlayHere) {
     my ($self) = @_;
     my $pos = $self->cursor->position;
-    my $dur = $pos->DOES("App::Jacana::HasLength") ? $pos->duration : 0;
+    my $dur = $pos->DOES("App::Jacana::Has::Length") ? $pos->duration : 0;
     $self->_play_music($pos->get_time - $dur + 1);
 }
 

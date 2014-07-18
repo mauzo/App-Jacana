@@ -99,7 +99,7 @@ sub play_note {
 sub note_on {
     my ($self, $chan, $note) = @_;
     my $pitch;
-    if ($note->DOES("App::Jacana::HasPitch")) {
+    if ($note->DOES("App::Jacana::Has::Pitch")) {
         $pitch = $note->pitch;
         eval { $self->synth->noteon($chan, $pitch, 85) };
     }

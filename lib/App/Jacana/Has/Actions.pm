@@ -1,4 +1,4 @@
-package App::Jacana::HasActions;
+package App::Jacana::Has::Actions;
 
 use Moo::Role;
 use App::Jacana::Util::Types;

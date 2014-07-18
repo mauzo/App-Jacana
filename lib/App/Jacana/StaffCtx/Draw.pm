@@ -22,14 +22,14 @@ before next => sub {
 
     my $note = $self->item or return;
 
-    if ($note->DOES("App::Jacana::HasTime")) {
+    if ($note->DOES("App::Jacana::Has::Time")) {
         my $len = $note->length;
         my $par = $note->partial;
 
         $self->bar($len);
         $self->pos($par ? $len - $par->duration : 0);
     }
-    if ($note->DOES("App::Jacana::HasLength")) {
+    if ($note->DOES("App::Jacana::Has::Length")) {
         $self->pos($self->pos + $note->duration);
     }
 };
@@ -44,7 +44,7 @@ sub barline {
     $self->pos($pos - $bar);
 
     my $note = $self->item  or return;
-    $note->DOES("App::Jacana::HasBarline")
+    $note->DOES("App::Jacana::Has::Barline")
         && $pos == $bar
         and return;
 

@@ -8,8 +8,8 @@ use Carp ();
 
 extends "App::Jacana::Music";
 with    qw/ 
-    App::Jacana::HasBarline 
-    App::Jacana::HasDialog
+    App::Jacana::Has::Barline 
+    App::Jacana::Has::Dialog
 /;
 
 sub dialog { "Barline" }

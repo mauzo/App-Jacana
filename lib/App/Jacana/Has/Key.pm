@@ -1,4 +1,4 @@
-package App::Jacana::HasKey;
+package App::Jacana::Has::Key;
 
 use Moo::Role;
 

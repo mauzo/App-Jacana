@@ -15,7 +15,7 @@ has when => is => "rw", default => 0;
 
 has tie_from => (
     is          => "rw",
-    isa         => ConsumerOf["App::Jacana::HasPitch"],
+    isa         => ConsumerOf["App::Jacana::Has::Pitch"],
     weak_ref    => 1,
     clearer     => "clear_tie",
     predicate   => "has_tie",
@@ -41,7 +41,7 @@ sub next {
         return;
     }
     $note = $self->item($note->next);
-    $note->DOES("App::Jacana::HasLength")
+    $note->DOES("App::Jacana::Has::Length")
         and $self->when($note->duration);
     return 1;
 }

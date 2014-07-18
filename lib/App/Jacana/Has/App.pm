@@ -1,4 +1,4 @@
-package App::Jacana::HasApp;
+package App::Jacana::Has::App;
 
 use Moo::Role;
 use App::Jacana::Util::Types;

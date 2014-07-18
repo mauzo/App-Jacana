@@ -2,7 +2,7 @@ package App::Jacana::Util::Length;
 
 use Moo;
 
-with "App::Jacana::HasLength";
+with "App::Jacana::Has::Length";
 
 sub BUILD { }
 

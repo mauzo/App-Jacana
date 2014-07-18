@@ -8,9 +8,9 @@ use namespace::clean;
 
 extends "App::Jacana::Music";
 with    qw/ 
-    App::Jacana::HasClef 
-    App::Jacana::HasKey
-    App::Jacana::HasTime
+    App::Jacana::Has::Clef 
+    App::Jacana::Has::Key
+    App::Jacana::Has::Time
     App::Jacana::Music::HasAmbient
 /;
 
@@ -52,7 +52,7 @@ sub find_time {
 
     while ($dur > 0 && !$self->is_list_end) {
         $self = $self->next;
-        $self->DOES("App::Jacana::HasLength")
+        $self->DOES("App::Jacana::Has::Length")
             and $dur -= $self->duration;
     }
 

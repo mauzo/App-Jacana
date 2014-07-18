@@ -1,4 +1,4 @@
-package App::Jacana::HasZoom;
+package App::Jacana::Has::Zoom;
 
 use Moo::Role;
 

@@ -3,7 +3,7 @@ package App::Jacana::Dialog;
 use Moo;
 use App::Jacana::Util::Types;
 
-with qw/ App::Jacana::HasWindow /;
+with qw/ App::Jacana::Has::Window /;
 
 has dialog => is => "lazy";
 
