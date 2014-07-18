@@ -1,5 +1,7 @@
 package App::Jacana::Cursor;
 
+use utf8;
+
 use Moo;
 use MooX::MethodAttributes use => ["MooX::Gtk2"];
 use Class::Method::Modifiers qw/:all/;
@@ -175,9 +177,13 @@ sub move_to_start :Action(view::Home) {
 sub goto_position :Action(view::GotoPosition) {
     my ($self) = @_;
 
-    my $dlg = $self->view->run_dialog("GotoPosition", undef,
-        pos => $self->position->get_time);
-    my $pos = $self->voice->find_time($dlg->pos);
+    my $dlg = $self->view->run_dialog(
+        "Simple", undef,
+        title   => "Goto…",
+        label   => "Goto position (qhdsq):",
+        value   => $self->position->get_time,
+    );
+    my ($pos) = $self->voice->find_time($dlg->value);
     warn "GOTO POSITION [$pos]";
     $self->position($pos);
 }
@@ -202,6 +208,19 @@ sub insert_staff :Action(view::InsertStaff) {
     push @{$self->view->doc->music}, 
         App::Jacana::Music::Voice->new(name => "voice");
     $self->view->refresh;
+}
+
+sub name_staff :Action(view::NameStaff) {
+    my ($self) = @_;
+
+    my $voice   = $self->voice;
+    my $dlg     = $self->view->run_dialog(
+        "Simple", undef,
+        title   => "Name staff",
+        label   => "Name:",
+        value   => $voice->name,
+    ) or return;
+    $voice->name($dlg->value);
 }
 
 sub _play_note {

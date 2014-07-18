@@ -144,6 +144,8 @@ sub _build_actions {
             label:      Goto position…
         InsertStaff:
             label:      Insert staff
+        NameStaff:
+            label:      Name staff…
 
         NoteMenu:
             label:      Note
@@ -348,6 +350,7 @@ sub _build_uimgr {
                 <menuitem action="GotoPosition"/>
                 <separator/>
                 <menuitem action="InsertStaff"/>
+                <menuitem action="NameStaff"/>
             </menu>
             <menu action="NoteMenu">
                 <menu action="NotePitchMenu">
