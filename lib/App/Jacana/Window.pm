@@ -140,6 +140,9 @@ sub _build_actions {
         TimeSig:
             label:      Time signature…
             icon_name:  icon-timesig
+        Barline:
+            label:      Barline…
+            icon_name:  icon-barline
         GotoPosition:
             label:      Goto position…
         InsertStaff:
@@ -347,6 +350,7 @@ sub _build_uimgr {
                 </menu>
                 <menuitem action="KeySig"/>
                 <menuitem action="TimeSig"/>
+                <menuitem action="Barline"/>
                 <menuitem action="GotoPosition"/>
                 <separator/>
                 <menuitem action="InsertStaff"/>
@@ -417,6 +421,7 @@ sub _build_uimgr {
             <separator/>
             <toolitem action="KeySig"/>
             <toolitem action="TimeSig"/>
+            <toolitem action="Barline"/>
             <toolitem action="Properties"/>
             <separator/>
             <toolitem action="ClefTreble"/>

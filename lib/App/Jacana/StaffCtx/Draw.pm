@@ -41,8 +41,13 @@ sub barline {
     my $pos = $self->pos    or return;
 
     $pos < $bar             and return;
-
     $self->pos($pos - $bar);
+
+    my $note = $self->item  or return;
+    $note->DOES("App::Jacana::HasBarline")
+        && $pos == $bar
+        and return;
+
     return 1;
 }
 

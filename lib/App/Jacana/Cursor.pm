@@ -54,7 +54,10 @@ sub voice {
 
 sub _trigger_mode { 
     my ($self, $mode) = @_;
-    $self->view->get_action("Rest")->set_sensitive($mode eq "insert");
+    for (qw/ Rest KeySig TimeSig Barline /) {
+        $self->view->get_action($_)
+            ->set_sensitive($mode eq "insert");
+    }
     my $pos = $self->position;
     $self->position($pos);
 }
@@ -380,6 +383,19 @@ sub _insert_time :Action(view::TimeSig) {
     $self->position($pos->insert(
         App::Jacana::Music::TimeSig->new(copy_from => $dlg)));
     $pos->ambient->owner->clear_ambient;
+    $self->view->refresh;
+}
+
+sub _insert_barline :Action(view::Barline) {
+    my ($self) = @_;
+    $self->mode eq "insert" or return;
+
+    require App::Jacana::Dialog::Barline;
+    my $dlg = $self->view->run_dialog("Barline", undef,
+        barline => "|.",
+    ) or return;
+    $self->position($self->position->insert(
+        App::Jacana::Music::Barline->new(copy_from => $dlg)));
     $self->view->refresh;
 }
 

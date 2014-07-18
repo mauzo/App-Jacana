@@ -43,6 +43,11 @@ sub BUILD { }
 
 sub to_lily { "" }
 
+sub from_lily { 
+    my ($class, %args) = @_;
+    $class->new(\%args);
+}
+
 # position($centre)
 # $centre is the note on the centre staff line, where middle C is 0.
 # Returns the staff line on which this should be drawn.

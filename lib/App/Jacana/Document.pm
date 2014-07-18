@@ -8,6 +8,7 @@ use Moo;
 use File::Slurp     qw/read_file write_file/;
 use Regexp::Common;
 
+use App::Jacana::Music::Barline;
 use App::Jacana::Music::Clef;
 use App::Jacana::Music::KeySig;
 use App::Jacana::Music::Note;
@@ -136,6 +137,12 @@ sub parse_voice {
         )()x) {
             $music = $music->insert(
                 App::Jacana::Music::TimeSig->from_lily(%+));
+        }
+        elsif ($text =~ s(
+            ^ \\bar \s+ " (?<barline>[:.|]+) "
+        )()x) {
+            $music = $music->insert(
+                App::Jacana::Music::Barline->from_lily(%+));
         }
         else {
             last;
