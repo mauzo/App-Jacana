@@ -51,4 +51,17 @@ sub find_role {
     $prev->find_role($role);
 }
 
+sub find_span_start {
+    my ($self, $span) = @_;
+
+    my $owner = $self->owner;
+    $owner->DOES("App::Jacana::Has::Span")
+        && $owner->span_start
+        && grep $_ eq $span, $owner->span_types
+        and return $owner;
+
+    my $prev = $self->prev or return;
+    $prev->find_span_start($span);
+}
+
 1;

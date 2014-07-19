@@ -354,6 +354,22 @@ for my $t (qw/
     method_attrs $m, "Action(view::\u$t)";
 }
 
+sub _slur_start :Action(view::SlurStart) {
+    my ($self) = @_;
+    my $pos = $self->position;
+    $pos->isa("App::Jacana::Music::Note")   or return;
+    $self->position($pos->insert(
+        App::Jacana::Music::Slur->new({ span_start => 1 })));
+}
+
+sub _slur_end :Action(view::SlurEnd) {
+    my ($self) = @_;
+    my $pos = $self->position;
+    $pos->isa("App::Jacana::Music::Note")   or return;
+    $self->position($pos->insert(
+        App::Jacana::Music::Slur->new({ span_start => 0 })));
+}
+
 sub _backspace :Action(view::Backspace) {
     my ($self) = @_;
     $self->position($self->position->remove);

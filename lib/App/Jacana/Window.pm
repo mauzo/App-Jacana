@@ -180,6 +180,8 @@ sub _build_actions {
         NoteArticMenu:
             label:      Articulation
         ClearArticulation:
+        SlurStart:
+        SlurEnd:
         Staccato:
         Accent:
         Tenuto:
@@ -396,6 +398,9 @@ sub _build_uimgr {
                 </menu>
                 <menu action="NoteArticMenu">
                     <menuitem action="ClearArticulation"/>
+                    <separator/>
+                    <menuitem action="SlurStart"/>
+                    <menuitem action="SlurEnd"/>
                     <separator/>
                     <menuitem action="Staccato"/>
                     <menuitem action="Accent"/>
