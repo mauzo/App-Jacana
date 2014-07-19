@@ -16,7 +16,34 @@ with    qw/
 
 has tie => is => "rw", isa => Bool, default => 0;
 
-my %Chroma = (0, "", qw/1 is -1 es 2 isis -2 eses/);
+my %Chr2Ly = (0, "", qw/1 is -1 es 2 isis -2 eses/);
+my %Ly2Chr = reverse %Chr2Ly;
+
+sub lily_rx {
+    my ($self)  = @_;
+    my $artic   = $self->articulation_rx;
+    my $length  = $self->length_rx;
+    qr( (?<note>[a-g]) (?<chroma>[eis]*) (?<octave>[',]*)
+        $length (?<tie>~)? $artic?
+    )x;
+}
+
+sub from_lily {
+    my ($self, %n) = @_;
+
+    my $octave = $n{octave}
+        ? length($n{octave}) * ($n{octave} =~ /'/ ? 1 : -1)
+        : 0;
+    my @length = $self->_length_from_lily(%n);
+    $self->new({
+        note            => $n{note},
+        chroma          => $Ly2Chr{$n{chroma}},
+        octave          => $octave,
+        @length,
+        tie             => !!$n{tie},
+        articulation    => $n{articulation},
+    });
+}
 
 sub to_lily {
     my ($self) = @_;
@@ -29,7 +56,7 @@ sub to_lily {
         "");
     my $tie = $self->tie ? "~" : "";
     $art    = $art ? "\\$art" : "";
-    "$note$Chroma{$chrm}$oct$len$tie$art";
+    "$note$Chr2Ly{$chrm}$oct$len$tie$art";
 }
 
 my %Heads   = qw/0 sM1 1 s0 2 s1/;

@@ -6,14 +6,9 @@ use warnings;
 use Moo;
 
 use File::Slurp     qw/read_file write_file/;
+use Module::Runtime qw/use_module/;
 use Regexp::Common;
 
-use App::Jacana::Music::Barline;
-use App::Jacana::Music::Clef;
-use App::Jacana::Music::KeySig;
-use App::Jacana::Music::Note;
-use App::Jacana::Music::Rest;
-use App::Jacana::Music::TimeSig;
 use App::Jacana::Music::Voice;
 use App::Jacana::Util::Types;
 
@@ -61,9 +56,6 @@ sub save {
         @{$self->music};
 }
 
-my %Chroma = ("", 0, qw/is 1 es -1 isis 2 eses -2/);
-my %Length = qw/ \breve 0 1 1 2 2 4 3 8 4 16 5 32 6 64 7 128 8 /;
-
 sub parse_music {
     my ($self, $text) = @_;
 
@@ -84,73 +76,25 @@ sub parse_music {
         else { last }
     }
     $text and die "Unparsable music [$text]";
-
-    warn "PARSED MUSIC: " . Data::Dump::pp $voices;
 }
+
+my @MTypes = map "App::Jacana::Music::$_",
+    qw/ Barline Clef KeySig Note Rest TimeSig /;
+use_module $_ for @MTypes;
 
 sub parse_voice {
     my ($self, $music, $text) = @_;
 
-    my $artic = App::Jacana::Music::Note->articulation_rx;
-
-    while ($text) {
+    ITEM: while ($text) {
         $text =~ s/^\s+//;
-        if ($text =~ s(
-            ^ (?<note>[a-g]) (?<chroma>[eis]*) (?<octave>[',]*)
-              (?<length>\\breve|[0-9]+) (?<dots>\.*) (?<tie>~)?
-              $artic?
-        )()x) {
-            my %n = %+;
-            my $octave = $n{octave}
-                ? length($n{octave}) * ($n{octave} =~ /'/ ? 1 : -1)
-                : 0;
-            $music = $music->insert(App::Jacana::Music::Note->new(
-                note            => $n{note},
-                chroma          => $Chroma{$n{chroma}},
-                octave          => $octave,
-                length          => $Length{$n{length}},
-                dots            => length $n{dots},
-                tie             => !!$n{tie},
-                articulation    => $n{articulation},
-            ));
+        for my $M (@MTypes) {
+            my $rx = $M->lily_rx;
+            if ($text =~ s/^$rx//) {
+                $music = $music->insert($M->from_lily(%+));
+                next ITEM;
+            }
         }
-        elsif ($text =~ s(
-            ^ r (?<length>\\breve|[0-9]+) (?<dots>\.*)
-        )()x) {
-            $music = $music->insert(App::Jacana::Music::Rest->new(
-                length  => $Length{$+{length}},
-                dots    => length $+{dots},
-            ));
-        }
-        elsif ($text =~ s(
-            ^ \\clef \s+ (?: "(?<clef>[a-z]+)" | (?<clef>[a-z]+) )
-        )()x) {
-            $music = $music->insert(
-                App::Jacana::Music::Clef->new(clef => $+{clef}));
-        }
-        elsif ($text =~ s(
-            ^ \\key \s+ (?<note>[a-g] (?:[ei]s)?)
-                \s* \\(?<mode>major|minor)
-        )()x) {
-            $music = $music->insert(
-                App::Jacana::Music::KeySig->from_lily(%+));
-        }
-        elsif ($text =~ s(
-            ^ \\time \s+ (?<beats>[0-9]+) / (?<divisor>[0-9]+)
-            (?: \s* \\partial \s+ (?<plen>[0-9]+) (?<pdots>\.*) )?
-        )()x) {
-            $music = $music->insert(
-                App::Jacana::Music::TimeSig->from_lily(%+));
-        }
-        elsif ($text =~ s(
-            ^ \\bar \s+ " (?<barline>[:.|]+) "
-        )()x) {
-            $music = $music->insert(
-                App::Jacana::Music::Barline->from_lily(%+));
-        }
-        else {
-            last;
-        }
+        last ITEM;
     }
     $text and die "Unparsable music [$text]";
 }

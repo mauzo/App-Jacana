@@ -23,12 +23,20 @@ has "+partial" => coerce_to => "App::Jacana::Util::Length";
 
 sub dialog { "TimeSig" }
 
+sub lily_rx {
+    qr( \\time \s+ (?<beats>[0-9]+) / (?<divisor>[0-9]+)
+        (?: \s* \\partial \s+ (?<plen>[0-9]+) (?<pdots>\.*) )?
+    )x;
+}
+
 sub from_lily {
     my ($self, %c) = @_;
-    if (my $pl = delete $c{plen}) {
+    if ($c{plen}) {
         $c{partial} = {
             App::Jacana::Has::Length->_length_from_lily(
-                $pl, delete $c{pdots})
+                length  => delete $c{plen},
+                dots    => delete $c{pdots},
+            ),
         };
     }
     $self->new(\%c);

@@ -11,6 +11,16 @@ my @Glyph   = qw/ M1 0 1 2 3 4 5 6 7 /;
 
 sub staff_line { 0 }
 
+sub lily_rx {
+    my $length = $_[0]->length_rx;
+    qr( r $length )x;
+}
+
+sub from_lily {
+    my ($self, %n) = @_;
+    $self->new({ $self->_length_from_lily(%n) });
+}
+
 sub to_lily {
     my ($self) = @_;
     "r" . $self->_length_to_lily;

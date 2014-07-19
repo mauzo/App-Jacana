@@ -18,10 +18,14 @@ has dots    => is => "rw", default => 0, copiable => 1;
 my @Length = qw/ \breve 1 2 4 8 16 32 64 128 /;
 my %Length = map +($Length[$_], $_), 0..$#Length;
 
+sub length_rx {
+    qr( (?<length>\\breve|[0-9]+) (?<dots>\.*) )x;
+}
+
 sub _length_from_lily {
-    my ($self, $length, $dots) = @_;
-    +(  length => $Length{$length}, 
-        dots => length $dots//""
+    my ($self, %n) = @_;
+    +(  length => $Length{$n{length}}, 
+        dots => length $n{dots} // ""
     );
 }
 

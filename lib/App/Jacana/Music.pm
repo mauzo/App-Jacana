@@ -41,6 +41,8 @@ sub _build_ambient {
 # Otherwise we get a method conflict (grr)
 sub BUILD { }
 
+sub lily_rx { die "LILY_RX [$_[0]]" }
+
 sub to_lily { "" }
 
 sub from_lily { 

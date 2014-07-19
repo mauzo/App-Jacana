@@ -14,6 +14,10 @@ with    qw/
 
 sub dialog { "Barline" }
 
+sub lily_rx {
+    qr( \\bar \s+ " (?<barline>[:.|]+) " )x;
+}
+
 sub draw {
     my ($self, $c, $pos) = @_;
 

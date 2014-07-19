@@ -29,6 +29,9 @@ with    qw/
     App::Jacana::Music::HasAmbient
 /;
 
+sub lily_rx {
+    qr( \\clef \s+ (?: "(?<clef>[a-z]+)" | (?<clef>[a-z]+) ) )x
+}
 sub to_lily {
     "\\clef " . $_[0]->clef;
 }

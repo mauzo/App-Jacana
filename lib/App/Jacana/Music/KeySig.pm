@@ -28,6 +28,12 @@ my %Staff = %{YAML::XS::Load <<YAML};
         flat:   [x, -2, 1, -3, 0, -4, -1, -5]
 YAML
 
+sub lily_rx {
+    qr( \\key \s+ (?<note>[a-g] (?:[ei]s)?)
+        \s* \\(?<mode>major|minor)
+    )x;
+}
+
 sub draw {
     my ($self, $c, $pos) = @_;
 
