@@ -91,23 +91,27 @@ sub parse_music {
 sub parse_voice {
     my ($self, $music, $text) = @_;
 
+    my $artic = App::Jacana::Music::Note->articulation_rx;
+
     while ($text) {
         $text =~ s/^\s+//;
         if ($text =~ s(
             ^ (?<note>[a-g]) (?<chroma>[eis]*) (?<octave>[',]*)
               (?<length>\\breve|[0-9]+) (?<dots>\.*) (?<tie>~)?
+              $artic?
         )()x) {
             my %n = %+;
             my $octave = $n{octave}
                 ? length($n{octave}) * ($n{octave} =~ /'/ ? 1 : -1)
                 : 0;
             $music = $music->insert(App::Jacana::Music::Note->new(
-                note    => $n{note},
-                chroma  => $Chroma{$n{chroma}},
-                octave  => $octave,
-                length  => $Length{$n{length}},
-                dots    => length $n{dots},
-                tie     => !!$n{tie},
+                note            => $n{note},
+                chroma          => $Chroma{$n{chroma}},
+                octave          => $octave,
+                length          => $Length{$n{length}},
+                dots            => length $n{dots},
+                tie             => !!$n{tie},
+                articulation    => $n{articulation},
             ));
         }
         elsif ($text =~ s(

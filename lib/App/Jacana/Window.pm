@@ -94,7 +94,6 @@ sub _build_actions {
             label:      Open…
             stock_id:   gtk-open
         Save:
-            label:      Save
             stock_id:   gtk-save
         SaveAs:
             label:      Save As…
@@ -103,14 +102,11 @@ sub _build_actions {
             label:      Show Lilypond source
             icon_name:  icon-lily
         Quit:
-            label:      Quit
 
         EditMenu:
             label:      Edit
         InsertMode:
-            label:      Insert mode
         EditMode:
-            label:      Edit mode
         Properties:
             label:      Properties…
             stock_id:   gtk-properties
@@ -146,7 +142,6 @@ sub _build_actions {
         GotoPosition:
             label:      Goto position…
         InsertStaff:
-            label:      Insert staff
         NameStaff:
             label:      Name staff…
 
@@ -169,24 +164,34 @@ sub _build_actions {
         PitchG:
             label:      G
         Rest:
-            label:      Rest
             icon_name:  icon-rest-1
         
         NoteLengthMenu:
             label:      Length
         AddDot:
-            label:      Add dot
             icon_name:  icon-dot
         Tie:
-            label:      Tie
             icon_name:  icon-tie
             toggle:     1
         NoteAccidentalMenu:
             label:      Accidental
         Sharpen:
-            label:      Sharpen
         Flatten:
-            label:      Flatten
+        NoteArticMenu:
+            label:      Articulation
+        ClearArticulation:
+        Staccato:
+        Accent:
+        Tenuto:
+        Marcato:
+        Staccatissimo:
+        Trill:
+        Turn:
+        Prall:
+        Mordent:
+        Fermata:
+        Segno:
+        Coda:
 
         Left:
         Right:
@@ -196,12 +201,9 @@ sub _build_actions {
         Down:
 
         Backspace:
-            label:      Backspace
 
         OctaveUp:
-            label:      Octave up
         OctaveDown:
-            label:      Octave down
 
         MidiMenu:
             label:      MIDI
@@ -218,10 +220,8 @@ sub _build_actions {
         ViewMenu:
             label:      View
         ZoomIn:
-            label:      Zoom in
             stock_id:   gtk-zoom-in
         ZoomOut:
-            label:      Zoom out
             stock_id:   gtk-zoom-out
         ZoomOff:
             label:      Reset zoom
@@ -233,9 +233,11 @@ YAML
         my $def     = $$actions{$nm};
         my $class   = delete $$def{toggle} 
             ? "Gtk2::ToggleAction" : "Gtk2::Action";
+        my $label = $$def{label} // 
+            $nm =~ s/([a-z])([A-Z])/$1 \L$2/gr;
         my $act     = $class->new(
             name        => $nm,
-            label       => $$def{label},
+            label       => $label,
         );
         $$def{icon_name} and $act->set_icon_name($$def{icon_name});
         $$def{stock_id} and $act->set_stock_id($$def{stock_id});
@@ -391,6 +393,24 @@ sub _build_uimgr {
                     <separator/>
                     <menuitem action="AddDot"/>
                     <menuitem action="Tie"/>
+                </menu>
+                <menu action="NoteArticMenu">
+                    <menuitem action="ClearArticulation"/>
+                    <separator/>
+                    <menuitem action="Staccato"/>
+                    <menuitem action="Accent"/>
+                    <menuitem action="Tenuto"/>
+                    <menuitem action="Marcato"/>
+                    <menuitem action="Staccatissimo"/>
+                    <separator/>
+                    <menuitem action="Trill"/>
+                    <menuitem action="Turn"/>
+                    <menuitem action="Prall"/>
+                    <menuitem action="Mordent"/>
+                    <separator/>
+                    <menuitem action="Fermata"/>
+                    <menuitem action="Segno"/>
+                    <menuitem action="Coda"/>
                 </menu>
                 <menuitem action="Rest"/>
             </menu>

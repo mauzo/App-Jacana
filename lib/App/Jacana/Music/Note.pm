@@ -9,8 +9,9 @@ use namespace::clean;
 
 extends "App::Jacana::Music";
 with    qw/
-    App::Jacana::Has::Pitch 
+    App::Jacana::Has::Articulation
     App::Jacana::Has::Length 
+    App::Jacana::Has::Pitch 
 /;
 
 has tie => is => "rw", isa => Bool, default => 0;
@@ -19,14 +20,16 @@ my %Chroma = (0, "", qw/1 is -1 es 2 isis -2 eses/);
 
 sub to_lily {
     my ($self) = @_;
-    my ($note, $chrm, $oct, $len) = 
-        map $self->$_, qw/note chroma octave _length_to_lily/;
+    my ($note, $chrm, $oct, $len, $art) = 
+        map $self->$_, 
+            qw/note chroma octave _length_to_lily articulation/;
     $oct = (
         $oct > 0 ? "'" x $oct   :
         $oct < 0 ? "," x -$oct  :
         "");
     my $tie = $self->tie ? "~" : "";
-    "$note$Chroma{$chrm}$oct$len$tie";
+    $art    = $art ? "\\$art" : "";
+    "$note$Chroma{$chrm}$oct$len$tie$art";
 }
 
 my %Heads   = qw/0 sM1 1 s0 2 s1/;
@@ -162,6 +165,7 @@ sub draw {
     }
 
     abs($pos) > 5   and $self->_draw_ledgers($c, $pos, $wd);
+    $self->_draw_articulation($c, $pos, $up);
 
     $wd += $self->_draw_dots($c, $wd, $pos);
 

@@ -330,6 +330,30 @@ sub _insert_rest :Action(view::Rest) {
         App::Jacana::Music::Rest->new(copy_from => $self)));
 }
 
+sub _clear_artic :Action(view::ClearArticulation) {
+    my ($self) = @_;
+    my $pos = $self->position;
+    $pos->DOES("App::Jacana::Has::Articulation")
+        and $pos->clear_articulation;
+    $self->view->refresh;
+}
+
+for my $t (qw/
+    staccato accent tenuto marcato staccatissimo
+    trill turn prall mordent
+    fermata segno coda
+/) {
+    my $m = "_add_$t";
+    fresh $m, sub {
+        my ($self) = @_;
+        my $pos = $self->position;
+        $pos->DOES("App::Jacana::Has::Articulation")
+            and $pos->articulation($t);
+        $self->view->refresh;
+    };
+    method_attrs $m, "Action(view::\u$t)";
+}
+
 sub _backspace :Action(view::Backspace) {
     my ($self) = @_;
     $self->position($self->position->remove);
