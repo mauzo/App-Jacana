@@ -52,41 +52,24 @@ sub to_lily {
 sub staff_line { 0 }
 
 # use glyph names for consistency, even though numbers would be easier
-my @Num = qw/zero one two three four five six seven eight nine/;
-
-sub _num_glyphs {
-    my ($self, $c, $nums) = @_;
-
-    my @gly =
-        map [$_, $c->glyph_width($_)],
-        map $c->glyph($Num[$_]), 
-        split //, $nums;
-    my $wd = sum map $$_[1], @gly;
-    return $wd, @gly;
-}
+my %Num = qw/
+    0 zero 1 one 2 two 3 three 4 four 
+    5 five 6 six 7 seven 8 eight 9 nine
+/;
 
 sub draw {
     my ($self, $c, $pos) = @_;
     
-    my ($nwd, @num) = $self->_num_glyphs($c, $self->beats);
-    my ($dwd, @den) = $self->_num_glyphs($c, $self->divisor);
+    my ($nwd, @num) = $c->layout_glyphs(\%Num, $self->beats);
+    my ($dwd, @den) = $c->layout_glyphs(\%Num, $self->divisor);
 
     my $doff = ($nwd - $dwd) / 2;
 
-    my $show = sub {
-        $c->save;
-        for (@_) {
-            $c->show_glyphs($$_[0]);
-            $c->translate($$_[1], 0);
-        }
-        $c->restore;
-    };
-
     $c->save;
         $doff < 0 and $c->translate(-$doff, 0);
-        $show->(@num);
+        $c->show_glyphs(@num);
         $c->translate($doff, 4);
-        $show->(@den);
+        $c->show_glyphs(@den);
     $c->restore;
 
     return max $nwd, $dwd;

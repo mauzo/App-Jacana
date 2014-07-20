@@ -44,7 +44,7 @@ has _has_part   => (
 has "+beats"    => (
     gtk_prop    => "_beats::text", 
     isa         => sub { 
-        $_[0] eq "" || $_[0] =~ /^[0-9]$/
+        $_[0] eq "" || $_[0] =~ /^[0-9]+$/
             or Carp::croak "Bad beats: [$_[0]]";
     },
 );

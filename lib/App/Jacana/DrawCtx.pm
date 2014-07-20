@@ -74,8 +74,25 @@ sub glyph {
 }
 
 sub glyph_width {
-    my ($self, $gly) = @_;
-    $self->c->glyph_extents($gly)->{x_advance};
+    my ($self, @gly) = @_;
+    $self->c->glyph_extents(@gly)->{x_advance};
 }
+
+sub layout_glyphs {
+    my ($self, $map, $text) = @_;
+
+    $map //= {};
+
+    my @gly =
+        map $self->glyph($$map{$_} // $_), 
+        split //, $text;
+    my $wd = 0;
+    for (@gly) {
+        $_->{x} = $wd;
+        $wd += $self->glyph_width($_);
+    }
+    return $wd, @gly;
+}
+
 
 1;
