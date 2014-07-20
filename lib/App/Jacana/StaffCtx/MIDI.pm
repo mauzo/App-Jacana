@@ -23,7 +23,7 @@ sub start_note {
     $note->isa("App::Jacana::Music::Note") && $note->tie
         and $self->tie_from($note);
     warn sprintf "START NOTE [%s]", $self->pitch;
-    $self->on_start->($note);
+    #$self->on_start->($note);
 }
 
 sub stop_note {
@@ -36,7 +36,7 @@ sub stop_note {
             $self->pitch(undef);
         }
     }
-    $self->on_stop->($self->item);
+    #$self->on_stop->($self->item);
 }
 
 1;

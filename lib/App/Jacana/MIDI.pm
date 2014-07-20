@@ -131,7 +131,7 @@ sub play_music {
     $_->start_note for @music;
 
     my $id;
-    $id = Glib::Timeout->add(32, $self->weak_closure(sub {
+    $id = Glib::Timeout->add(12, $self->weak_closure(sub {
         my ($self) = @_;
         
         for (grep !$_->when, @music) {
