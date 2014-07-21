@@ -81,21 +81,33 @@ sub parse_music {
 my @MTypes = map "App::Jacana::Music::$_",
     qw/ Barline Clef KeySig Note Rest TimeSig /;
 use_module $_ for @MTypes;
+require App::Jacana::Music::Lily;
 
 sub parse_voice {
     my ($self, $music, $text) = @_;
 
+    my $unknown = "";
     ITEM: while ($text) {
         $text =~ s/^\s+//;
         for my $M (@MTypes) {
             my $rx = $M->lily_rx;
             if ($text =~ s/^$rx//) {
+                if ($unknown) {
+                    $music = $music->insert(
+                        App::Jacana::Music::Lily->new(
+                            lily => $unknown));
+                    $unknown = "";
+                }
                 $music = $music->insert($M->from_lily(%+));
                 next ITEM;
             }
         }
-        last ITEM;
+        $text =~ s/^(\S+\s*)// and $unknown .= $1;
     }
+
+    $unknown and $music->insert(
+        App::Jacana::Music::Lily->new(lily => $unknown));
+
     $text and die "Unparsable music [$text]";
 }
 

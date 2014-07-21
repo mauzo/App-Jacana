@@ -94,5 +94,21 @@ sub layout_glyphs {
     return $wd, @gly;
 }
 
+sub text_font {
+    my ($self, $style, $size) = @_;
+
+    $self->c->select_font_face(
+        "Century Schoolbook",
+        ($style eq "italic" ? "italic" : "normal"),
+        ($style eq "bold" ? "bold" : "normal"),
+    );
+    $self->c->set_font_size($size);
+}
+
+sub show_text {
+    my ($self, $text) = @_;
+    $self->c->show_text($text);
+    $self->c->text_extents($text)->{width};
+}
 
 1;
