@@ -54,7 +54,7 @@ sub _build_window {
     );
 }
 
-has midi        => is => "lazy";
+has midi        => is => "lazy", predicate => 1;
 sub _build_midi { App::Jacana::MIDI->new }
 
 sub BUILD {

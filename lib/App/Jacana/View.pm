@@ -90,9 +90,11 @@ sub save_as :Action(SaveAs) {
     );
     $doc->has_filename and $dlg->set_filename($doc->filename);
     $dlg->run eq "ok" or $dlg->destroy, return;
-    $doc->filename($dlg->get_filename);
+    my $file = $dlg->get_filename;
+    $doc->filename($file);
     $dlg->destroy;
     $doc->save;
+    $self->status_flash("Saved as '$file'.");
 }
 
 sub save :Action(Save) {
@@ -101,6 +103,7 @@ sub save :Action(Save) {
 
     $doc->has_filename or return $self->save_as;
     $doc->save;
+    $self->status_flash("Saved.");
 }
 
 sub open :Action(Open) {
@@ -121,9 +124,9 @@ sub open :Action(Open) {
 sub midi {
     my ($self) = @_;
 
-    $self->set_busy("Initialising MIDI…");
-    my $midi = $self->app->midi;
-    $midi;
+    my $app = $self->app;
+    $app->has_midi or $self->set_busy("Initialising MIDI…");
+    $app->midi;
 }
 
 sub _play_music {
