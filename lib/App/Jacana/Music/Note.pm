@@ -29,7 +29,7 @@ sub lily_rx {
     my $length  = $self->length_rx;
 
     qr{ (?<note>[a-g]) (?<chroma>[eis]*) (?<octave>[',]*)
-        $length (?<tie>~)? (?:$marks)*
+        $length (?<tie>~)? $marks
     }x;
 }
 

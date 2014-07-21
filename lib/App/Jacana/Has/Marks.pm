@@ -21,7 +21,8 @@ my @Marks   = map "$Mark\::$_",
 use_module $_ for @Marks;
 
 sub marks_rx {
-    join "|", map $_->lily_rx, @Marks;
+    my $mrk = join "|", map $_->lily_rx, @Marks;
+    qr/(?:$mrk)*/;
 }
 
 sub marks_from_lily {
