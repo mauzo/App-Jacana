@@ -8,13 +8,15 @@ use App::Jacana::Util::Types;
 
 use namespace::autoclean;
 
+my $Mark = "App::Jacana::Music::Mark";
+
 has marks => (
     is          => "rw",
-    isa         => ArrayRef[InstanceOf["App::Jacana::Music::Mark"]],
+    isa         => ArrayRef[InstanceOf[$Mark]],
     default     => sub { [] },
 );
 
-my @Marks   = map "App::Jacana::Music::Mark::$_",
+my @Marks   = map "$Mark\::$_", 
     qw/ Articulation Slur /;
 use_module $_ for @Marks;
 
@@ -36,14 +38,14 @@ sub marks_to_lily {
 }
 
 sub add_mark {
-    my ($self, $mark) = @_;
-    push @{$self->marks}, $mark;
+    my ($self, $type, @args) = @_;
+    push @{$self->marks}, "$Mark\::$type"->new(@args);
 }
 
-sub delete_mark {
-    my ($self, $mark) = @_;
+sub delete_marks {
+    my ($self, $type) = @_;
     my $mrk = $self->marks or die "No marks on [$self]";
-    @$mrk = grep $_ != $mark, @$mrk;
+    @$mrk = grep !$_->isa("$Mark\::$type"), @$mrk;
 }
 
 1;

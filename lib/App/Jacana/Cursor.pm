@@ -330,12 +330,17 @@ sub _insert_rest :Action(view::Rest) {
         App::Jacana::Music::Rest->new(copy_from => $self)));
 }
 
-sub _clear_artic :Action(view::ClearArticulation) {
-    my ($self) = @_;
+sub _do_marks {
+    my ($self, $type, @args) = @_;
     my $pos = $self->position;
-    $pos->DOES("App::Jacana::Has::Articulation")
-        and $pos->clear_articulation;
+    $pos->DOES("App::Jacana::Has::Marks") or return;
+    $pos->delete_marks($type);
+    @args and $pos->add_mark($type, @args);
     $self->view->refresh;
+}
+
+sub _clear_artic :Action(view::ClearArticulation) {
+    $_[0]->_do_marks("Articulation");
 }
 
 for my $t (qw/
@@ -344,30 +349,22 @@ for my $t (qw/
     fermata segno coda
 /) {
     my $m = "_add_$t";
-    fresh $m, sub {
-        my ($self) = @_;
-        my $pos = $self->position;
-        $pos->DOES("App::Jacana::Has::Articulation")
-            and $pos->articulation($t);
-        $self->view->refresh;
+    fresh $m, sub { 
+        $_[0]->_do_marks(Articulation => articulation => $t);
     };
     method_attrs $m, "Action(view::\u$t)";
 }
 
 sub _slur_start :Action(view::SlurStart) {
-    my ($self) = @_;
-    my $pos = $self->position;
-    $pos->isa("App::Jacana::Music::Note")   or return;
-    $self->position($pos->insert(
-        App::Jacana::Music::Slur->new({ span_start => 1 })));
+    $_[0]->_do_marks(Slur => span_start => 1);
 }
 
 sub _slur_end :Action(view::SlurEnd) {
-    my ($self) = @_;
-    my $pos = $self->position;
-    $pos->isa("App::Jacana::Music::Note")   or return;
-    $self->position($pos->insert(
-        App::Jacana::Music::Slur->new({ span_start => 0 })));
+    $_[0]->_do_marks(Slur => span_start => 0);
+}
+
+sub _slur_clear :Action(view::ClearSlur) {
+    $_[0]->_do_marks("Slur");
 }
 
 sub _backspace :Action(view::Backspace) {

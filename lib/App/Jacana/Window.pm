@@ -173,15 +173,18 @@ sub _build_actions {
         Tie:
             icon_name:  icon-tie
             toggle:     1
+
         NoteAccidentalMenu:
             label:      Accidental
         Sharpen:
         Flatten:
-        NoteArticMenu:
+
+        MarksMenu:
+            label:  Marks
+
+        MarksArticMenu:
             label:      Articulation
         ClearArticulation:
-        SlurStart:
-        SlurEnd:
         Staccato:
         Accent:
         Tenuto:
@@ -194,6 +197,12 @@ sub _build_actions {
         Fermata:
         Segno:
         Coda:
+
+        MarksSlurMenu:
+            label: Slurs
+        SlurStart:
+        SlurEnd:
+        ClearSlur:
 
         Left:
         Right:
@@ -396,11 +405,11 @@ sub _build_uimgr {
                     <menuitem action="AddDot"/>
                     <menuitem action="Tie"/>
                 </menu>
-                <menu action="NoteArticMenu">
+                <menuitem action="Rest"/>
+            </menu>
+            <menu action="MarksMenu">
+                <menu action="MarksArticMenu">
                     <menuitem action="ClearArticulation"/>
-                    <separator/>
-                    <menuitem action="SlurStart"/>
-                    <menuitem action="SlurEnd"/>
                     <separator/>
                     <menuitem action="Staccato"/>
                     <menuitem action="Accent"/>
@@ -417,7 +426,11 @@ sub _build_uimgr {
                     <menuitem action="Segno"/>
                     <menuitem action="Coda"/>
                 </menu>
-                <menuitem action="Rest"/>
+                <menu action="MarksSlurMenu">
+                    <menuitem action="ClearSlur"/>
+                    <menuitem action="SlurStart"/>
+                    <menuitem action="SlurEnd"/>
+                </menu>
             </menu>
             <menu action="MidiMenu">
                 <menuitem action="MidiPlay"/>
