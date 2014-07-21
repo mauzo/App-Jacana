@@ -25,18 +25,6 @@ my %Artic = (
     downbow     => { pos => 0   },
 );
 
-sub articulation_types { qw/
-    staccato accent tenuto marcato staccatissimo
-    - trill turn prall mordent
-    - fermata segno coda
-    - upbow downbow
-/ }
-
-sub articulation_rx {
-    my $artic = join "|", keys %Artic;
-    qr( \s* \\ (?<articulation>$artic) )x;
-}
-
 has articulation     => (
     is          => "rw",
     copiable    => 1,
@@ -44,24 +32,6 @@ has articulation     => (
     isa         => Maybe[Enum[keys %Artic]],
 );
 
-sub _draw_articulation {
-    my ($self, $c, $pos, $up) = @_;
-
-    my $artic   = $self->articulation       or return;
-    my $meta    = $Artic{$artic};
-
-    my $glyph   = "scripts." 
-        . ($$meta{glyph} ? $up ? "d" : "u" : "")
-        . ($$meta{name} || $artic);
-
-    my $y = $$meta{pos}
-        ? ($up ? 2.5 : -2.5)
-        : ($pos > 4) ? -3.5 : $pos - 8.5;
-
-    $c->save;
-        $c->translate(2, $y);
-        $c->show_glyphs($c->glyph($glyph));
-    $c->restore;
-}
+sub articulation_types { \%Artic }
 
 1;

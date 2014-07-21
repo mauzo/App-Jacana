@@ -5,58 +5,65 @@ use warnings;
 
 use Moo;
 use App::Jacana::Util::Types;
+
+use Module::Runtime qw/use_module/;
+
 use namespace::clean;
 
 extends "App::Jacana::Music";
 with    qw/
-    App::Jacana::Has::Articulation
     App::Jacana::Has::Length 
+    App::Jacana::Has::Marks
     App::Jacana::Has::Pitch 
 /;
 
 has tie => is => "rw", isa => Bool, default => 0;
 
-my %Chr2Ly = (0, "", qw/1 is -1 es 2 isis -2 eses/);
-my %Ly2Chr = reverse %Chr2Ly;
+my %Chr2Ly  = (0, "", qw/1 is -1 es 2 isis -2 eses/);
+my %Ly2Chr  = reverse %Chr2Ly;
 
 sub lily_rx {
     my ($self)  = @_;
-    my $artic   = $self->articulation_rx;
+
+    my $marks   = $self->marks_rx;
     my $length  = $self->length_rx;
-    qr( (?<note>[a-g]) (?<chroma>[eis]*) (?<octave>[',]*)
-        $length (?<tie>~)? $artic?
-    )x;
+
+    qr{ (?<note>[a-g]) (?<chroma>[eis]*) (?<octave>[',]*)
+        $length (?<tie>~)? (?:$marks)*
+    }x;
 }
 
 sub from_lily {
     my ($self, %n) = @_;
 
-    my $octave = $n{octave}
+    my $octave  = $n{octave}
         ? length($n{octave}) * ($n{octave} =~ /'/ ? 1 : -1)
         : 0;
-    my @length = $self->_length_from_lily(%n);
+    my @length  = $self->_length_from_lily(%n);
+    my @marks   = $self->marks_from_lily(%n);
+
     $self->new({
         note            => $n{note},
         chroma          => $Ly2Chr{$n{chroma}},
         octave          => $octave,
         @length,
         tie             => !!$n{tie},
-        articulation    => $n{articulation},
+        @marks,
     });
 }
 
 sub to_lily {
     my ($self) = @_;
-    my ($note, $chrm, $oct, $len, $art) = 
+    my ($note, $chrm, $oct, $len, $marks) = 
         map $self->$_, 
-            qw/note chroma octave _length_to_lily articulation/;
+            qw/note chroma octave _length_to_lily marks_to_lily/;
     $oct = (
         $oct > 0 ? "'" x $oct   :
         $oct < 0 ? "," x -$oct  :
         "");
     my $tie = $self->tie ? "~" : "";
-    $art    = $art ? "\\$art" : "";
-    "$note$Chr2Ly{$chrm}$oct$len$tie$art";
+
+    "$note$Chr2Ly{$chrm}$oct$len$tie$marks";
 }
 
 my %Heads   = qw/0 sM1 1 s0 2 s1/;
@@ -192,7 +199,7 @@ sub draw {
     }
 
     abs($pos) > 5   and $self->_draw_ledgers($c, $pos, $wd);
-    $self->_draw_articulation($c, $pos, $up);
+    $_->draw($c, $pos, $up) for @{$self->marks};
 
     $wd += $self->_draw_dots($c, $wd, $pos);
 
