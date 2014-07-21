@@ -204,6 +204,28 @@ sub _build_actions {
         SlurEnd:
         ClearSlur:
 
+        MarksDynamicMenu:
+            label:  Dynamics
+        ClearDynamic:
+        DynamicPP:
+            label:  Pianissimo
+        DynamicP:
+            label:  Piano
+        DynamicMP:
+            label:  Mezzo-piano
+        DynamicMF:
+            label:  Mezzo-forte
+        DynamicF:
+            label:  Forte
+        DynamicFF:
+            label:  Fortissimo
+        DynamicFP:
+            label:  Forte-piano
+        DynamicSF:
+            label:  Sforzato
+        DynamicSFZ:
+            label:  Sforzando
+
         Left:
         Right:
         Home:
@@ -430,6 +452,20 @@ sub _build_uimgr {
                     <menuitem action="ClearSlur"/>
                     <menuitem action="SlurStart"/>
                     <menuitem action="SlurEnd"/>
+                </menu>
+                <menu action="MarksDynamicMenu">
+                    <menuitem action="ClearDynamic"/>
+                    <separator/>
+                    <menuitem action="DynamicPP"/>
+                    <menuitem action="DynamicP"/>
+                    <menuitem action="DynamicMP"/>
+                    <menuitem action="DynamicMF"/>
+                    <menuitem action="DynamicF"/>
+                    <menuitem action="DynamicFF"/>
+                    <separator/>
+                    <menuitem action="DynamicFP"/>
+                    <menuitem action="DynamicSF"/>
+                    <menuitem action="DynamicSFZ"/>
                 </menu>
             </menu>
             <menu action="MidiMenu">

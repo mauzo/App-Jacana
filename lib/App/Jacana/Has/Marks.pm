@@ -17,7 +17,7 @@ has marks => (
 );
 
 my @Marks   = map "$Mark\::$_", 
-    qw/ Articulation Slur /;
+    qw/ Articulation Dynamic Slur /;
 use_module $_ for @Marks;
 
 sub marks_rx {

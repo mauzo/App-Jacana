@@ -367,6 +367,18 @@ sub _slur_clear :Action(view::ClearSlur) {
     $_[0]->_do_marks("Slur");
 }
 
+sub _dynamic_clear :Action(view::ClearDynamic) {
+    $_[0]->_do_marks("Dynamic");
+}
+
+for my $d (qw/ pp p mp mf f ff fp sf sfz /) {
+    my $m = "_dynamic_$d";
+    fresh $m, sub {
+        $_[0]->_do_marks(Dynamic => dynamic => $d);
+    };
+    method_attrs $m, "Action(view::Dynamic\U$d)";
+}
+
 sub _backspace :Action(view::Backspace) {
     my ($self) = @_;
     $self->position($self->position->remove);
