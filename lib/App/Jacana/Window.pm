@@ -107,6 +107,8 @@ sub _build_actions {
             label:      Edit
         InsertMode:
         EditMode:
+        GotoPosition:
+            label:      Goto position…
         Properties:
             label:      Properties…
             stock_id:   gtk-properties
@@ -139,11 +141,12 @@ sub _build_actions {
         Barline:
             label:      Barline…
             icon_name:  icon-barline
-        GotoPosition:
-            label:      Goto position…
         InsertStaff:
         NameStaff:
             label:      Name staff…
+        TextMark:
+            label:  Text mark…
+
 
         NoteMenu:
             label:      Note
@@ -372,6 +375,7 @@ sub _build_uimgr {
             <menu action="EditMenu">
                 <menuitem action="InsertMode"/>
                 <menuitem action="EditMode"/>
+                <menuitem action="GotoPosition"/>
                 <menuitem action="Properties"/>
             </menu>
             <menu action="StaffMenu">
@@ -386,7 +390,9 @@ sub _build_uimgr {
                 <menuitem action="KeySig"/>
                 <menuitem action="TimeSig"/>
                 <menuitem action="Barline"/>
-                <menuitem action="GotoPosition"/>
+                <separator/>
+                <menuitem action="Barline"/>
+                <menuitem action="TextMark"/>
                 <separator/>
                 <menuitem action="InsertStaff"/>
                 <menuitem action="NameStaff"/>
