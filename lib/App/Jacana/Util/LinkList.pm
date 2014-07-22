@@ -32,6 +32,7 @@ push @Data::Dump::FILTERS, sub {
     delete @atts{qw/prev next/};
     $atts{ambient} and $atts{ambient} = 1;
 
+    no warnings "recursion";
     my $next    = $obj->is_list_end ? "" 
         : "->" . Data::Dump::pp($obj->next);
     my $atts    = Data::Dump::pp(\%atts);

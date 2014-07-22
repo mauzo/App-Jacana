@@ -1,7 +1,9 @@
 package App::Jacana::Has::Time;
 
 use Moo::Role;
+
 use App::Jacana::Util::Types;
+use App::Jacana::Util::Length;
 
 with qw/MooX::Role::Copiable/;
 
@@ -19,6 +21,8 @@ has partial => (
     is          => "rw",
     isa         => Maybe[ConsumerOf["App::Jacana::Has::Length"]],
     deep_copy   => 1,
+    predicate   => 1,
+    clearer     => 1,
 );
 
 # in qhdsqs

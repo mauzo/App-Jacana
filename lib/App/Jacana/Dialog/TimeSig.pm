@@ -2,8 +2,12 @@ package App::Jacana::Dialog::TimeSig;
 
 use 5.012;
 use Moo;
-use MooX::AccessorMaker
-    apply => [qw/ MooX::MakerRole::Coercer /];
+use MooX::AccessorMaker     apply => [qw/ 
+    MooX::MakerRole::Coercer
+/];
+use MooX::MethodAttributes  use => [qw/
+    MooX::Gtk2
+/];
 
 use App::Jacana::Gtk2::ComboBox;
 use App::Jacana::Util::Types;
@@ -34,13 +38,6 @@ has _plen       => is => "lazy";
 has _pdots      => is => "lazy";
 has _p_check    => is => "lazy";
 
-has _has_part   => (
-    is          => "rw", 
-    default     => 0, 
-    gtk_prop    => "_p_check::active",
-    trigger     => 1,
-);
-
 has "+beats"    => (
     default     => 4,
     gtk_prop    => "_beats::text", 
@@ -53,27 +50,34 @@ has "+divisor"  => (
     default     => 4,
     gtk_prop    => "_divisor::current-value"
 );
-has "+partial"  => coercer => 1, predicate => 1;
+has "+partial"  => (
+    coercer     => 1, 
+);
 
 sub title   { "Time signature" }
 
-around partial => sub {
-    my ($orig, $self, @args) = @_;
+sub BUILD {
+    my ($self) = @_;
+    if ($self->has_partial) {
+        $self->_p_check->set_active(1);
+    }
+    else {
+        $self->$_->set_sensitive(0) for qw/_plen _pdots/;
+    }
+}
 
-    my $rv = (@args || $self->_has_part) ? $self->$orig(@args) : ();
-    @args and $self->_has_part(1);
+sub _notify_p_check :Signal(_p_check::notify::active) {
+    my ($self) = @_;
+    my $active = $self->_p_check->get_active;
 
-    my $h   = $self->_has_part;
-    warn "PARTIAL [$h] [$rv]";
-    $rv;
-};
-
-sub _trigger__has_part {
-    my ($self, $new) = @_;
-    $new && !$self->has_partial
-        and $self->partial({ length => 4, dots => 0 });
-    $_->set_sensitive($new)
-        for $self->_plen, $self->_pdots;
+    if ($active) {
+        $self->has_partial
+            or $self->partial({length => 4, dots => 0});
+    }
+    else {
+        $self->clear_partial;
+    }
+    $self->$_->set_sensitive($active) for qw/_plen _pdots/;
 }
 
 sub _coerce_partial {
