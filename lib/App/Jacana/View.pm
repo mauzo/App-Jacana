@@ -525,11 +525,10 @@ sub _scroll_event :Signal {
 }
 
 sub run_dialog {
-    my ($self, $which, $copy, @args) = @_;
+    my ($self, $which, $src, @args) = @_;
 
     my $dlg = use_module("App::Jacana::Dialog::$which")
-        ->new(copy_from => $self, @args);
-    $copy and $dlg->copy_from($copy);
+        ->new(copy_from => $self, src => $src, @args);
     $dlg->run eq "ok" or return;
     $dlg;
 }

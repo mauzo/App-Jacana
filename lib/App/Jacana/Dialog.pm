@@ -5,7 +5,17 @@ use App::Jacana::Util::Types;
 
 with qw/ App::Jacana::Has::Window /;
 
-has dialog => is => "lazy";
+has dialog  => is => "lazy";
+has src     => is => "ro";
+
+sub BUILD {
+    my ($self) = @_;
+    my $src = $self->src;
+    if (ref $src) {
+        warn "DIALOG [$self] COPYING FROM [$src]";
+        $self->copy_from($src);
+    }
+}
 
 sub title   { ... }
 sub buttons { "gtk-cancel" => "cancel", "gtk-ok" => "ok" }

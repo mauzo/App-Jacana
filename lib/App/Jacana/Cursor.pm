@@ -384,7 +384,7 @@ sub _backspace :Action(view::Backspace) {
     $self->position($self->position->remove);
 }
 
-sub _insert_clef {
+sub _do_clef {
     my ($self, $type) = @_;
     my $pos = $self->position;
     if ($self->mode eq "insert") {
@@ -401,51 +401,30 @@ sub _insert_clef {
 
 for my $c (qw/Treble Alto Tenor Bass Soprano/) {
     my $m = "_clef_\L$c";
-    fresh $m, sub { $_[0]->_insert_clef(lc $c) };
+    fresh $m, sub { $_[0]->_do_clef(lc $c) };
     method_attrs $m, "Action(view::Clef$c)";
 }
 
-sub _insert_key :Action(view::KeySig) {
-    my ($self) = @_;
+sub _insert_with_dialog {
+    my ($self, $type, @args) = @_;
     $self->mode eq "insert" or return;
 
-    my $dlg = $self->view->run_dialog("KeySig", undef,
-        key => 0, mode => "major")
+    my $class = "App::Jacana::Music::$type";
+    $class->DOES("App::Jacana::Has::Dialog") or die "$class has no dialog";
+    my $dlg = $self->view->run_dialog($class->dialog, $class, @args)
         or return;
+
     my $pos = $self->position;
-    $self->position($pos->insert(
-        App::Jacana::Music::KeySig->new(copy_from => $dlg)));
-    $pos->ambient->owner->clear_ambient;
-    $self->view->refresh;
+    $class->DOES("App::Jacana::Music::HasAmbient")
+        and $pos->ambient->owner->clear_ambient;
+    $self->position($pos->insert($class->new(copy_from => $dlg)));
 }
 
-sub _insert_time :Action(view::TimeSig) {
-    my ($self) = @_;
-    $self->mode eq "insert" or return;
-
-    require App::Jacana::Dialog::TimeSig;
-    my $dlg = $self->view->run_dialog("TimeSig", undef,
-        beats   => 4, 
-        divisor => 4,
-    ) or return;
-    my $pos = $self->position;
-    $self->position($pos->insert(
-        App::Jacana::Music::TimeSig->new(copy_from => $dlg)));
-    $pos->ambient->owner->clear_ambient;
-    $self->view->refresh;
-}
-
-sub _insert_barline :Action(view::Barline) {
-    my ($self) = @_;
-    $self->mode eq "insert" or return;
-
-    require App::Jacana::Dialog::Barline;
-    my $dlg = $self->view->run_dialog("Barline", undef,
-        barline => "|.",
-    ) or return;
-    $self->position($self->position->insert(
-        App::Jacana::Music::Barline->new(copy_from => $dlg)));
-    $self->view->refresh;
+for my $t (qw/ Barline KeySig TimeSig /) {
+    my $a = $t =~ s/:://gr;
+    my $m = "_insert_\L$a";
+    fresh $m, sub { $_[0]->_insert_with_dialog($t) };
+    method_attrs $m, "Action(view::$a)";
 }
 
 sub _properties :Action(view::Properties) {

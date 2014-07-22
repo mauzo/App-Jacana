@@ -42,13 +42,17 @@ has _has_part   => (
 );
 
 has "+beats"    => (
+    default     => 4,
     gtk_prop    => "_beats::text", 
     isa         => sub { 
         $_[0] eq "" || $_[0] =~ /^[0-9]+$/
             or Carp::croak "Bad beats: [$_[0]]";
     },
 );
-has "+divisor"  => gtk_prop => "_divisor::current-value";
+has "+divisor"  => (
+    default     => 4,
+    gtk_prop    => "_divisor::current-value"
+);
 has "+partial"  => coercer => 1, predicate => 1;
 
 sub title   { "Time signature" }

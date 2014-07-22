@@ -15,8 +15,18 @@ with    qw/
 has _key  => is => "lazy";
 has _mode => is => "lazy";
 
-has "+key"  => gtk_prop => "_key::current-value";
-has "+mode" => gtk_prop => "_mode::current-value", trigger => 1;
+has "+key"  => (
+    default     => 0,
+    gtk_prop    => "_key::current-value",
+);
+has "+mode" => (
+    #default     => "major",
+    gtk_prop    => "_mode::current-value", 
+    trigger => 1,
+);
+
+# grr, defaults don't trigger triggers
+sub BUILD { $_[0]->mode or $_[0]->mode("major") }
 
 sub title { "Key signature" }
 

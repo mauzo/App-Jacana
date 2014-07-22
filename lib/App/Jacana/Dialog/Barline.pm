@@ -14,7 +14,10 @@ with    qw/
 
 has _barline    => is => "lazy";
 
-has "+barline" => gtk_prop => "_barline::current-value";
+has "+barline" => (
+    default     => "|.",
+    gtk_prop    => "_barline::current-value",
+);
 
 sub title { "Barline" }
 
