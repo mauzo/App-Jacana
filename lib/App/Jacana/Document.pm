@@ -79,7 +79,9 @@ sub parse_music {
 }
 
 my @MTypes = map "App::Jacana::Music::$_",
-    qw/ Barline Clef KeySig Note Rest TimeSig /;
+    qw/ Barline Clef KeySig Note 
+        RehearsalMark Rest Text::Mark TimeSig 
+    /;
 use_module $_ for @MTypes;
 require App::Jacana::Music::Lily;
 

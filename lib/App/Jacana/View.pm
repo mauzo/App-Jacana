@@ -335,7 +335,7 @@ sub _show_music {
     my @voices  =
         map App::Jacana::StaffCtx::Draw->new(
             item    => $$voices[$_],
-            y       => 24*$_ + 12,
+            y       => 24*($_ + 1),
         ),
         0..$#$voices;
 
@@ -371,7 +371,7 @@ sub _show_music {
         $self->_add_to_bb($c, $x, @voices);
     }
 
-    ($x + 6, 24*@$voices);
+    ($x + 6, 24*(@$voices + 1));
 }
 
 sub _show_stave {

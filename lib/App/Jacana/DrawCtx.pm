@@ -94,21 +94,34 @@ sub layout_glyphs {
     return $wd, @gly;
 }
 
+sub _decode_matrix {
+    my ($m) = @_;
+
+    my ($xx, $yx) = $m->transform_distance(1, 0);
+    my ($xy, $yy) = $m->transform_distance(0, 1);
+    my ($x0, $y0) = $m->transform_point(0, 0);
+
+    [[$xx, $xy, $x0], [$yx, $yy, $y0]];
+}
+
 sub text_font {
     my ($self, $style, $size) = @_;
 
-    $self->c->select_font_face(
-        "Century Schoolbook",
+    my $c = $self->c;
+
+    $c->select_font_face(
+        "Century Schoolbook L",
         ($style eq "italic" ? "italic" : "normal"),
         ($style eq "bold" ? "bold" : "normal"),
     );
-    $self->c->set_font_size($size);
+    $c->set_font_size($size);
 }
 
 sub show_text {
     my ($self, $text) = @_;
     $self->c->show_text($text);
-    $self->c->text_extents($text)->{width};
+    my $ext = $self->c->text_extents($text);
+    wantarray ? @$ext{"width", "height"} : $$ext{width};
 }
 
 1;
