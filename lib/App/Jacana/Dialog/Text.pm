@@ -9,10 +9,10 @@ extends "App::Jacana::Dialog";
 with    qw/ MooX::Gtk2 App::Jacana::Has::Markup /;
 
 has _text => is => "lazy";
-has "+text" => gtk_prop => "_text::text";
+has "+text" => gtk_prop => "_text.text";
 
 has _style => is => "lazy";
-has "+style" => gtk_prop => "_style::current-value";
+has "+style" => gtk_prop => "_style.current-value";
 
 sub title { $_[0]->src->dialog_title }
 

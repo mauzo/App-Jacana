@@ -17,11 +17,11 @@ has _mode => is => "lazy";
 
 has "+key"  => (
     default     => 0,
-    gtk_prop    => "_key::current-value",
+    gtk_prop    => "_key.current-value",
 );
 has "+mode" => (
     #default     => "major",
-    gtk_prop    => "_mode::current-value", 
+    gtk_prop    => "_mode.current-value", 
     trigger => 1,
 );
 

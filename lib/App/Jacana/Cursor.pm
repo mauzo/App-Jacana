@@ -29,7 +29,7 @@ has mode        => (
     is          => "rw",
     isa         => Enum[qw/insert edit/],
     default     => "insert",
-    gtk_prop    => "view.status_mode::label",
+    gtk_prop    => "view.status_mode.label",
     trigger     => 1,
 );
 
@@ -38,7 +38,7 @@ has midi_chan   => is => "lazy";
 has "+length"   => (
     # default doesn't fire the trigger, set it in BUILD instead
     #default     => 3,
-    gtk_prop    => "view.get_action(NoteLength)::current-value",
+    gtk_prop    => "view.get_action(NoteLength).current-value",
     trigger     => 1,
 );
 
@@ -61,8 +61,8 @@ sub _trigger_mode {
     my $pos = $self->position;
     $self->position($pos);
 }
-sub insert_mode :Action(view::InsertMode)   { $_[0]->mode("insert") }
-sub edit_mode :Action(view::EditMode)       { $_[0]->mode("edit") }
+sub insert_mode :Action(view.InsertMode)   { $_[0]->mode("insert") }
+sub edit_mode :Action(view.EditMode)       { $_[0]->mode("edit") }
 
 sub _trigger_position {
     my ($self, $note) = @_;
@@ -127,14 +127,14 @@ sub _trigger_length {
     $self->view->get_action("Rest")->set_icon_name("icon-rest-$new");
 }
 
-sub _reset_length :Action(view::NoteLength) {
+sub _reset_length :Action(view.NoteLength) {
     my ($self) = @_;
     $self->dots(0);
     $self->position->copy_from($self, "App::Jacana::Has::Length");
     $self->view->refresh;
 }
 
-sub _reset_chroma :Action(view::NoteChroma) {
+sub _reset_chroma :Action(view.NoteChroma) {
     my ($self, $action) = @_;
     $self->position->chroma($action->get_current_value);
     $self->_play_note;
@@ -150,34 +150,34 @@ sub _change_octave {
     $self->view->refresh;
 }
 
-sub _octave_up   :Action(view::OctaveUp)   { $_[0]->_change_octave(+1) }
-sub _octave_down :Action(view::OctaveDown) { $_[0]->_change_octave(-1) }
+sub _octave_up   :Action(view.OctaveUp)   { $_[0]->_change_octave(+1) }
+sub _octave_down :Action(view.OctaveDown) { $_[0]->_change_octave(-1) }
 
-sub move_left :Action(view::Left) {
+sub move_left :Action(view.Left) {
     my ($self) = @_;
     my $pos = $self->position;
     $pos->is_list_start and return;
     $self->position($pos->prev);
 }
 
-sub move_right :Action(view::Right)  {
+sub move_right :Action(view.Right)  {
     my ($self) = @_;
     my $pos = $self->position;
     $pos->is_list_end and return;
     $self->position($pos->next);
 }
 
-sub move_to_end :Action(view::End) {
+sub move_to_end :Action(view.End) {
     my ($self) = @_;
     $self->position($self->voice->prev);
 }
 
-sub move_to_start :Action(view::Home) {
+sub move_to_start :Action(view.Home) {
     my ($self) = @_;
     $self->position($self->voice);
 }
 
-sub goto_position :Action(view::GotoPosition) {
+sub goto_position :Action(view.GotoPosition) {
     my ($self) = @_;
 
     my $dlg = $self->view->run_dialog(
@@ -202,10 +202,10 @@ sub _set_staff {
     $self->position($self->voice->find_time($pos));
 }
 
-sub up_staff :Action(view::Up)      { $_[0]->_set_staff($_[0]->staff - 1) }
-sub down_staff :Action(view::Down)  { $_[0]->_set_staff($_[0]->staff + 1) }
+sub up_staff :Action(view.Up)      { $_[0]->_set_staff($_[0]->staff - 1) }
+sub down_staff :Action(view.Down)  { $_[0]->_set_staff($_[0]->staff + 1) }
 
-sub insert_staff :Action(view::InsertStaff) {
+sub insert_staff :Action(view.InsertStaff) {
     my ($self) = @_;
     
     push @{$self->view->doc->music}, 
@@ -213,7 +213,7 @@ sub insert_staff :Action(view::InsertStaff) {
     $self->view->refresh;
 }
 
-sub name_staff :Action(view::NameStaff) {
+sub name_staff :Action(view.NameStaff) {
     my ($self) = @_;
 
     my $voice   = $self->voice;
@@ -254,10 +254,10 @@ sub _adjust_chroma {
     $self->position($pos);
 }
 
-sub sharpen :Action(view::Sharpen) { $_[0]->_adjust_chroma(+1) }
-sub flatten :Action(view::Flatten) { $_[0]->_adjust_chroma(-1) }
+sub sharpen :Action(view.Sharpen) { $_[0]->_adjust_chroma(+1) }
+sub flatten :Action(view.Flatten) { $_[0]->_adjust_chroma(-1) }
 
-method_attrs change_pitch => map "Action(view::Pitch$_)", "A".."G";
+method_attrs change_pitch => map "Action(view.Pitch$_)", "A".."G";
 
 sub change_pitch {
     my ($self, $action) = @_;
@@ -297,7 +297,7 @@ sub change_pitch {
     $self->view->refresh;
 }
 
-sub _add_dot :Action(view::AddDot) {
+sub _add_dot :Action(view.AddDot) {
     my ($self) = @_;
 
     my $note = $self->position;
@@ -314,7 +314,7 @@ sub _add_dot :Action(view::AddDot) {
     $view->refresh;
 }
 
-sub _toggle_tie :Action(view::Tie) {
+sub _toggle_tie :Action(view.Tie) {
     my ($self, $act) = @_;
 
     my $note = $self->position;
@@ -323,7 +323,7 @@ sub _toggle_tie :Action(view::Tie) {
     $self->view->refresh;
 }
 
-sub _insert_rest :Action(view::Rest) {
+sub _insert_rest :Action(view.Rest) {
     my ($self) = @_;
     $self->mode eq "insert" or return;
     $self->position($self->position->insert(
@@ -339,7 +339,7 @@ sub _do_marks {
     $self->view->refresh;
 }
 
-sub _clear_artic :Action(view::ClearArticulation) {
+sub _clear_artic :Action(view.ClearArticulation) {
     $_[0]->_do_marks("Articulation");
 }
 
@@ -352,22 +352,22 @@ for my $t (qw/
     fresh $m, sub { 
         $_[0]->_do_marks(Articulation => articulation => $t);
     };
-    method_attrs $m, "Action(view::\u$t)";
+    method_attrs $m, "Action(view.\u$t)";
 }
 
-sub _slur_start :Action(view::SlurStart) {
+sub _slur_start :Action(view.SlurStart) {
     $_[0]->_do_marks(Slur => span_start => 1);
 }
 
-sub _slur_end :Action(view::SlurEnd) {
+sub _slur_end :Action(view.SlurEnd) {
     $_[0]->_do_marks(Slur => span_start => 0);
 }
 
-sub _slur_clear :Action(view::ClearSlur) {
+sub _slur_clear :Action(view.ClearSlur) {
     $_[0]->_do_marks("Slur");
 }
 
-sub _dynamic_clear :Action(view::ClearDynamic) {
+sub _dynamic_clear :Action(view.ClearDynamic) {
     $_[0]->_do_marks("Dynamic");
 }
 
@@ -376,10 +376,10 @@ for my $d (qw/ pp p mp mf f ff fp sf sfz /) {
     fresh $m, sub {
         $_[0]->_do_marks(Dynamic => dynamic => $d);
     };
-    method_attrs $m, "Action(view::Dynamic\U$d)";
+    method_attrs $m, "Action(view.Dynamic\U$d)";
 }
 
-sub _backspace :Action(view::Backspace) {
+sub _backspace :Action(view.Backspace) {
     my ($self) = @_;
     $self->position($self->position->remove);
 }
@@ -402,7 +402,7 @@ sub _do_clef {
 for my $c (qw/Treble Alto Tenor Bass Soprano/) {
     my $m = "_clef_\L$c";
     fresh $m, sub { $_[0]->_do_clef(lc $c) };
-    method_attrs $m, "Action(view::Clef$c)";
+    method_attrs $m, "Action(view.Clef$c)";
 }
 
 sub _insert_with_dialog {
@@ -424,10 +424,10 @@ for my $t (qw/ Barline KeySig Text::Mark TimeSig /) {
     my $a = $t =~ s/:://gr;
     my $m = "_insert_\L$a";
     fresh $m, sub { $_[0]->_insert_with_dialog($t) };
-    method_attrs $m, "Action(view::$a)";
+    method_attrs $m, "Action(view.$a)";
 }
 
-sub _properties :Action(view::Properties) {
+sub _properties :Action(view.Properties) {
     my ($self) = @_;
 
     my $pos = $self->position;

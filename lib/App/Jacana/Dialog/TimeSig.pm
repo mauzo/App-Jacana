@@ -28,8 +28,8 @@ package App::Jacana::Dialog::TimeSig::Partial {
     with qw/ MooX::Gtk2 App::Jacana::Has::Length/;
 
     has dialog      => is => "ro", weak_ref => 1;
-    has "+length"   => gtk_prop => "dialog._plen::current-value";
-    has "+dots"     => gtk_prop => "dialog._pdots::current-value";
+    has "+length"   => gtk_prop => "dialog._plen.current-value";
+    has "+dots"     => gtk_prop => "dialog._pdots.current-value";
 }
 
 has _beats      => is => "lazy";
@@ -40,7 +40,7 @@ has _p_check    => is => "lazy";
 
 has "+beats"    => (
     default     => 4,
-    gtk_prop    => "_beats::text", 
+    gtk_prop    => "_beats.text", 
     isa         => sub { 
         $_[0] eq "" || $_[0] =~ /^[0-9]+$/
             or Carp::croak "Bad beats: [$_[0]]";
@@ -48,7 +48,7 @@ has "+beats"    => (
 );
 has "+divisor"  => (
     default     => 4,
-    gtk_prop    => "_divisor::current-value"
+    gtk_prop    => "_divisor.current-value"
 );
 has "+partial"  => (
     coercer     => 1, 
@@ -66,7 +66,7 @@ sub BUILD {
     }
 }
 
-sub _notify_p_check :Signal(_p_check::notify::active) {
+sub _notify_p_check :Signal(_p_check.notify::active) {
     my ($self) = @_;
     my $active = $self->_p_check->get_active;
 

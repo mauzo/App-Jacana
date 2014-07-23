@@ -78,7 +78,7 @@ sub _quit :Action(Quit) {
     $self->frame->destroy;
 }
 
-sub _destroy :Signal(frame::destroy) {
+sub _destroy :Signal(frame.destroy) {
     my ($self) = @_;
     Gtk2->main_quit;
 }

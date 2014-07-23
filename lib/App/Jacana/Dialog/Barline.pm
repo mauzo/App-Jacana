@@ -16,7 +16,7 @@ has _barline    => is => "lazy";
 
 has "+barline" => (
     default     => "|.",
-    gtk_prop    => "_barline::current-value",
+    gtk_prop    => "_barline.current-value",
 );
 
 sub title { "Barline" }

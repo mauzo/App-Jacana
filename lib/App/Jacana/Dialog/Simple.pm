@@ -11,7 +11,7 @@ has title   => is => "ro";
 has label   => is => "ro";
 
 has _value => is => "lazy";
-has value => is => "rw", gtk_prop => "_value::text";
+has value => is => "rw", gtk_prop => "_value.text";
 
 sub _build__value {
     my ($self) = @_;

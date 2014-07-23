@@ -30,7 +30,7 @@ sub _trigger_lily {
     $self->buffer->set_text($text);
 }
 
-sub buffer_changed :Signal(buffer::changed) {
+sub buffer_changed :Signal(buffer.changed) {
     my ($self) = @_;
     $recurse and return; local $recurse = 1;
     $self->lily($self->buffer->get_property("text"));
