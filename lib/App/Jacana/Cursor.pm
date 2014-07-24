@@ -420,7 +420,7 @@ sub _insert_with_dialog {
     $self->position($pos->insert($class->new(copy_from => $dlg)));
 }
 
-for my $t (qw/ Barline KeySig Text::Mark TimeSig /) {
+for my $t (qw/ Barline KeySig RehearsalMark Text::Mark TimeSig /) {
     my $a = $t =~ s/:://gr;
     my $m = "_insert_\L$a";
     fresh $m, sub { $_[0]->_insert_with_dialog($t) };

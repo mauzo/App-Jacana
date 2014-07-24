@@ -144,6 +144,8 @@ sub _build_actions {
         InsertStaff:
         NameStaff:
             label:      Name staff…
+        RehearsalMark:
+            label:  Rehearsal mark…
         TextMark:
             label:  Text mark…
 
@@ -392,6 +394,7 @@ sub _build_uimgr {
                 <menuitem action="Barline"/>
                 <separator/>
                 <menuitem action="Barline"/>
+                <menuitem action="RehearsalMark"/>
                 <menuitem action="TextMark"/>
                 <separator/>
                 <menuitem action="InsertStaff"/>

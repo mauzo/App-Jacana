@@ -5,13 +5,12 @@ use Moo;
 use App::Jacana::Util::Types;
 
 extends "App::Jacana::Music";
+with    qw/ 
+    App::Jacana::Has::RehearsalMark
+    App::Jacana::Has::Dialog
+/;
 
-has number  => (
-    is          => "rw",
-    predicate   => 1,
-    clearer     => 1,
-    isa         => Int,
-);
+sub dialog { "RehearsalMark" }
 
 sub lily_rx {
     qr( \\mark \s* (?: \\default | \# (?<number> [0-9]+ ) ) )x;
