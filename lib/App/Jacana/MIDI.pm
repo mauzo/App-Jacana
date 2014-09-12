@@ -15,7 +15,7 @@ use Scalar::Util    qw/refaddr/;
 
 use namespace::clean;
 
-with qw/ MooX::WeakClosure /;
+with qw/ MooX::Role::WeakClosure /;
 
 has settings    => is => "lazy";
 has synth       => is => "lazy";
