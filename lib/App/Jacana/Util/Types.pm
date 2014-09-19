@@ -8,7 +8,7 @@ use MooX::Types::MooseLike::Base ":all";
 
 our @EXPORT = (
     @{$MooX::Types::MooseLike::Base::EXPORT_TAGS{all}},
-    qw/ LinkList Music /,
+    qw/ LinkList Music My /,
 );
 
 sub My { "App::Jacana::$_[0]" }

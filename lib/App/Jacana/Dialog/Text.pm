@@ -6,7 +6,11 @@ use Moo;
 use App::Jacana::Gtk2::ComboBox;
 
 extends "App::Jacana::Dialog";
-with    qw/ MooX::Gtk2 App::Jacana::Has::Markup /;
+with    qw/
+    MooX::Gtk2 
+    App::Jacana::Dialog::Tweaks
+    App::Jacana::Has::Markup
+/;
 
 has _text => is => "lazy";
 has "+text" => gtk_prop => "_text.text";
@@ -40,6 +44,8 @@ sub _build_content_area {
     $hb->pack_start(Gtk2::Label->new("Style:"), 1, 1, 5);
     $hb->pack_start($self->_style, 1, 1, 5);
     $vb->pack_start($hb, 1, 1, 5);
+
+    $vb->pack_start($self->_tweaks_panel, 1, 1, 5);
 }
 
 1;
