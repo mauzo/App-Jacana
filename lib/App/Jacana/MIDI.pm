@@ -118,20 +118,21 @@ sub _all_notes_off {
 }
 
 sub play_music {
-    my ($self, $music, $time, $start_note, $stop_note, $finish) = @_;
+    my ($self, %arg) = @_;
 
     my @music = 
         map App::Jacana::StaffCtx::MIDI->new(
             midi => $self, chan => $self->alloc_chan,
-            on_start => $start_note, on_stop => $stop_note,
+            on_start => $arg{start}, on_stop => $arg{stop},
             item => $$_[0], when => $$_[1]
         ), 
-        map [$_->find_time($time)],
-        @$music;
+        map [$_->find_time($arg{time})],
+        @{$arg{music}};
     $_->start_note for @music;
 
+    my $finish = $arg{finish};
     my $id;
-    $id = Glib::Timeout->add(12, $self->weak_closure(sub {
+    $id = Glib::Timeout->add($arg{speed}, $self->weak_closure(sub {
         my ($self) = @_;
         
         for (grep !$_->when, @music) {

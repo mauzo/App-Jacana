@@ -43,13 +43,13 @@ sub _build_cursor {
 
 has "+zoom"    => default => 4, trigger => 1;
 
-has rendered    => is => "lazy", clearer => 1;
-
-has bbox => is => "ro", default => sub { +[] };
-
 sub _trigger_zoom { $_[0]->refresh }
 
+has rendered    => is => "lazy", clearer => 1;
+has bbox => is => "ro", default => sub { +[] };
+
 has _midi_id    => is => "rw";
+has _speed      => is => "rw", default => 12;
 has _playing    => (
     is      => "ro",
     lazy    => 1,
@@ -138,10 +138,12 @@ sub _play_music {
 
     $self->set_status("Playing");
     my $id = $midi->play_music(
-        $self->doc->music, $time,
-        $self->weak_method("playing_on"),
-        $self->weak_method("playing_off"),
-        $self->weak_method("_stop_playing"),
+        music   => $self->doc->music,
+        speed   => $self->_speed,
+        time    => $time,
+        start   => $self->weak_method("playing_on"),
+        stop    => $self->weak_method("playing_off"),
+        finish  => $self->weak_method("_stop_playing"),
     );
     $self->_midi_id($id);
     $self->get_action("MidiStop")->set_sensitive(1);
@@ -167,6 +169,17 @@ sub _stop_playing :Action(MidiStop) {
     $self->get_action("MidiStop")->set_sensitive(0);
     $self->get_action("MidiPlay")->set_sensitive(1);
     $self->get_action("MidiPlayHere")->set_sensitive(1);
+}
+
+sub _set_speed :Action(MidiSpeed) {
+    my ($self) = @_;
+
+    my $dlg = $self->run_dialog("Simple", undef, 
+        title   => "Playback speed",
+        label   => "Playback speed",
+        value   => $self->_speed,
+    ) or return;
+    $self->_speed($dlg->value);
 }
 
 has widget      => is => "lazy";

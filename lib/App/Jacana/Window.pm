@@ -254,6 +254,8 @@ sub _build_actions {
         MidiStop:
             label:      Stop
             icon_name:  icon-stop
+        MidiSpeed:
+            label:      Playback speed
 
         ViewMenu:
             label:      View
@@ -481,6 +483,7 @@ sub _build_uimgr {
                 <menuitem action="MidiPlay"/>
                 <menuitem action="MidiPlayHere"/>
                 <menuitem action="MidiStop"/>
+                <menuitem action="MidiSpeed"/>
             </menu>
             <menu action="ViewMenu">
                 <menuitem action="ZoomIn"/>
