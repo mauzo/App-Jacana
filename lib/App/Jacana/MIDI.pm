@@ -74,7 +74,7 @@ sub free_chan {
 sub BUILD {
     my ($self) = @_;
 
-    $self->synth->program_select($_, $self->sfont, 0, 68+$_)
+    $self->synth->program_select($_, $self->sfont, 0, 68)
         for 0..10;
     $self->driver;
 }
