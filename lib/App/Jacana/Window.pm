@@ -109,6 +109,15 @@ sub _build_actions {
         EditMode:
         GotoPosition:
             label:      Goto position…
+        RegionMenu:
+            label:      Region
+        SetMark:
+        ClearMark:
+        GotoMark:
+        RegionOctaveUp:
+            label:      Octave up
+        RegionOctaveDown:
+            label:      Octave down
         Properties:
             label:      Properties…
             stock_id:   gtk-properties
@@ -380,6 +389,15 @@ sub _build_uimgr {
                 <menuitem action="InsertMode"/>
                 <menuitem action="EditMode"/>
                 <menuitem action="GotoPosition"/>
+                <menu action="RegionMenu">
+                    <menuitem action="SetMark"/>
+                    <menuitem action="ClearMark"/>
+                    <menuitem action="GotoMark"/>
+                    <separator/>
+                    <menuitem action="RegionOctaveUp"/>
+                    <menuitem action="RegionOctaveDown"/>
+                </menu>
+                <separator/>
                 <menuitem action="Properties"/>
             </menu>
             <menu action="StaffMenu">

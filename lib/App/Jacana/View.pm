@@ -9,6 +9,7 @@ use MooX::MethodAttributes
 use App::Jacana::Cursor;
 use App::Jacana::DrawCtx;
 use App::Jacana::StaffCtx::Draw;
+use App::Jacana::Util::Types;
 
 use Data::Dump              qw/pp/;
 use Hash::Util::FieldHash   qw/idhash/;
@@ -40,6 +41,13 @@ sub _build_cursor {
         octave      => 1
     );
 }
+
+has mark => (
+    is          => "rw", 
+    predicate   => 1, 
+    clearer     => 1, 
+    isa         => Music,
+);
 
 has "+zoom"    => default => 4, trigger => 1;
 
@@ -223,6 +231,55 @@ sub scroll_to_cursor {
 
     $haj->clamp_page($$bbx[0] - 6, $$bbx[2] + 6);
     $vaj->clamp_page($$bbx[1] - 6, $$bbx[3] + 6);
+}
+
+sub set_mark :Action(SetMark) { 
+    $_[0]->mark($_[0]->cursor->position);
+}
+sub _act_clear_mark :Action(ClearMark) {
+    my ($self) = @_;
+    $self->clear_mark;
+    $self->refresh;
+}
+sub goto_mark :Action(GotoMark) {
+    my ($self) = @_;
+    $self->has_mark or return;
+    $self->cursor->position($self->mark);
+}
+
+sub find_region {
+    my ($self) = @_;
+
+    my $mark = $self->mark  or return;
+    my $curs = $self->cursor->position;
+
+    if ($mark->ambient->find_voice != $curs->ambient->find_voice) {
+        $self->status_flash("Cursor and mark are not in the same voice!");
+        return;
+    }
+
+    $mark->order($self->cursor->position);
+}
+
+sub _rgn_change_octave {
+    my ($self, $by) = @_;
+
+    my ($pos, $end) = $self->find_region or return;
+    while (1) {
+        $pos->DOES("App::Jacana::Has::Pitch") 
+            and $pos->octave($pos->octave + $by);
+        $pos == $end and last;
+        $pos = $pos->next;
+    }
+
+    $self->refresh;
+}
+
+sub rgn_octave_up :Action(RegionOctaveUp) { 
+    $_[0]->_rgn_change_octave(+1);
+}
+sub rgn_octave_down :Action(RegionOctaveDown) { 
+    $_[0]->_rgn_change_octave(-1);
 }
 
 sub _realize :Signal {
@@ -426,6 +483,7 @@ sub _draw_item {
     my $cursor  = $self->cursor;
     my $curpos  = $cursor->position;
     my $mode    = $cursor->mode;
+    my $mark    = $self->mark;
 
     my $pos = $item->staff_line;
     $c->save;
@@ -435,6 +493,8 @@ sub _draw_item {
             and $c->set_source_rgb(0, 0, 1);
         $playing->{$item}
             and $c->set_source_rgb(1, 0, 0);
+        $item == $mark
+            and $c->set_source_rgb(0.8, 0, 0.8);
         my $wd = $item->draw($c, $pos);
     $c->restore;
 

@@ -11,7 +11,7 @@ our @EXPORT = (
     qw/ LinkList Music My /,
 );
 
-sub My { "App::Jacana::$_[0]" }
+sub My ($) { "App::Jacana::$_[0]" }
 
 use constant {
     LinkList    => ConsumerOf[My "Util::LinkList"],

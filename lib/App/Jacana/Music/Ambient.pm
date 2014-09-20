@@ -51,6 +51,14 @@ sub find_role {
     $prev->find_role($role);
 }
 
+sub find_voice {
+    my ($self) = @_;
+
+    my $owner = $self->owner;
+    $owner->isa("App::Jacana::Music::Voice") and return $owner;
+    $self->prev->find_voice;
+}
+
 sub find_span_start {
     my ($self, $span) = @_;
 

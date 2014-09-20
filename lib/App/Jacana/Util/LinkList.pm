@@ -116,4 +116,22 @@ sub remove {
     return $prev;
 }
 
+sub order {
+    my ($self, $other) = @_;
+
+    my ($x, $y) = ($self, $other);
+    while (1) {
+        $x == $other || $y->is_list_end 
+            and return ($self, $other);
+        $y == $self || $x->is_list_end
+            and return ($other, $self);
+
+        $x = $x->next;
+        $y = $y->next;
+    }
+
+    require Carp;
+    Carp::confess("Badly formed list!");
+}
+
 1;
