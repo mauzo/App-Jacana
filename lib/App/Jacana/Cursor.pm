@@ -208,8 +208,29 @@ sub down_staff :Action(view.Down)  { $_[0]->_set_staff($_[0]->staff + 1) }
 sub insert_staff :Action(view.InsertStaff) {
     my ($self) = @_;
     
-    push @{$self->view->doc->music}, 
+    splice @{$self->view->doc->music}, $self->staff + 1, 0,
         App::Jacana::Music::Voice->new(name => "voice");
+    $self->view->refresh;
+}
+
+sub delete_staff :Action(view.DeleteStaff) {
+    my ($self) = @_;
+    my $staff = $self->staff;
+    $self->_set_staff($staff - 1);
+    splice @{$self->view->doc->music}, $staff, 1;
+    $self->view->refresh;
+}
+
+sub move_staff :Action(view.MoveStaff) {
+    my ($self) = @_;
+    my $staff = $self->staff;
+    my $music = $self->view->doc->music;
+    unless (@$music > $staff) {
+        $self->view->status_flash("No staff below this one!");
+        return;
+    }
+    @$music[$staff, $staff + 1] = @$music[$staff + 1, $staff];
+    $self->_set_staff($staff + 1);
     $self->view->refresh;
 }
 

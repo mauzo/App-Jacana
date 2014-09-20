@@ -153,6 +153,9 @@ sub _build_actions {
             label:      Barline…
             icon_name:  icon-barline
         InsertStaff:
+        DeleteStaff:
+        MoveStaff:
+            label:      Move staff down
         NameStaff:
             label:      Name staff…
         RehearsalMark:
@@ -421,6 +424,8 @@ sub _build_uimgr {
                 <menuitem action="TextMark"/>
                 <separator/>
                 <menuitem action="InsertStaff"/>
+                <menuitem action="DeleteStaff"/>
+                <menuitem action="MoveStaff"/>
                 <menuitem action="NameStaff"/>
             </menu>
             <menu action="NoteMenu">
