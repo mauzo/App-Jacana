@@ -19,18 +19,14 @@ with    qw/
 
 has tie => is => "rw", isa => Bool, default => 0;
 
-my %Chr2Ly  = (0, "", qw/1 is -1 es 2 isis -2 eses/);
-my %Ly2Chr  = reverse %Chr2Ly;
-
 sub lily_rx {
     my ($self)  = @_;
 
+    my $pitch   = $self->pitch_rx;
     my $marks   = $self->marks_rx;
     my $length  = $self->length_rx;
 
-    qr{ (?<note>[a-g]) (?<chroma>[eis]*) (?<octave>[',]*)
-        $length (?<tie>~)? $marks
-    }x;
+    qr{ $pitch (?<octave>[',]*) $length (?<tie>~)? $marks }x;
 }
 
 sub from_lily {
@@ -39,31 +35,28 @@ sub from_lily {
     my $octave  = $n{octave}
         ? length($n{octave}) * ($n{octave} =~ /'/ ? 1 : -1)
         : 0;
-    my @length  = $self->_length_from_lily(%n);
-    my @marks   = $self->marks_from_lily(%n);
 
     $self->new({
-        note            => $n{note},
-        chroma          => $Ly2Chr{$n{chroma}},
+        $self->pitch_from_lily(%n),
+        $self->_length_from_lily(%n),
+        $self->marks_from_lily(%n),
         octave          => $octave,
-        @length,
         tie             => !!$n{tie},
-        @marks,
     });
 }
 
 sub to_lily {
     my ($self) = @_;
-    my ($note, $chrm, $oct, $len, $marks) = 
+    my ($pitch, $oct, $len, $marks) = 
         map $self->$_, 
-            qw/note chroma octave _length_to_lily marks_to_lily/;
+            qw/pitch_to_lily octave _length_to_lily marks_to_lily/;
     $oct = (
         $oct > 0 ? "'" x $oct   :
         $oct < 0 ? "," x -$oct  :
         "");
     my $tie = $self->tie ? "~" : "";
 
-    "$note$Chr2Ly{$chrm}$oct$len$tie$marks";
+    "$pitch$oct$len$tie$marks";
 }
 
 my %Heads   = qw/0 sM1 1 s0 2 s1/;

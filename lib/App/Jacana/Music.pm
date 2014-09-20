@@ -5,6 +5,7 @@ use MooX::AccessorMaker
     apply => [qw/ MooX::MakerRole::IgnoreUndef /];
 
 use App::Jacana::Util::Types;
+use List::Util      qw/first/;
 
 use namespace::clean;
 
@@ -76,6 +77,13 @@ sub get_time {
     }
 
     $dur;
+}
+
+sub find_next_with {
+    my ($pos, @roles) = @_;
+    $pos = $pos->next
+        until !$pos || grep $pos->DOES(My "Has::$_"), @roles;
+    $pos;
 }
 
 1;

@@ -1,5 +1,6 @@
 package App::Jacana::View;
 
+use 5.012;
 use utf8;
 use Gtk2;
 use Moo;
@@ -280,6 +281,38 @@ sub rgn_octave_up :Action(RegionOctaveUp) {
 }
 sub rgn_octave_down :Action(RegionOctaveDown) { 
     $_[0]->_rgn_change_octave(-1);
+}
+
+sub transpose_rgn :Action(RegionTranspose) {
+    my ($self) = @_;
+
+    my ($pos, $end) = $self->find_region or return;
+    $pos = $pos->find_next_with(qw/Key Pitch/) or do {
+        $self->status_flash("Nothing to transpose!");
+        return;
+    };
+
+    my $old     = $pos->ambient->find_role("Key");
+    my $reset   = My("Music::KeySig")->new(copy_from => $old);
+    my $new     = My("Music::KeySig")->new(copy_from => $old);
+    $new->run_dialog($self);
+
+    my $diff = $new->subtract($old);
+
+    $pos == $old or $pos->prev->insert($new);
+    $pos->ambient->owner->clear_ambient;
+    while (1) {
+        $pos = $new->transpose($diff, $pos, $end) or last;
+        $reset = My("Music::KeySig")->new(copy_from => $pos);
+        $pos->add($diff);
+        $pos == $end and last;
+        $pos->is_list_end and die "Transpose ran off the end of the list!";
+        $pos = $pos->next;
+    }
+    $end->insert($reset);
+    $end->ambient->owner->clear_ambient;
+
+    $self->refresh;
 }
 
 sub _realize :Signal {

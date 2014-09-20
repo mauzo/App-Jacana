@@ -118,6 +118,8 @@ sub _build_actions {
             label:      Octave up
         RegionOctaveDown:
             label:      Octave down
+        RegionTranspose:
+            label:      Transpose…
         Properties:
             label:      Properties…
             stock_id:   gtk-properties
@@ -396,6 +398,7 @@ sub _build_uimgr {
                     <separator/>
                     <menuitem action="RegionOctaveUp"/>
                     <menuitem action="RegionOctaveDown"/>
+                    <menuitem action="RegionTranspose"/>
                 </menu>
                 <separator/>
                 <menuitem action="Properties"/>

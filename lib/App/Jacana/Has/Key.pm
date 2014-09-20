@@ -1,14 +1,13 @@
 package App::Jacana::Has::Key;
 
+use 5.012;
 use Moo::Role;
 
 with qw/ MooX::Role::Copiable /;
 
-my @Fifths = qw/
-    fes ces ges des aes ees bes
-    f   c   g   d   a   e   b
-    fis cis gis dis ais eis bis
-/;
+sub _mkfifths { map "$_$_[0]", qw/f c g d a e b/ }
+
+my @Fifths = map _mkfifths($_), "es", "", "is";
 my %Fifths = map +($Fifths[$_], $_), 0..$#Fifths;
 my %Mode = qw/ major 8 minor 11 /;
 
@@ -82,6 +81,51 @@ sub chroma {
         : 13 - $Fifths{$note};
 
     $count > $fifth ? $key/$count : 0;
+}
+
+sub _clamp { 
+    my ($l, $v) = @_;
+    my $m = $l * 2 + 1;
+    $v = $v % $m;
+    $v > $l ? $v - $m : $v;
+}
+
+sub subtract {
+    my ($self, $from) = @_;
+    _clamp 7, $self->key - $from->key;
+}
+
+sub add {
+    my ($self, $inc) = @_;
+    $self->key(_clamp 7, $self->key + $inc);
+}
+
+my @Trans = map _mkfifths($_), "eses", "es", "", "is", "isis";
+my %Trans = map +($Trans[$_], $_), 0..$#Trans;
+
+my %Chroma = (qw/eses -2 es -1 is 1 isis 2/, "", 0);
+
+sub transpose {
+    my ($self, $by, $pos, $end) = @_;
+
+    while (1) {
+        $pos->DOES("App::Jacana::Has::Key")     and return $pos;
+        $pos->DOES("App::Jacana::Has::Pitch")   or next;
+
+        my $old = $pos->pitch_to_lily;
+        my $new = $Trans{$old} + $by;
+        $new < 0        and $new += 12;
+        $new > $#Trans  and $new -= 12;
+
+        my ($note, $chrm) = $Trans[$new] =~ /(.)(.*)/;
+        my $near = $pos->nearest($note, $Chroma{$chrm});
+        $pos->copy_from($near);
+    }
+    continue { 
+        $pos == $end and return;
+        $pos->is_list_end and die "Transpose ran off the end of the voice!";
+        $pos = $pos->next;
+    }
 }
 
 1;

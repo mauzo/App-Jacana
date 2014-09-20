@@ -17,6 +17,21 @@ has note    => (
 has octave  => is => "rw", copiable => 1;
 has chroma  => is => "rw", default => "", copiable => 1;
 
+my %Chr2Ly  = (0, "", qw/1 is -1 es 2 isis -2 eses/);
+my %Ly2Chr  = reverse %Chr2Ly;
+
+sub pitch_rx { qr{ (?<note>[a-g]) (?<chroma>[eis]*) }x }
+
+sub pitch_from_lily {
+    my ($self, %n) = @_;
+    return (
+        note    => $n{note},
+        chroma  => $Ly2Chr{$n{chroma}},
+    );
+}
+
+sub pitch_to_lily { $_[0]->note . $Chr2Ly{$_[0]->chroma} }
+
 my %Staff = qw/c 0 d 1 e 2 f 3 g 4 a 5 b 6/;
 
 sub staff_line {
@@ -42,11 +57,11 @@ my %Nearest = (
 );
 
 sub nearest {
-    my ($self, $note) = @_;
+    my ($self, $note, $chrm) = @_;
     App::Jacana::Util::Pitch->new(
         octave  => $self->octave + $Nearest{$self->note . $note},
         note    => $note,
-        chroma  => 0,
+        chroma  => $chrm || 0,
     );
 }
 
