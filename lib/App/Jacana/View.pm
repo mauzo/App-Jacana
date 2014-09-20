@@ -50,6 +50,13 @@ has mark => (
     isa         => Music,
 );
 
+has clip => (
+    is          => "rw",
+    predicate   => 1,
+    clearer     => 1,
+    isa         => Music,
+);
+
 has "+zoom"    => default => 4, trigger => 1;
 
 sub _trigger_zoom { $_[0]->refresh }
@@ -251,15 +258,50 @@ sub goto_mark :Action(GotoMark) {
 sub find_region {
     my ($self) = @_;
 
-    my $mark = $self->mark  or return;
+    my $mark = $self->mark or do {
+        $self->status_flash("Mark is not set.");
+        return;
+    };
     my $curs = $self->cursor->position;
 
-    if ($mark->ambient->find_voice != $curs->ambient->find_voice) {
-        $self->status_flash("Cursor and mark are not in the same voice!");
+    my ($mv, $cv) = map $_->ambient->find_voice, $mark, $curs;
+    if ($mv != $cv) {
+        $self->status_flash("Cursor and mark are not in the same voice.");
+        warn "VOICE MISMATCH MARK [$mv] CURSOR [$cv]";
         return;
     }
 
     $mark->order($self->cursor->position);
+}
+
+sub clip_cut :Action(Cut) {
+    my ($self) = @_;
+
+    my ($start, $end) = $self->find_region or return;
+    $_->break_ambient for $start, $end;
+    my $pos = $self->cursor->position($start->remove($end));
+    $pos->break_ambient;
+    $self->clear_mark;
+    $self->clip($start);
+    $self->refresh;
+}
+
+sub clip_paste :Action(Paste) {
+    my ($self) = @_;
+
+    my $clip = $self->clip or do {
+        $self->status_flash("Nothing on the clipboard.");
+        return;
+    };
+    $self->clear_clip;
+    warn "PASTE: " . Data::Dump::pp($clip);
+    my $curs = $self->cursor;
+    my $new = $curs->position->insert($clip);
+    warn "RESULT: " . Data::Dump::pp($new);
+    $new->break_ambient;
+    $self->mark($clip);
+    $curs->position($new);
+    $self->refresh;
 }
 
 sub _rgn_change_octave {
@@ -300,7 +342,7 @@ sub transpose_rgn :Action(RegionTranspose) {
     my $diff = $new->subtract($old);
 
     $pos == $old or $pos->prev->insert($new);
-    $pos->ambient->owner->clear_ambient;
+    $pos->break_ambient;
     while (1) {
         $pos = $new->transpose($diff, $pos, $end) or last;
         $reset = My("Music::KeySig")->new(copy_from => $pos);
@@ -310,7 +352,7 @@ sub transpose_rgn :Action(RegionTranspose) {
         $pos = $pos->next;
     }
     $end->insert($reset);
-    $end->ambient->owner->clear_ambient;
+    $end->break_ambient;
 
     $self->refresh;
 }

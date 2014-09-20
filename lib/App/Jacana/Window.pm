@@ -114,6 +114,8 @@ sub _build_actions {
         SetMark:
         ClearMark:
         GotoMark:
+        Cut:
+        Paste:
         RegionOctaveUp:
             label:      Octave up
         RegionOctaveDown:
@@ -398,6 +400,9 @@ sub _build_uimgr {
                     <menuitem action="SetMark"/>
                     <menuitem action="ClearMark"/>
                     <menuitem action="GotoMark"/>
+                    <separator/>
+                    <menuitem action="Cut"/>
+                    <menuitem action="Paste"/>
                     <separator/>
                     <menuitem action="RegionOctaveUp"/>
                     <menuitem action="RegionOctaveDown"/>

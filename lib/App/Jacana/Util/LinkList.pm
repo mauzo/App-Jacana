@@ -28,6 +28,7 @@ push @Data::Dump::FILTERS, sub {
     my $class = blessed $obj;
     $class && $obj->DOES(__PACKAGE__) or return;
 
+    my $addr = sprintf "0x%x", refaddr $obj;
     my %atts = %{$obj};
     delete @atts{qw/prev next/};
     $atts{ambient} and $atts{ambient} = 1;
@@ -37,7 +38,7 @@ push @Data::Dump::FILTERS, sub {
         : "->" . Data::Dump::pp($obj->next);
     my $atts    = Data::Dump::pp(\%atts);
 
-    +{ dump => "$class$atts$next" };
+    +{ dump => "$class($addr)$atts$next" };
 };
 
 # This has to manipulate the hash directly, because of the irritating
@@ -92,7 +93,7 @@ sub insert {
     $last->next($next);
     $next->prev($last);
 
-    $isend and $from->mk_list_end;
+    $isend and $last->mk_list_end;
 
     return $last;
 }

@@ -79,6 +79,11 @@ sub get_time {
     $dur;
 }
 
+sub break_ambient {
+    my ($self) = @_;
+    $self->ambient->owner->clear_ambient;
+}
+
 sub find_next_with {
     my ($pos, @roles) = @_;
     $pos = $pos->next
