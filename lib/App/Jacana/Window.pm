@@ -186,6 +186,8 @@ sub _build_actions {
             label:      G
         Rest:
             icon_name:  icon-rest-1
+        MultiRest:
+            label:      Whole bar rest
         
         NoteLengthMenu:
             label:      Length
@@ -470,6 +472,7 @@ sub _build_uimgr {
                     <menuitem action="Tie"/>
                 </menu>
                 <menuitem action="Rest"/>
+                <menuitem action="MultiRest"/>
             </menu>
             <menu action="MarksMenu">
                 <menu action="MarksArticMenu">

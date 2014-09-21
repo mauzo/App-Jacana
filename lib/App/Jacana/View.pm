@@ -644,12 +644,19 @@ sub _show_barline {
 
     my $y = $bar->y;
     $c->save;
-        $bar->pos and $c->set_source_rgb(0.9, 0, 0);
+        my $p = $bar->pos 
+            and $c->set_source_rgb(0.9, 0, 0);
         $c->set_line_width(0.5);
         $c->set_line_cap("butt");
         $c->move_to($x + 1, $y - 4);
         $c->line_to($x + 1, $y + 4);
         $c->stroke;
+        if ($p) {
+            $c->translate($x, $y - 4.5);
+            $c->scale(0.5, 0.5);
+            my (undef, @gly) = $c->layout_num($p);
+            $c->show_glyphs(@gly);
+        }
     $c->restore;
     return 3;
 }

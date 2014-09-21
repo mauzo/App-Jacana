@@ -51,17 +51,11 @@ sub to_lily {
 
 sub staff_line { 0 }
 
-# use glyph names for consistency, even though numbers would be easier
-my %Num = qw/
-    0 zero 1 one 2 two 3 three 4 four 
-    5 five 6 six 7 seven 8 eight 9 nine
-/;
-
 sub draw {
     my ($self, $c, $pos) = @_;
     
-    my ($nwd, @num) = $c->layout_glyphs(\%Num, $self->beats);
-    my ($dwd, @den) = $c->layout_glyphs(\%Num, $self->divisor);
+    my ($nwd, @num) = $c->layout_num($self->beats);
+    my ($dwd, @den) = $c->layout_num($self->divisor);
 
     my $doff = ($nwd - $dwd) / 2;
 

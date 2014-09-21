@@ -354,6 +354,20 @@ sub _insert_rest :Action(view.Rest) {
     $self->view->refresh;
 }
 
+sub _insert_multirest :Action(view.MultiRest) {
+    my ($self) = @_;
+    $self->mode eq "insert" or return;
+    my $pos = $self->position;
+    if ($pos->isa("App::Jacana::Music::MultiRest")) {
+        $pos->bars($pos->bars + 1);
+    }
+    else {
+        $self->position($pos->insert(
+            App::Jacana::Music::MultiRest->new(bars => 1)));
+    }
+    $self->view->refresh;
+}
+
 sub _do_marks {
     my ($self, $type, @args) = @_;
     my $pos = $self->position;

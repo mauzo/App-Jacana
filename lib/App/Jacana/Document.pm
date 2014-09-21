@@ -79,10 +79,13 @@ sub parse_music {
 }
 
 my @MTypes = map "App::Jacana::Music::$_",
-    qw/ Barline Clef KeySig Note 
+    qw/ Barline Clef KeySig MultiRest Note 
         RehearsalMark Rest Text::Mark TimeSig 
     /;
-use_module $_ for @MTypes;
+for (@MTypes) {
+    warn "LOADING [$_]";
+    use_module $_;
+}
 require App::Jacana::Music::Lily;
 
 sub parse_voice {
