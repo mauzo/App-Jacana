@@ -114,6 +114,7 @@ sub BUILD {
     my ($self) = @_;
     $self->length(3);
     $self->position($self->position);
+    $self->view->refresh;
 }
 
 sub DEMOLISH {
@@ -273,6 +274,7 @@ sub _adjust_chroma {
     $pos->chroma($new);
     $self->_play_note;
     $self->position($pos);
+    $self->view->refresh;
 }
 
 sub sharpen :Action(view.Sharpen) { $_[0]->_adjust_chroma(+1) }
@@ -349,6 +351,7 @@ sub _insert_rest :Action(view.Rest) {
     $self->mode eq "insert" or return;
     $self->position($self->position->insert(
         App::Jacana::Music::Rest->new(copy_from => $self)));
+    $self->view->refresh;
 }
 
 sub _do_marks {
@@ -403,6 +406,7 @@ for my $d (qw/ pp p mp mf f ff fp sf sfz /) {
 sub _backspace :Action(view.Backspace) {
     my ($self) = @_;
     $self->position($self->position->remove);
+    $self->view->refresh;
 }
 
 sub _do_clef {
@@ -439,6 +443,7 @@ sub _insert_with_dialog {
     $class->DOES("App::Jacana::Music::HasAmbient")
         and $pos->ambient->owner->clear_ambient;
     $self->position($pos->insert($class->new(copy_from => $dlg)));
+    $self->view->refresh;
 }
 
 for my $t (qw/ Barline KeySig RehearsalMark Text::Mark TimeSig /) {
