@@ -69,26 +69,27 @@ has _speed      => is => "rw", default => 12;
 has _playing    => (
     is      => "ro",
     lazy    => 1,
-    default => sub { idhash my %h; \%h },
+    default => sub { +[] },
 );
 
 sub playing_on {
     my ($self, $note) = @_;
-    $self->_playing->{$note} = 1;
-    $self->refresh;
+    push @{$self->_playing}, $note;
+    $self->redraw;
 }
 
 sub playing_off {
     my ($self, $note) = @_;
-    delete $self->_playing->{$note};
-    $self->refresh;
+    my $pl = $self->_playing;
+    @$pl = grep $_ != $note, @$pl;
+    $self->redraw;
 }
 
 sub clear_playing {
     my ($self) = @_;
-    undef %{$self->_playing};
+    @{$self->_playing} = ();
     $self->set_status("");
-    $self->refresh;
+    $self->redraw;
 }
 
 sub BUILD {
@@ -237,17 +238,19 @@ sub scroll_to_cursor {
     }
     warn "SCROLL TO [$item]: " . Data::Dump::pp $bbx;
 
-    $haj->clamp_page($$bbx[0] - 6, $$bbx[2] + 6);
-    $vaj->clamp_page($$bbx[1] - 6, $$bbx[3] + 6);
+    $haj->clamp_page($$bbx[0] - 16, $$bbx[2] + 16);
+    $vaj->clamp_page($$bbx[1] - 16, $$bbx[3] + 16);
 }
 
 sub set_mark :Action(SetMark) { 
-    $_[0]->mark($_[0]->cursor->position);
+    my ($self) = @_;
+    $self->mark($self->cursor->position);
+    $self->redraw;
 }
 sub _act_clear_mark :Action(ClearMark) {
     my ($self) = @_;
     $self->clear_mark;
-    $self->refresh;
+    $self->redraw;
 }
 sub goto_mark :Action(GotoMark) {
     my ($self) = @_;
@@ -369,7 +372,11 @@ sub _realize :Signal {
 sub refresh {
     my ($self) = @_;
     $self->clear_rendered;
-    $self->widget->get_window->invalidate_rect(undef, 0);
+    $self->redraw;
+}
+
+sub redraw {
+    $_[0]->widget->get_window->invalidate_rect(undef, 0);
 }
 
 sub _expose_event :Signal {
@@ -378,8 +385,37 @@ sub _expose_event :Signal {
     my $surf = $self->rendered;
     my $c = Gtk2::Gdk::Cairo::Context->create($widget->get_window);
 
+    $self->_show_highlights($c);
     $c->set_source_surface($surf, 0, 0);
     $c->paint;
+    $self->_show_cursor($c);
+}
+
+sub _show_highlights {
+    my ($self, $c) = @_;
+
+    my $curs = $self->cursor;
+    for (
+        ($curs->mode eq "edit" ? [0, 0, 1, $curs->position] : ()),
+        [0, 1, 0, $self->mark],
+        map([1, 0, 0, $_], @{$self->_playing}),
+    ) {
+        my ($r, $g, $b, $item) = @$_;
+        $item or next;
+        my $bbox = $item->bbox or do {
+            warn "EXPOSE: NO BBOX FOR [$item]";
+            next;
+        };
+        $c->save;
+        $c->set_source_rgba($r, $g, $b, 0.1);
+        warn "EXPOSE: BBOX FOR [$item]: " . Data::Dump::pp $bbox;
+        $c->rectangle(
+            $$bbox[0], $$bbox[1],
+            $$bbox[4] - $$bbox[0], $$bbox[3] - $$bbox[1],
+        );
+        $c->fill;
+        $c->restore;
+    }
 }
 
 sub _build_rendered {
@@ -490,8 +526,10 @@ sub _show_music {
     my $x = max map $self->_show_item($c, 0, $_), @voices;
     $self->_reset_bb;
     $self->_add_to_bb($c, $x, @voices);
-    @{$_->item->bbox}[0,1] = $c->c->user_to_device(0, $_->y - 12) 
-        for @voices;
+    for (@voices) {
+        @{$_->item->bbox}[0,1] = $c->c->user_to_device(0, $_->y - 12);
+        $_->item->bbox->[4] = ($c->c->user_to_device(0, 0))[0];
+    }
 
     for (;;) {
         my $skip = min map $_->when, @voices;
@@ -510,7 +548,11 @@ sub _show_music {
             grep $_->barline,
             @draw;
         $x += max 0, map $_->lsb($c), map $_->item, @draw;
-        $x += max 0, map $self->_show_item($c, $x, $_), @draw;
+        $x += max 0, map {
+            my $w = $self->_show_item($c, $x, $_);
+            ${$_->item->bbox}[4] = ($c->c->user_to_device($x + $w, 0))[0];
+            $w;
+        } @draw;
 
         @voices = grep $_->has_item, @voices or last;
         $self->_add_to_bb($c, $x, @voices);
@@ -554,7 +596,6 @@ sub _draw_item {
     my ($self, $c, $item) = @_;
     no warnings "uninitialized";
 
-    my $playing = $self->_playing;
     my $cursor  = $self->cursor;
     my $curpos  = $cursor->position;
     my $mode    = $cursor->mode;
@@ -564,17 +605,8 @@ sub _draw_item {
     $c->save;
         $c->translate(0, -$pos);
         $c->move_to(0, 0);
-        $item == $curpos
-            and $c->set_source_rgb(0, 0, 1);
-        $playing->{$item}
-            and $c->set_source_rgb(1, 0, 0);
-        $item == $mark
-            and $c->set_source_rgb(0.8, 0, 0.8);
         my $wd = $item->draw($c, $pos);
     $c->restore;
-
-    $mode eq "insert" && $item == $curpos
-        and $self->_show_cursor($c, $wd + 1);
 
     return $wd;
 }
@@ -623,12 +655,20 @@ sub _show_barline {
 }
 
 sub _show_cursor {
-    my ($self, $c, $x) = @_;
+    my ($self, $c) = @_;
+
+    my $curs = $self->cursor;
+    $curs->mode eq "insert" or return;
+    my $bb = $curs->position->bbox;
+
+    my $x = $$bb[4] + ($$bb[2] - $$bb[4]) / 2;
+    my $z = $self->zoom;
 
     $c->save;
-        $c->move_to($x, -6);
-        $c->line_to($x, +6);
-        $c->set_line_width(0.7);
+        $c->move_to($x, $$bb[1] + 4*$z);
+        $c->line_to($x, $$bb[3] - 4*$z);
+        $c->set_source_rgb(0, 0, 0);
+        $c->set_line_width(0.8*$z);
         $c->set_line_cap("round");
         $c->stroke;
     $c->restore;

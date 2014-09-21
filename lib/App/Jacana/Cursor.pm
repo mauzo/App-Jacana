@@ -107,7 +107,7 @@ sub _trigger_position {
     $self->copy_from($note, "App::Jacana::Has::Length");
 
     $view->scroll_to_cursor;
-    $view->refresh;
+    $view->redraw;
 }
 
 sub BUILD {
