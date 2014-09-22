@@ -226,12 +226,10 @@ sub scroll_to_cursor {
     my $bbx = $item->bbox;
 
     unless ($bbx && @$bbx) {
-        warn "SCROLL TO [$item]: REFRESHING BBOX";
         $self->refresh;
         $self->rendered;
         $bbx = $item->bbox or return;
     }
-    warn "SCROLL TO [$item]: " . Data::Dump::pp $bbx;
 
     $haj->clamp_page($$bbx[0] - 16, $$bbx[2] + 16);
     $vaj->clamp_page($$bbx[1] - 16, $$bbx[3] + 16);
@@ -257,10 +255,8 @@ sub clip_paste :Action(Paste) {
         return;
     };
     $self->clear_clip;
-    warn "PASTE: " . Data::Dump::pp($clip);
     my $curs = $self->cursor;
     my $new = $curs->position->insert($clip);
-    warn "RESULT: " . Data::Dump::pp($new);
     $new->break_ambient;
     $self->mark($clip);
     $curs->position($new);
@@ -309,13 +305,9 @@ sub _show_highlights {
     ) {
         my ($r, $g, $b, $item) = @$_;
         $item or next;
-        my $bbox = $item->bbox or do {
-            warn "EXPOSE: NO BBOX FOR [$item]";
-            next;
-        };
+        my $bbox = $item->bbox or next;
         $c->save;
         $c->set_source_rgba($r, $g, $b, 0.1);
-        warn "EXPOSE: BBOX FOR [$item]: " . Data::Dump::pp $bbox;
         $c->rectangle(
             $$bbox[0], $$bbox[1],
             $$bbox[4] - $$bbox[0], $$bbox[3] - $$bbox[1],
