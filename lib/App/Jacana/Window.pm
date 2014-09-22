@@ -109,22 +109,27 @@ sub _build_actions {
         EditMode:
         GotoPosition:
             label:      Goto position…
-        RegionMenu:
-            label:      Region
         SetMark:
         ClearMark:
         GotoMark:
         Cut:
         Paste:
+        Properties:
+            label:      Properties…
+            stock_id:   gtk-properties
+
+        RegionMenu:
+            label:      Selection
         RegionOctaveUp:
             label:      Octave up
         RegionOctaveDown:
             label:      Octave down
         RegionTranspose:
             label:      Transpose…
-        Properties:
-            label:      Properties…
-            stock_id:   gtk-properties
+        RegionHalve:
+            label:      Halve durations
+        RegionDouble:
+            label:      Double durations
 
         StaffMenu:
             label:      Staff
@@ -397,21 +402,21 @@ sub _build_uimgr {
             <menu action="EditMenu">
                 <menuitem action="InsertMode"/>
                 <menuitem action="EditMode"/>
+                <separator/>
+                <menuitem action="SetMark"/>
+                <menuitem action="ClearMark"/>
+                <menuitem action="GotoMark"/>
                 <menuitem action="GotoPosition"/>
-                <menu action="RegionMenu">
-                    <menuitem action="SetMark"/>
-                    <menuitem action="ClearMark"/>
-                    <menuitem action="GotoMark"/>
-                    <separator/>
-                    <menuitem action="Cut"/>
-                    <menuitem action="Paste"/>
-                    <separator/>
-                    <menuitem action="RegionOctaveUp"/>
-                    <menuitem action="RegionOctaveDown"/>
-                    <menuitem action="RegionTranspose"/>
-                </menu>
                 <separator/>
                 <menuitem action="Properties"/>
+            </menu>
+            <menu action="RegionMenu">
+                <menuitem action="Cut"/>
+                <menuitem action="Paste"/>
+                <separator/>
+                <menuitem action="RegionOctaveUp"/>
+                <menuitem action="RegionOctaveDown"/>
+                <menuitem action="RegionTranspose"/>
             </menu>
             <menu action="StaffMenu">
                 <menu action="ClefMenu">

@@ -34,22 +34,6 @@ with qw/
 has doc         => is => "rw";
 has cursor      => is => "lazy", predicate => 1;
 
-sub _build_cursor { 
-    App::Jacana::Cursor->new(
-        view        => $_[0],
-        position    => $_[0]->doc->music->[0],
-        note        => "c", 
-        octave      => 1
-    );
-}
-
-has mark => (
-    is          => "rw", 
-    predicate   => 1, 
-    clearer     => 1, 
-    isa         => Music,
-);
-
 has clip => (
     is          => "rw",
     predicate   => 1,
@@ -58,8 +42,6 @@ has clip => (
 );
 
 has "+zoom"    => default => 4, trigger => 1;
-
-sub _trigger_zoom { $_[0]->refresh }
 
 has rendered    => is => "lazy", clearer => 1;
 has bbox => is => "ro", default => sub { +[] };
@@ -71,6 +53,19 @@ has _playing    => (
     lazy    => 1,
     default => sub { +[] },
 );
+
+with qw/ App::Jacana::View::Region /;
+
+sub _build_cursor { 
+    App::Jacana::Cursor->new(
+        view        => $_[0],
+        position    => $_[0]->doc->music->[0],
+        note        => "c", 
+        octave      => 1
+    );
+}
+
+sub _trigger_zoom { $_[0]->refresh }
 
 sub playing_on {
     my ($self, $note) = @_;
@@ -118,9 +113,9 @@ sub save :Action(Save) {
     my ($self)  = @_;
     my $doc     = $self->doc;
 
-    $doc->has_filename or return $self->save_as;
+    my $file = $doc->filename or return $self->save_as;
     $doc->save;
-    $self->status_flash("Saved.");
+    $self->status_flash("Saved '$file'.");
 }
 
 sub open :Action(Open) {
@@ -242,41 +237,6 @@ sub scroll_to_cursor {
     $vaj->clamp_page($$bbx[1] - 16, $$bbx[3] + 16);
 }
 
-sub set_mark :Action(SetMark) { 
-    my ($self) = @_;
-    $self->mark($self->cursor->position);
-    $self->redraw;
-}
-sub _act_clear_mark :Action(ClearMark) {
-    my ($self) = @_;
-    $self->clear_mark;
-    $self->redraw;
-}
-sub goto_mark :Action(GotoMark) {
-    my ($self) = @_;
-    $self->has_mark or return;
-    $self->cursor->position($self->mark);
-}
-
-sub find_region {
-    my ($self) = @_;
-
-    my $mark = $self->mark or do {
-        $self->status_flash("Mark is not set.");
-        return;
-    };
-    my $curs = $self->cursor->position;
-
-    my ($mv, $cv) = map $_->ambient->find_voice, $mark, $curs;
-    if ($mv != $cv) {
-        $self->status_flash("Cursor and mark are not in the same voice.");
-        warn "VOICE MISMATCH MARK [$mv] CURSOR [$cv]";
-        return;
-    }
-
-    $mark->order($self->cursor->position);
-}
-
 sub clip_cut :Action(Cut) {
     my ($self) = @_;
 
@@ -304,59 +264,6 @@ sub clip_paste :Action(Paste) {
     $new->break_ambient;
     $self->mark($clip);
     $curs->position($new);
-    $self->refresh;
-}
-
-sub _rgn_change_octave {
-    my ($self, $by) = @_;
-
-    my ($pos, $end) = $self->find_region or return;
-    while (1) {
-        $pos->DOES("App::Jacana::Has::Pitch") 
-            and $pos->octave($pos->octave + $by);
-        $pos == $end and last;
-        $pos = $pos->next;
-    }
-
-    $self->refresh;
-}
-
-sub rgn_octave_up :Action(RegionOctaveUp) { 
-    $_[0]->_rgn_change_octave(+1);
-}
-sub rgn_octave_down :Action(RegionOctaveDown) { 
-    $_[0]->_rgn_change_octave(-1);
-}
-
-sub transpose_rgn :Action(RegionTranspose) {
-    my ($self) = @_;
-
-    my ($pos, $end) = $self->find_region or return;
-    $pos = $pos->find_next_with(qw/Key Pitch/) or do {
-        $self->status_flash("Nothing to transpose!");
-        return;
-    };
-
-    my $old     = $pos->ambient->find_role("Key");
-    my $reset   = My("Music::KeySig")->new(copy_from => $old);
-    my $new     = My("Music::KeySig")->new(copy_from => $old);
-    $new->run_dialog($self);
-
-    my $diff = $new->subtract($old);
-
-    $pos == $old or $pos->prev->insert($new);
-    $pos->break_ambient;
-    while (1) {
-        $pos = $new->transpose($diff, $pos, $end) or last;
-        $reset = My("Music::KeySig")->new(copy_from => $pos);
-        $pos->add($diff);
-        $pos == $end and last;
-        $pos->is_list_end and die "Transpose ran off the end of the list!";
-        $pos = $pos->next;
-    }
-    $end->insert($reset);
-    $end->break_ambient;
-
     $self->refresh;
 }
 
