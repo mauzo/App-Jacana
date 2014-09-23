@@ -417,6 +417,9 @@ sub _build_uimgr {
                 <menuitem action="RegionOctaveUp"/>
                 <menuitem action="RegionOctaveDown"/>
                 <menuitem action="RegionTranspose"/>
+                <separator/>
+                <menuitem action="RegionHalve"/>
+                <menuitem action="RegionDouble"/>
             </menu>
             <menu action="StaffMenu">
                 <menu action="ClefMenu">

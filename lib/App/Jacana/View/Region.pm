@@ -68,7 +68,7 @@ sub rgn_octave_down :Action(RegionOctaveDown) {
     $_[0]->_rgn_change_octave(-1);
 }
 
-sub transpose_rgn :Action(RegionTranspose) {
+sub rgn_transpose :Action(RegionTranspose) {
     my ($self) = @_;
 
     my ($pos, $end) = $self->find_region or return;
@@ -99,5 +99,28 @@ sub transpose_rgn :Action(RegionTranspose) {
 
     $self->refresh;
 }
+
+sub _rgn_length {
+    my ($self, $by) = @_;
+    my ($pos, $end) = $self->find_region;
+
+    while (1) {
+        $pos->DOES(My "Has::Length") or next;
+        my $len = $pos->length;
+        $len == 0 && $by == -1
+            || $len == 8 && $by == 1
+            and next;
+        $pos->length($len + $by);
+    }
+    continue {
+        $pos == $end and last;
+        $pos->is_list_end and die "Length ran off the end of the list!";
+        $pos = $pos->next;
+    }
+    $self->refresh;
+}
+
+sub rgn_halve :Action(RegionHalve) { $_[0]->_rgn_length(+1) }
+sub rgn_double :Action(RegionDouble) { $_[0]->_rgn_length(-1) }
 
 1;
