@@ -4,6 +4,7 @@ use Moo;
 use MooX::AccessorMaker
     apply => [qw/ MooX::MakerRole::IgnoreUndef /];
 
+use App::Jacana::Util::LinkList;
 use App::Jacana::Util::Types;
 use List::Util      qw/first/;
 
@@ -11,8 +12,9 @@ use namespace::clean;
 
 with qw/
     MooX::Role::Copiable
-    App::Jacana::Util::LinkList
 /;
+
+linklist "music";
 
 has ambient     => (
     is          => "rw",
@@ -41,6 +43,14 @@ sub _build_ambient {
 
 # Otherwise we get a method conflict (grr)
 sub BUILD { }
+
+sub prev            { $_[0]->prev_music }
+sub next            { $_[0]->next_music }
+sub is_list_start   { $_[0]->is_music_start }
+sub is_list_end     { $_[0]->is_music_end }
+sub insert          { shift->insert_music(@_) }
+sub remove          { shift->remove_music(@_) }
+sub order           { shift->order_music(@_) }
 
 sub lily_rx { die "LILY_RX [$_[0]]" }
 

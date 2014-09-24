@@ -3,61 +3,130 @@ package App::Jacana::Util::LinkList;
 use 5.012;
 use warnings;
 
+use Class::Method::Modifiers    qw/install_modifier/;
+use Exporter        qw/import/;
+use Role::Tiny;
 use Scalar::Util    qw/ refaddr blessed weaken isweak /;
 
 use App::Jacana::Util::Types;
 
-use Moo::Role;
+our @EXPORT = qw/linklist/;
 
-with qw/ MooX::NoGlobalDestruction /;
+sub mod { 
+    my $pkg = caller 1;
+    my ($mod, $meth) = @_;
+    warn "LINKLIST: [$mod] [$pkg] [$meth]";
+    install_modifier $pkg, @_;
+}
 
-has next    => (
-    is      => "rw", 
-    isa     => LinkList,
-);
-has prev    => (
-    is      => "rw", 
-    isa     => LinkList,
-    weak_ref => 1,
-    default => sub { $_[0] },
-);
+sub linklist {
+    my ($nm, %args) = @_;
+    my $pkg     = caller;
+    my $role    = Role::Tiny->is_role($pkg);
+    my $TypeOf  = $role ? "ConsumerOf" : "InstanceOf";
 
-push @Data::Dump::FILTERS, sub {
-    my ($ctx, $obj) = @_;
+    (my $p, $nm)        = $nm =~ /^(_?)(.*)/;
+    my ($_prev, $_next) = map "$p$_\_$nm", qw/prev next/;
+    my ($isend, $mkend) = map "${p}${_}_${nm}_end", qw/is mk/;
 
-    my $class = blessed $obj;
-    $class && $obj->DOES(__PACKAGE__) or return;
+    Role::Tiny->apply_roles_to_package("MooX::NoGlobalDestruction");
+     
+    warn "LINKLIST: [$pkg] [$_next] [$_prev]";
+    # eval because Moo doesn't have apply_has_to_package
+    eval qq{
+        package $pkg;
+        use Moo;
+        use App::Jacana::Util::Types;
+        use namespace::clean;
 
-    my $addr = sprintf "0x%x", refaddr $obj;
-    my %atts = %{$obj};
-    delete @atts{qw/prev next/};
-    $atts{ambient} and $atts{ambient} = 1;
+        has $_next    => (
+            is      => "rw", 
+            isa     => $TypeOf\["\Q$pkg\E"],
+        );
+        has $_prev    => (
+            is      => "rw", 
+            isa     => $TypeOf\["\Q$pkg\E"],
+            weak_ref => 1,
+            default => sub { \$_[0] },
+        );
 
-    no warnings "recursion";
-    my $next    = $obj->is_list_end ? "" 
-        : "->" . Data::Dump::pp($obj->next);
-    my $atts    = Data::Dump::pp(\%atts);
+        1;
+    } or die;
+    $pkg->can($_next) or die "Failed to install $pkg\->$_next";
 
-    +{ dump => "$class($addr)$atts$next" };
-};
+    # This has to manipulate the hash directly, because of the irritating
+    # no-copy semantics of weakrefs.
+    mod fresh => $isend, sub { isweak $_[0]{$_next} };
+    mod fresh => $mkend, 
+        sub { isweak $_[0]{$_next} or weaken $_[0]{$_next} };
 
-# This has to manipulate the hash directly, because of the irritating
-# no-copy semantics of weakrefs.
-sub is_list_end { isweak $_[0]{next} }
-# OK, so weaken is even more irritating than I thought
-sub mk_list_end { isweak $_[0]{next} or weaken $_[0]{next} }
+    $pkg->can("BUILD") or mod fresh => BUILD => sub {};
+    mod before => BUILD => sub {
+        my ($self) = @_;
+        if (!$self->$_next) {
+            $self->$_next($self);
+            $self->$mkend;
+        }
+    };
 
-sub BUILD {}
+    mod fresh => "${p}is_${nm}_start", sub { $_[0]->$_prev->$isend };
 
-before BUILD => sub {
-    my ($self) = @_;
-    if (!$self->next) {
-        $self->next($self);
-        $self->mk_list_end;
-    }
-};
+    mod fresh => "${p}insert_${nm}" => sub {
+        my ($self, $from) = @_;
 
-sub is_list_start { $_[0]->prev->is_list_end }
+        my $last    = $from->$_prev;
+        my $next    = $self->$_next;
+        my $end     = $self->$isend;
+
+        $self->$_next($from);
+        $from->$_prev($self);
+        $last->$_next($next);
+        $next->$_prev($last);
+
+        $end and $last->$mkend;
+
+        return $last;
+    };
+
+    mod fresh => "${p}remove_${nm}" => sub {
+        my ($self, $upto) = @_;
+        $upto //= $self;
+
+        my $prev    = $self->$_prev;
+        my $next    = $upto->$_next;
+        my $end     = $upto->$isend;
+
+        $self->$_prev($upto);
+        $upto->$_next($self);
+        $prev->$_next($next);
+        $next->$_prev($prev);
+
+        $upto->$mkend;
+        $end and $prev->$mkend;
+
+        return $prev;
+    };
+
+    mod fresh => "${p}order_${nm}" => sub {
+        my ($self, $other) = @_;
+
+        my ($x, $y) = ($self, $other);
+        while (1) {
+            $x == $other || $y->$isend 
+                and return ($self, $other);
+            $y == $self || $x->$isend
+                and return ($other, $self);
+
+            $x = $x->$_next;
+            $y = $y->$_next;
+        }
+
+        require Carp;
+        Carp::confess("Badly formed list!");
+    };
+}
+
+=begin later
 
 sub fornext {
     my ($self, $cb) = @_;
@@ -81,58 +150,26 @@ sub forprev {
     }
 }
 
-sub insert {
-    my ($self, $from) = @_;
+push @Data::Dump::FILTERS, sub {
+    my ($ctx, $obj) = @_;
 
-    my $last    = $from->prev;
-    my $next    = $self->next;
-    my $isend   = $self->is_list_end;
+    my $class = blessed $obj;
+    $class && $obj->DOES($pkg) or return;
 
-    $self->next($from);
-    $from->prev($self);
-    $last->next($next);
-    $next->prev($last);
+    my $addr = sprintf "0x%x", refaddr $obj;
+    my %atts = %{$obj};
+    delete $atts{prev};
+    $atts{ambient} and $atts{ambient} = 1;
 
-    $isend and $last->mk_list_end;
+    no warnings "recursion";
+    my $next    = $obj->is_list_end ? "" 
+        : "->" . Data::Dump::pp($obj->next);
+    my $atts    = Data::Dump::pp(\%atts);
 
-    return $last;
-}
+    +{ dump => "$class($addr)$atts$next" };
+};
 
-sub remove {
-    my ($self, $upto) = @_;
-    $upto //= $self;
-
-    my $prev    = $self->prev;
-    my $next    = $upto->next;
-    my $isend   = $upto->is_list_end;
-
-    $self->prev($upto);
-    $upto->next($self);
-    $prev->next($next);
-    $next->prev($prev);
-
-    $upto->mk_list_end;
-    $isend and $prev->mk_list_end;
-
-    return $prev;
-}
-
-sub order {
-    my ($self, $other) = @_;
-
-    my ($x, $y) = ($self, $other);
-    while (1) {
-        $x == $other || $y->is_list_end 
-            and return ($self, $other);
-        $y == $self || $x->is_list_end
-            and return ($other, $self);
-
-        $x = $x->next;
-        $y = $y->next;
-    }
-
-    require Carp;
-    Carp::confess("Badly formed list!");
-}
+=end later
+=cut
 
 1;
