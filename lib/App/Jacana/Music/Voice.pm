@@ -28,7 +28,7 @@ sub to_lily {
     my $name = $self->name;
 
     my $lily;
-    until ($self->is_list_end) {
+    until ($self->is_music_end) {
         $self = $self->next;
         $lily .= $self->to_lily . " ";
     }
@@ -50,7 +50,7 @@ sub draw { 4 }
 sub find_time {
     my ($self, $dur) = @_;
 
-    while ($dur > 0 && !$self->is_list_end) {
+    while ($dur > 0 && !$self->is_music_end) {
         $self = $self->next;
         $self->DOES("App::Jacana::Has::Length")
             and $dur -= $self->duration;

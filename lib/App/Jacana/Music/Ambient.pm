@@ -33,7 +33,7 @@ sub _build_prev {
     my $item    = $own;
 
     for (;;) {
-        $item->is_list_start and return;
+        $item->is_music_start and return;
         $item = $item->prev;
         $item->DOES($HasAmb) and last;
     }

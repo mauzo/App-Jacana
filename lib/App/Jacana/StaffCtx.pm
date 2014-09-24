@@ -35,7 +35,7 @@ sub next {
     my ($self) = @_;
 
     my $note = $self->item;
-    if ($note->is_list_end) {
+    if ($note->is_music_end) {
         $self->clear_item;
         $self->when(-1);
         return;

@@ -69,7 +69,7 @@ sub _trigger_position {
 
     my $view = $self->view or return;
 
-    $self->mode eq "edit" and $note->is_list_start
+    $self->mode eq "edit" and $note->is_music_start
         and return $self->position($note->next);
 
     my %isa     = map +($_, $note->isa("App::Jacana::Music::$_")),
@@ -157,20 +157,20 @@ sub _octave_down :Action(view.OctaveDown) { $_[0]->_change_octave(-1) }
 sub move_left :Action(view.Left) {
     my ($self) = @_;
     my $pos = $self->position;
-    $pos->is_list_start and return;
+    $pos->is_music_start and return;
     $self->position($pos->prev);
 }
 
 sub move_right :Action(view.Right)  {
     my ($self) = @_;
     my $pos = $self->position;
-    $pos->is_list_end and return;
+    $pos->is_music_end and return;
     $self->position($pos->next);
 }
 
 sub move_to_end :Action(view.End) {
     my ($self) = @_;
-    $self->position($self->voice->prev);
+    $self->position($self->voice->prev_music);
 }
 
 sub move_to_start :Action(view.Home) {

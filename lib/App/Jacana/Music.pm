@@ -37,20 +37,17 @@ has bbox => is => "rw", default => sub { +[] };
 sub _build_ambient {
     my ($self) = @_;
 
-    $self->is_list_start and die "Start of list must be HasAmbient";
+    $self->is_music_start and die "Start of list must be HasAmbient";
     $self->prev->ambient;
 }
 
 # Otherwise we get a method conflict (grr)
 sub BUILD { }
 
-sub prev            { $_[0]->prev_music }
-sub next            { $_[0]->next_music }
-sub is_list_start   { $_[0]->is_music_start }
-sub is_list_end     { $_[0]->is_music_end }
-sub insert          { shift->insert_music(@_) }
-sub remove          { shift->remove_music(@_) }
-sub order           { shift->order_music(@_) }
+sub prev { $_[0]->is_music_start and return; $_[0]->prev_music }
+sub next { $_[0]->is_music_end and return; $_[0]->next_music }
+*insert = \&insert_music;
+*remove = \&remove_music;
 
 sub lily_rx { die "LILY_RX [$_[0]]" }
 
@@ -80,7 +77,7 @@ sub get_time {
     my ($self) = @_;
 
     my $dur = 0;
-    while (!$self->is_list_start) {
+    while (!$self->is_music_start) {
         $self->DOES("App::Jacana::Has::Length")
             and $dur += $self->duration;
         $self = $self->prev;

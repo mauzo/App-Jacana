@@ -123,7 +123,7 @@ sub transpose {
     }
     continue { 
         $pos == $end and return;
-        $pos->is_list_end and die "Transpose ran off the end of the voice!";
+        $pos->is_music_end and die "Transpose ran off the end of the voice!";
         $pos = $pos->next;
     }
 }

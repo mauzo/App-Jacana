@@ -41,10 +41,10 @@ sub find_region {
     if ($mark) {
         my $mv = $mark->ambient->find_voice;
         $mv == $cv or $mark = $cv->find_time($mark->get_time);
-        return $mark->order($curs);
+        return $mark->order_music($curs);
     }
 
-    return ($cv, $cv->prev);
+    return ($cv, $cv->prev_music);
 }
 
 sub _rgn_change_octave {
@@ -91,8 +91,8 @@ sub rgn_transpose :Action(RegionTranspose) {
         $reset = My("Music::KeySig")->new(copy_from => $pos);
         $pos->add($diff);
         $pos == $end and last;
-        $pos->is_list_end and die "Transpose ran off the end of the list!";
-        $pos = $pos->next;
+        $pos = $pos->next
+            or die "Transpose ran off the end of the voice!";
     }
     $end->find_next_with("Pitch") and $end->insert($reset);
     $end->break_ambient;
@@ -114,8 +114,8 @@ sub _rgn_length {
     }
     continue {
         $pos == $end and last;
-        $pos->is_list_end and die "Length ran off the end of the list!";
-        $pos = $pos->next;
+        $pos = $pos->next
+            or die "Length change ran off the end of the list!";
     }
     $self->refresh;
 }

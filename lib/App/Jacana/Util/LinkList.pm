@@ -134,7 +134,7 @@ sub fornext {
     my $sub = ref $cb ? $cb : sub { $_[0]->$cb };
     for (;;) {
         $sub->($self);
-        $self->is_list_end and last;
+        $self->is_music_end and last;
         $self = $self->next;
     }
 }
@@ -146,7 +146,7 @@ sub forprev {
     for (;;) {
         $sub->($self);
         $self = $self->prev;
-        $self->is_list_end and last;
+        $self->is_music_end and last;
     }
 }
 
@@ -162,7 +162,7 @@ push @Data::Dump::FILTERS, sub {
     $atts{ambient} and $atts{ambient} = 1;
 
     no warnings "recursion";
-    my $next    = $obj->is_list_end ? "" 
+    my $next    = $obj->is_music_end ? "" 
         : "->" . Data::Dump::pp($obj->next);
     my $atts    = Data::Dump::pp(\%atts);
 
