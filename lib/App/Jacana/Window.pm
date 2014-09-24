@@ -90,6 +90,7 @@ sub _build_actions {
     my $actions = YAML::XS::Load Encode::encode "utf8", <<'YAML';
         FileMenu:
             label:      File
+        New:
         Open:
             label:      Open…
             stock_id:   gtk-open
@@ -393,6 +394,7 @@ sub _build_uimgr {
     $ui->add_ui_from_string(<<XML);
         <menubar>
             <menu action="FileMenu">
+                <menuitem action="New"/>
                 <menuitem action="Open"/>
                 <menuitem action="Save"/>
                 <menuitem action="SaveAs"/>

@@ -130,6 +130,16 @@ sub open :Action(Open) {
     $dlg->destroy;
 
     $self->doc($doc);
+    $self->clear_mark;
+    $self->cursor->position($doc->music->[0]);
+}
+
+sub file_new :Action(New) {
+    my ($self) = @_;
+
+    my $doc = App::Jacana::Document->new;
+    $self->doc($doc);
+    $self->clear_mark;
     $self->cursor->position($doc->music->[0]);
 }
 
