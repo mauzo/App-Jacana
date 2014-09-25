@@ -17,14 +17,13 @@ with qw/
     App::Jacana::Has::Length
 /;
 
-has staff       => is => "rw", isa => Num, default => 0;
-has view        => is => "ro", weak_ref => 1;
+my @Mutable = qw/is rw lazy 1 builder 1 clearer 1 trigger 1/;
 
-has position    => (
-    is      => "rw",
-    isa     => Music,
-    trigger => 1,
-);
+has view        => is => "ro", weak_ref => 1;
+has movement    => @Mutable, isa => InstanceOf[My "Document::Movement"];
+has voice       => @Mutable, isa => Music "Voice";
+has position    => @Mutable, isa => Music;
+
 has mode        => (
     is          => "rw",
     isa         => Enum[qw/insert edit/],
@@ -42,27 +41,17 @@ has "+length"   => (
     trigger     => 1,
 );
 
-sub _build_midi_chan {
-    my ($self) = @_;
-    $self->view->midi->alloc_chan;
-}
+sub _build_movement     { $_[0]->view->doc->next_movement }
+sub _build_voice        { $_[0]->movement->next_voice }
+sub _build_position     { $_[0]->voice }
 
-sub voice {
-    my ($self) = @_;
-    $self->view->doc->music->[$self->staff];
-}
+sub _trigger_movement   { $_[0]->clear_voice; $_[0]->clear_position }
 
-sub _trigger_mode { 
-    my ($self, $mode) = @_;
-    for (qw/ Rest KeySig TimeSig Barline /) {
-        $self->view->get_action($_)
-            ->set_sensitive($mode eq "insert");
-    }
-    my $pos = $self->position;
-    $self->position($pos);
+sub _trigger_voice      { 
+    my ($self, $new) = @_;
+    my $time = $self->position->get_time;
+    $self->position($new->find_time($time));
 }
-sub insert_mode :Action(view.InsertMode)   { $_[0]->mode("insert") }
-sub edit_mode :Action(view.EditMode)       { $_[0]->mode("edit") }
 
 sub _trigger_position {
     my ($self, $note) = @_;
@@ -85,7 +74,6 @@ sub _trigger_position {
     if ($isa{Note}) {
         $act{Tie}->set_sensitive(1);
         $act{Tie}->set_active($note->tie);
-        warn "TIE [" . $note->tie . "]";
     }
     else {
         $act{Tie}->set_sensitive(0);
@@ -110,6 +98,11 @@ sub _trigger_position {
     $view->redraw;
 }
 
+sub _build_midi_chan {
+    my ($self) = @_;
+    $self->view->midi->alloc_chan;
+}
+
 sub BUILD {
     my ($self) = @_;
     $self->length(3);
@@ -121,6 +114,18 @@ sub DEMOLISH {
     my ($self) = @_;
     $self->view->midi->free_chan($self->midi_chan);
 }
+
+sub _trigger_mode { 
+    my ($self, $mode) = @_;
+    for (qw/ Rest KeySig TimeSig Barline /) {
+        $self->view->get_action($_)
+            ->set_sensitive($mode eq "insert");
+    }
+    my $pos = $self->position;
+    $self->position($pos);
+}
+sub insert_mode :Action(view.InsertMode)   { $_[0]->mode("insert") }
+sub edit_mode :Action(view.EditMode)       { $_[0]->mode("edit") }
 
 sub _trigger_length {
     my ($self, $new) = @_;
@@ -156,16 +161,14 @@ sub _octave_down :Action(view.OctaveDown) { $_[0]->_change_octave(-1) }
 
 sub move_left :Action(view.Left) {
     my ($self) = @_;
-    my $pos = $self->position;
-    $pos->is_music_start and return;
-    $self->position($pos->prev);
+    my $pos = $self->position->prev or return;
+    $self->position($pos);
 }
 
 sub move_right :Action(view.Right)  {
     my ($self) = @_;
-    my $pos = $self->position;
-    $pos->is_music_end and return;
-    $self->position($pos->next);
+    my $pos = $self->position->next or return;
+    $self->position($pos);
 }
 
 sub move_to_end :Action(view.End) {
@@ -192,46 +195,73 @@ sub goto_position :Action(view.GotoPosition) {
     $self->position($pos);
 }
 
-sub _set_staff {
-    my ($self, $n) = @_;
-    
-    $n < 0 || $n >= @{$self->view->doc->music}
-        and return;
-
-    my $pos = $self->position->get_time;
-    $self->staff($n);
-    $self->position($self->voice->find_time($pos));
+sub np_mvmt {
+    my ($self, $dir) = @_;
+    my $m = $self->movement->$dir;
+    $m->is_movement_start and $m = $m->$dir;
+    $self->movement($m);
+    my $vw = $self->view;
+    $vw->refresh;
+    $vw->scroll_to_cursor;
+    $vw->reset_title;
 }
 
-sub up_staff :Action(view.Up)      { $_[0]->_set_staff($_[0]->staff - 1) }
-sub down_staff :Action(view.Down)  { $_[0]->_set_staff($_[0]->staff + 1) }
+sub prev_mvmt :Action(view.PreviousMovement) 
+    { $_[0]->np_mvmt("prev_movement") }
+sub next_mvmt :Action(view.NextMovement) 
+    { $_[0]->np_mvmt("next_movement") }
+
+sub name_mvmt :Action(view.NameMovement) {
+    my ($self) = @_;
+    my $m   = $self->movement;
+    my $dlg = $self->view->run_dialog(
+        "Simple", undef,
+        title   => "Name movement",
+        label   => "Name",
+        value   => $m->name,
+    ) or return;
+    $m->name($dlg->value);
+    $self->view->reset_title;
+}
+
+sub up_down_staff {
+    my ($self, $dir) = @_;
+    my $v = $self->voice->$dir;
+    $v->is_voice_start and $v = $v->$dir;
+    $self->voice($v);
+    $self->view->scroll_to_cursor;
+}
+
+sub up_staff :Action(view.Up) { $_[0]->up_down_staff("prev_voice") }
+sub down_staff :Action(view.Down) { $_[0]->up_down_staff("next_voice") }
 
 sub insert_staff :Action(view.InsertStaff) {
     my ($self) = @_;
     
-    splice @{$self->view->doc->music}, $self->staff + 1, 0,
-        App::Jacana::Music::Voice->new(name => "voice");
+    my $v = App::Jacana::Music::Voice->new(name => "voice");
+    $self->voice($self->voice->insert_voice($v));
+    $self->view->scroll_to_cursor;
     $self->view->refresh;
 }
 
 sub delete_staff :Action(view.DeleteStaff) {
     my ($self) = @_;
-    my $staff = $self->staff;
-    $self->_set_staff($staff - 1);
-    splice @{$self->view->doc->music}, $staff, 1;
+
+    my $v = $self->voice->remove_voice;
+    $v->is_voice_start and $v = $v->next_voice;
+    $v->is_voice_start and $v = $v->insert_voice(
+        App::Jacana::Music::Voice->new(name => "voice"));
+    
+    $self->voice($v);
+    $self->view->stop_playing;
     $self->view->refresh;
+    $self->view->scroll_to_cursor;
 }
 
 sub move_staff :Action(view.MoveStaff) {
     my ($self) = @_;
-    my $staff = $self->staff;
-    my $music = $self->view->doc->music;
-    unless (@$music > $staff) {
-        $self->view->status_flash("No staff below this one!");
-        return;
-    }
-    @$music[$staff, $staff + 1] = @$music[$staff + 1, $staff];
-    $self->_set_staff($staff + 1);
+    my $v = $self->voice;
+
     $self->view->refresh;
 }
 

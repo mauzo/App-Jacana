@@ -6,13 +6,16 @@ use warnings;
 use Moo;
 
 use File::Slurp     qw/read_file write_file/;
+use List::Util      qw/first/;
 use Module::Runtime qw/use_module/;
 use Regexp::Common;
 
-use App::Jacana::Music::Voice;
+use App::Jacana::Document::Movement;
 use App::Jacana::Util::Types;
 
 use namespace::clean;
+
+with qw/App::Jacana::Has::Movements/;
 
 has filename => (
     is          => "rw",
@@ -26,15 +29,19 @@ has dirty => (
     default => 0,
 );
 
-# We always have a Music::Start item at the head of the list. This is
-# invisible and inaudible, but it makes the list traversal easier.
-has music => (
-    is      => "ro",
-    isa     => ArrayRef[Music],
-    default => sub { 
-        [ App::Jacana::Music::Voice->new(name => "voice") ];
-    },
-);
+sub BUILD { }
+
+sub _build_music {
+    my ($self) = @_;
+
+    return [
+        App::Jacana::Document::Movement->new(
+            voices  => [
+                App::Jacana::Music::Voice->new(name => "voice"),
+            ],
+        ),
+    ];
+}
 
 sub open {
     my ($self, $file) = @_;
@@ -50,69 +57,50 @@ sub save {
     my ($self) = @_;
 
     $self->has_filename or die "No filename";
-    write_file $self->filename, 
-        join "\n",
-        map $_->to_lily,
-        @{$self->music};
+    my ($lily, $m) = ("", $self->next_movement);
+    warn sprintf "SAVING TO [%s]: %s", $self->filename, $m->dump_movement;
+    while (1) {
+        warn sprintf "SAVING MOVEMENT [%s] [%s]",
+            $m, $m->name;
+        $lily .= $m->to_lily;
+        $m->is_movement_end and last;
+        $m = $m->next_movement;
+    }
+    write_file $self->filename, $lily;
+}
+
+sub find_mvmt {
+    my ($self, $n) = @_;
+
+    my $m = $self;
+    while (1) {
+        $m = $m->next_movement;
+        $m == $self     and last;
+        $m->name eq $n  and last;
+    }
+    if ($m == $self) {
+        $m = App::Jacana::Document::Movement->new(name => $n);
+        $self->prev_movement->insert_movement($m);
+    }
+    return $m;
 }
 
 sub parse_music {
     my ($self, $text) = @_;
 
-    my $voices = $self->music();
-    @$voices = ();
-
     while ($text) {
         $text =~ s/^\s+//;
-        if ($text =~ s(
-            ^ ([-a-zA-Z]+) \s* = \s*
-              $RE{balanced}{-parens => "{}"}
+        if ($text =~ s( ^
+            (?: (?<mvmt>[a-zA-Z]+) - )? (?<voice>[a-zA-Z]+) 
+            \s* = \s*
+            (?<music> $RE{balanced}{-parens => "{}"} )
         )()x) {
-            my $v = App::Jacana::Music::Voice->new(name => $1);
-            s/^\{//, s/\}$// for my $l = $2;
-            $self->parse_voice($v, $l);
-            push @$voices, $v;
+            my $m = $self->find_mvmt($+{mvmt} // "");
+            my $v = $m->prev_voice->insert_voice(
+                App::Jacana::Music::Voice->from_lily(%+));
         }
         else { last }
     }
-    $text and die "Unparsable music [$text]";
-}
-
-my @MTypes = map "App::Jacana::Music::$_",
-    qw/ Barline Clef KeySig MultiRest Note 
-        RehearsalMark Rest Text::Mark TimeSig 
-    /;
-for (@MTypes) {
-    warn "LOADING [$_]";
-    use_module $_;
-}
-require App::Jacana::Music::Lily;
-
-sub parse_voice {
-    my ($self, $music, $text) = @_;
-
-    my $unknown = "";
-    ITEM: while ($text) {
-        $text =~ s/^\s+//;
-        for my $M (@MTypes) {
-            my $rx = $M->lily_rx;
-            if ($text =~ s/^$rx//) {
-                if ($unknown) {
-                    $music = $music->insert(
-                        App::Jacana::Music::Lily->new(
-                            lily => $unknown));
-                    $unknown = "";
-                }
-                $music = $music->insert($M->from_lily(%+));
-                next ITEM;
-            }
-        }
-        $text =~ s/^(\S+\s*)// and $unknown .= $1;
-    }
-
-    $unknown and $music->insert(
-        App::Jacana::Music::Lily->new(lily => $unknown));
-
     $text and die "Unparsable music [$text]";
 }
 

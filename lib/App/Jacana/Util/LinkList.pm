@@ -24,6 +24,7 @@ sub linklist {
     my $pkg     = caller;
     my $role    = Role::Tiny->is_role($pkg);
     my $TypeOf  = $role ? "ConsumerOf" : "InstanceOf";
+    my $Moo     = $role ? "Moo::Role" : "Moo";
 
     (my $p, $nm)        = $nm =~ /^(_?)(.*)/;
     my ($_prev, $_next) = map "$p$_\_$nm", qw/prev next/;
@@ -35,7 +36,7 @@ sub linklist {
     # eval because Moo doesn't have apply_has_to_package
     eval qq{
         package $pkg;
-        use Moo;
+        use $Moo;
         use App::Jacana::Util::Types;
         use namespace::clean;
 
@@ -50,6 +51,17 @@ sub linklist {
             default => sub { \$_[0] },
         );
 
+        before BUILD => sub {
+            my (\$self) = \@_;
+            if (!\$self->$_next) {
+                \$self->$_next(\$self);
+                \$self->$mkend;
+            }
+        };
+
+        namespace::clean->clean_subroutines("\Q$pkg\E",
+            qw/ after around LinkList requires has before with /);
+
         1;
     } or die;
     $pkg->can($_next) or die "Failed to install $pkg\->$_next";
@@ -59,15 +71,6 @@ sub linklist {
     mod fresh => $isend, sub { isweak $_[0]{$_next} };
     mod fresh => $mkend, 
         sub { isweak $_[0]{$_next} or weaken $_[0]{$_next} };
-
-    $pkg->can("BUILD") or mod fresh => BUILD => sub {};
-    mod before => BUILD => sub {
-        my ($self) = @_;
-        if (!$self->$_next) {
-            $self->$_next($self);
-            $self->$mkend;
-        }
-    };
 
     mod fresh => "${p}is_${nm}_start", sub { $_[0]->$_prev->$isend };
 
@@ -123,6 +126,23 @@ sub linklist {
 
         require Carp;
         Carp::confess("Badly formed list!");
+    };
+
+    mod fresh => "${p}dump_${nm}" => sub {
+        my ($i) = @_;
+
+        my $dump;
+        while (1) {
+            $dump .= sprintf "%s(0x%x)={\n", blessed $i, refaddr $i;
+            for (sort keys %$i) {
+                $dump .= sprintf "  %s => %s,\n", $_, $$i{$_};
+            }
+            $dump .= "}";
+            $i->$isend and last;
+            $dump .= "->";
+            $i = $i->$_next;
+        }
+        $dump;
     };
 }
 

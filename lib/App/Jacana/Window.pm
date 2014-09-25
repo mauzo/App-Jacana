@@ -73,6 +73,15 @@ sub _build_frame {
     $w;
 }
 
+sub reset_title {
+    my ($self) = @_;
+    $self->frame->set_title(
+        sprintf "%s: %s: Jacana",
+            $self->view->cursor->movement->name,
+            $self->doc->filename,
+    );
+}
+
 sub _quit :Action(Quit) { 
     my ($self) = @_;
     $self->frame->destroy;
@@ -131,6 +140,13 @@ sub _build_actions {
             label:      Halve durations
         RegionDouble:
             label:      Double durations
+
+        MovementMenu:
+            label:      Movement
+        PreviousMovement:
+        NextMovement:
+        NameMovement:
+            label:      Name movement…
 
         StaffMenu:
             label:      Staff
@@ -423,6 +439,11 @@ sub _build_uimgr {
                 <menuitem action="RegionHalve"/>
                 <menuitem action="RegionDouble"/>
             </menu>
+            <menu action="MovementMenu">
+                <menuitem action="PreviousMovement"/>
+                <menuitem action="NextMovement"/>
+                <menuitem action="NameMovement"/>
+            </menu>
             <menu action="StaffMenu">
                 <menu action="ClefMenu">
                     <menuitem action="ClefTreble"/>
@@ -638,6 +659,7 @@ sub set_busy {
 sub show {
     my ($self) = @_;
     $self->frame->show_all;
+    $self->reset_title;
 }
 
 1;

@@ -120,14 +120,17 @@ sub _all_notes_off {
 sub play_music {
     my ($self, %arg) = @_;
 
-    my @music = 
-        map App::Jacana::StaffCtx::MIDI->new(
+    my $m = $arg{music}; my @music;
+    while (1) {
+        $m->is_voice_end and last;
+        $m = $m->next_voice;
+        my @t = $m->find_time($arg{time});
+        push @music, App::Jacana::StaffCtx::MIDI->new(
             midi => $self, chan => $self->alloc_chan,
             on_start => $arg{start}, on_stop => $arg{stop},
-            item => $$_[0], when => $$_[1]
-        ), 
-        map [$_->find_time($arg{time})],
-        @{$arg{music}};
+            item => $t[0], when => $t[1]
+        );
+    }
     $_->start_note for @music;
 
     my $finish = $arg{finish};

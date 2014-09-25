@@ -32,7 +32,7 @@ with qw/
 # XXX This is wrong: in the SDI model I should be creating a new View
 # when we open a new document.
 has doc         => is => "rw";
-has cursor      => is => "lazy", predicate => 1;
+has cursor      => is => "lazy", predicate => 1, clearer => 1;
 
 has clip => (
     is          => "rw",
@@ -59,7 +59,7 @@ with qw/ App::Jacana::View::Region /;
 sub _build_cursor { 
     App::Jacana::Cursor->new(
         view        => $_[0],
-        position    => $_[0]->doc->music->[0],
+        position    => $_[0]->doc->next_movement->next_voice,
         note        => "c", 
         octave      => 1
     );
@@ -107,6 +107,7 @@ sub save_as :Action(SaveAs) {
     $dlg->destroy;
     $doc->save;
     $self->status_flash("Saved as '$file'.");
+    $self->reset_title;
 }
 
 sub save :Action(Save) {
@@ -130,8 +131,9 @@ sub open :Action(Open) {
     $dlg->destroy;
 
     $self->doc($doc);
+    $self->reset_title;
     $self->clear_mark;
-    $self->cursor->position($doc->music->[0]);
+    $self->clear_cursor;
 }
 
 sub file_new :Action(New) {
@@ -141,6 +143,7 @@ sub file_new :Action(New) {
     $self->doc($doc);
     $self->clear_mark;
     $self->cursor->position($doc->music->[0]);
+    $self->reset_title;
 }
 
 sub midi {
@@ -160,12 +163,12 @@ sub _play_music {
 
     $self->set_status("Playing");
     my $id = $midi->play_music(
-        music   => $self->doc->music,
+        music   => $self->cursor->movement,
         speed   => $self->_speed,
         time    => $time,
         start   => $self->weak_method("playing_on"),
         stop    => $self->weak_method("playing_off"),
-        finish  => $self->weak_method("_stop_playing"),
+        finish  => $self->weak_method("stop_playing"),
     );
     $self->_midi_id($id);
     $self->get_action("MidiStop")->set_sensitive(1);
@@ -179,7 +182,7 @@ sub _play_here :Action(MidiPlayHere) {
     $self->_play_music($pos->get_time - $dur + 1);
 }
 
-sub _stop_playing :Action(MidiStop) {
+sub stop_playing :Action(MidiStop) {
     # don't rely on getting passed the action
     my ($self) = @_;
 
@@ -344,7 +347,7 @@ sub _build_rendered {
         );
 
         my ($wd, $ht) = $self->_show_music($c);
-        $ht +=          $self->_show_scale($c, $wd, $ht);
+        $ht =           $self->_show_scale($c, $wd, $ht);
         my ($nx, $ny) = map ceil($_), $c->c->user_to_device($wd, $ht);
 
         $widget->set_size_request($nx, $ny);
@@ -421,13 +424,17 @@ sub _add_to_bb {
 sub _show_music {
     my ($self, $c) = @_;
 
-    my $voices  = $self->doc->music;
-    my @voices  =
-        map App::Jacana::StaffCtx::Draw->new(
-            item    => $$voices[$_],
-            y       => 24*($_ + 1),
-        ),
-        0..$#$voices;
+    my @voices;
+    my $v = $self->cursor->movement;
+    while (1) {
+        $v->is_voice_end and last;
+        $v = $v->next_voice;
+        push @voices, App::Jacana::StaffCtx::Draw->new(
+            item    => $v,
+            y       => 24*(@voices + 1),
+        );
+    }
+    my $voices = @voices;
 
     $c->set_source_rgb(0, 0, 0);
     $self->_show_stave($c, $_) for map $_->y, @voices;
@@ -467,7 +474,7 @@ sub _show_music {
         $self->_add_to_bb($c, $x, @voices);
     }
 
-    ($x + 6, 24*(@$voices + 1));
+    ($x + 6, 24*($voices + 1));
 }
 
 sub _show_stave {
@@ -598,7 +605,9 @@ sub _button_release_event :Signal {
         or return;
     my $it = first { $$_[0] > $event->y } @$bb[1..$#$bb]
         or return;
-    $self->cursor->position($$it[1]);
+    my $nt = $$it[1];
+    $self->cursor->voice($nt->ambient->find_voice);
+    $self->cursor->position($nt);
 }
 
 sub _show_lily :Action(ToLily) {

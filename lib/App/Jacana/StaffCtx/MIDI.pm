@@ -18,11 +18,10 @@ sub start_note {
     my ($self) = @_;
 
     my $note = $self->item;
-    if ($self->has_tie) { warn "TIE"; $self->clear_tie }
+    if ($self->has_tie) { $self->clear_tie }
     else { $self->pitch($self->midi->note_on($self->chan, $note)) }
     $note->isa("App::Jacana::Music::Note") && $note->tie
         and $self->tie_from($note);
-    warn sprintf "START NOTE [%s]", $self->pitch;
     $self->on_start->($note);
 }
 
@@ -31,7 +30,6 @@ sub stop_note {
 
     if (my $p = $self->pitch) {
         unless ($self->has_tie) {
-            warn "STOP NOTE [$p]";
             $self->midi->note_off($self->chan, $p);
             $self->pitch(undef);
         }

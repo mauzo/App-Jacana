@@ -2,7 +2,10 @@ package App::Jacana::Music::Voice;
 
 use Moo;
 
-use Text::Wrap  qw/wrap/;
+use App::Jacana::Util::Types;
+
+use Module::Runtime     qw/use_module/;
+use Text::Wrap          qw/wrap/;
 
 use namespace::clean;
 
@@ -11,16 +14,57 @@ with    qw/
     App::Jacana::Has::Clef 
     App::Jacana::Has::Key
     App::Jacana::Has::Time
+    App::Jacana::Has::Voices
     App::Jacana::Music::HasAmbient
 /;
-
-has name => is => "rw", required => 1;
 
 has "+key" => default => 0;
 has "+mode" => default => "major";
 
 has "+beats" => default => 4;
 has "+divisor" => default => 4;
+
+my @MTypes = map "App::Jacana::Music::$_",
+    qw/ Barline Clef KeySig MultiRest Note 
+        RehearsalMark Rest Text::Mark TimeSig 
+    /;
+for (@MTypes) {
+    warn "LOADING [$_]";
+    use_module $_;
+}
+my $Unkn = "App::Jacana::Music::Lily";
+use_module $Unkn;
+
+sub from_lily {
+    my ($class, %n) = @_;
+
+    my $music = my $self = $class->new(
+        name        => $n{voice},
+    );
+
+    my $unknown = "";
+    (my $text   = $n{music}) =~ s/^\{|\}$//g;
+
+    ITEM: while ($text) {
+        $text =~ s/^\s+//;
+        for my $M (@MTypes) {
+            my $rx = $M->lily_rx;
+            if ($text =~ s/^$rx//) {
+                if ($unknown) {
+                    $music = $music->insert(
+                        $Unkn->new(lily => $unknown));
+                    $unknown = "";
+                }
+                $music = $music->insert($M->from_lily(%+));
+                next ITEM;
+            }
+        }
+        $text =~ s/^(\S+\s*)// and $unknown .= $1;
+    }
+
+    $unknown and $music->insert($Unkn->new(lily => $unknown));
+    return $self;
+}
 
 sub to_lily {
     my ($self) = @_;
