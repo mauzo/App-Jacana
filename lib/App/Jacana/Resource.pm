@@ -21,7 +21,7 @@ sub _build_userdir {
     return $dir;
 }
 
-sub _find {
+sub find {
     my ($self, $res) = @_;
     File::ShareDir::dist_file($self->dist, $res);
 }
@@ -29,7 +29,7 @@ sub _find {
 sub find_user_file {
     my ($self, $file) = @_;
     -r and return $_
-        for $self->userdir . "/$file", $self->_find($file);
+        for $self->userdir . "/$file", $self->find($file);
 }
 
 sub write_user_file {
@@ -48,7 +48,7 @@ has feta_font   => is => "lazy";
 
 sub _build_feta_font {
     my ($self) = @_;
-    my $font = $self->_find("emmentaler-26.otf");
+    my $font = $self->find("emmentaler-26.otf");
     $self->_freetype->face($font, load_flags => FT_LOAD_NO_HINTING);
 }
 

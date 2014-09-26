@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui>
+  <menubar>
+    <menu action="FileMenu" label="File">
+      <menuitem action="New"/>
+      <menuitem action="Open" label="Open…" stock_id="gtk-open"/>
+      <menuitem action="Save" stock_id="gtk-save"/>
+      <menuitem action="SaveAs" label="Save as…" stock_id="gtk-save-as"/>
+      <menuitem action="ToLily" label="Show Lilypond source" 
+        icon_name="icon-lily"/>
+      <menuitem action="Quit"/>
+    </menu>
+    <menu action="EditMenu" label="Edit">
+      <menuitem action="InsertMode"/>
+      <menuitem action="EditMode"/>
+      <separator/>
+      <menuitem action="SetMark"/>
+      <menuitem action="ClearMark"/>
+      <menuitem action="GotoMark"/>
+      <menuitem action="GotoPosition" label="Goto position…"/>
+      <separator/>
+      <menuitem action="Properties" label="Properties…"
+        stock_id="gtk-properties"/>
+    </menu>
+    <menu action="RegionMenu" label="Selection">
+      <menuitem action="Cut"/>
+      <menuitem action="Paste"/>
+      <separator/>
+      <menuitem action="RegionOctaveUp" label="Octave up"/>
+      <menuitem action="RegionOctaveDown" label="Octave down"/>
+      <menuitem action="RegionTranspose" label="Transpose…"/>
+      <separator/>
+      <menuitem action="RegionHalve" label="Halve durations"/>
+      <menuitem action="RegionDouble" label="Double durations"/>
+    </menu>
+    <menu action="MovementMenu" label="Movement">
+      <menuitem action="PreviousMovement"/>
+      <menuitem action="NextMovement"/>
+      <menuitem action="NameMovement" label="Name movement…"/>
+    </menu>
+    <menu action="StaffMenu" label="Staff">
+      <menu action="ClefMenu" label="Clef">
+        <menuitem action="ClefTreble" label="Treble clef"
+            icon_name="icon-treble"/>
+        <menuitem action="ClefBass" label="Bass clef" icon_name="icon-bass"/>
+        <menuitem action="ClefTenor" label="Tenor clef"
+            icon_name="icon-tenor"/>
+        <menuitem action="ClefAlto" label="Alto clef" icon_name="icon-alto"/>
+        <separator/>
+        <menuitem action="ClefSoprano" label="Soprano clef"
+            icon_name="icon-soprano"/>
+      </menu>
+      <menuitem action="KeySig" label="Key signature…"
+        icon_name="icon-keysig"/>
+      <menuitem action="TimeSig" label="Time signature…"
+        icon_name="icon-timesig"/>
+      <menuitem action="Barline" icon_name="icon-barline"/>
+      <separator/>
+      <menuitem action="Barline"/>
+      <menuitem action="RehearsalMark" label="Rehearsal mark…"/>
+      <menuitem action="TextMark" label="Text…"/>
+      <separator/>
+      <menuitem action="InsertStaff"/>
+      <menuitem action="DeleteStaff"/>
+      <menuitem action="MoveStaff" label="Move staff down"/>
+      <menuitem action="NameStaff" label="Name staff…"/>
+    </menu>
+    <menu action="NoteMenu" label="Note">
+      <menu action="NotePitchMenu" label="Pitch">
+        <menuitem action="PitchC" label="C"/>
+        <menuitem action="PitchD" label="D"/>
+        <menuitem action="PitchE" label="E"/>
+        <menuitem action="PitchF" label="F"/>
+        <menuitem action="PitchG" label="G"/>
+        <menuitem action="PitchA" label="A"/>
+        <menuitem action="PitchB" label="B"/>
+        <separator/>
+        <menuitem action="OctaveUp"/>
+        <menuitem action="OctaveDown"/>
+        <separator/>
+        <radiogroup action="NoteChroma">
+            <menuitem action="Natural"     icon_name="icon-natural" value="0"/>
+            <menuitem action="Sharp"       icon_name="icon-sharp"   value="1"/>
+            <menuitem action="Flat"        icon_name="icon-flat"    value="-1"/>
+            <menuitem action="DoubleSharp" icon_name="icon-dsharp"  value="2"/>
+            <menuitem action="DoubleFlat"  icon_name="icon-dflat"   value="-2"/>
+        </radiogroup>
+        <separator/>
+        <menuitem action="Sharpen"/>
+        <menuitem action="Flatten"/>
+      </menu>
+      <menu action="NoteLengthMenu" label="Length">
+        <radiogroup action="NoteLength">
+            <menuitem action="Breve"       value="0"/>
+            <menuitem action="Semibreve"   icon_name="icon-note-1" value="1"/>
+            <menuitem action="Minim"       icon_name="icon-note-2" value="2"/>
+            <menuitem action="Crotchet"    icon_name="icon-note-3" value="3"/>
+            <menuitem action="Quaver"      icon_name="icon-note-4" value="4"/>
+            <menuitem action="Semiquaver"  icon_name="icon-note-5" value="5"/>
+            <menuitem action="DSquaver"    icon_name="icon-note-6" value="6"
+                label="D.s.quaver"/>
+            <menuitem action="HDSquaver"   icon_name="icon-note-7" value="7"
+                label="H.d.s.quaver"/>
+            <menuitem action="QHDSquaver"  icon_name="icon-note-8" value="8"
+                label="Q.h.d.s.quaver"/>
+        </radiogroup>
+        <separator/>
+        <menuitem action="AddDot" icon_name="icon-dot"/>
+        <menuitem action="Tie" icon_name="icon-tie" toggle="1"/>
+      </menu>
+      <menuitem action="Rest" icon_name="icon-rest-1"/>
+      <menuitem action="MultiRest" label="Whole bar rest"/>
+    </menu>
+    <menu action="MarksMenu" label="Marks">
+      <menu action="MarksArticMenu" label="Articulation">
+        <menuitem action="ClearArticulation"/>
+        <separator/>
+        <menuitem action="Staccato"/>
+        <menuitem action="Accent"/>
+        <menuitem action="Tenuto"/>
+        <menuitem action="Marcato"/>
+        <menuitem action="Staccatissimo"/>
+        <separator/>
+        <menuitem action="Trill"/>
+        <menuitem action="Turn"/>
+        <menuitem action="Prall"/>
+        <menuitem action="Mordent"/>
+        <separator/>
+        <menuitem action="Fermata"/>
+        <menuitem action="Segno"/>
+        <menuitem action="Coda"/>
+      </menu>
+      <menu action="MarksSlurMenu" label="Slurs">
+        <menuitem action="ClearSlur"/>
+        <menuitem action="SlurStart"/>
+        <menuitem action="SlurEnd"/>
+      </menu>
+      <menu action="MarksDynamicMenu" label="Dynamics">
+        <menuitem action="ClearDynamic"/>
+        <separator/>
+        <menuitem action="DynamicPP" label="Pianissimo"/>
+        <menuitem action="DynamicP" label="Piano"/>
+        <menuitem action="DynamicMP" label="Mezzo-piano"/>
+        <menuitem action="DynamicMF" label="Mezzo-forte"/>
+        <menuitem action="DynamicF" label="Forte"/>
+        <menuitem action="DynamicFF" label="Fortissimo"/>
+        <separator/>
+        <menuitem action="DynamicFP" label="Forte-piano"/>
+        <menuitem action="DynamicSF" label="Sforzato"/>
+        <menuitem action="DynamicSFZ" label="Sforzando"/>
+      </menu>
+    </menu>
+    <menu action="MidiMenu" label="MIDI">
+      <menuitem action="MidiPlay" label="Play" icon_name="icon-play"/>
+      <menuitem action="MidiPlayHere" label="Play from cursor"
+        icon_name="icon-play-here"/>
+      <menuitem action="MidiStop" label="Stop" icon_name="icon-stop"/>
+      <menuitem action="MidiSpeed" label="Playback speed…"/>
+    </menu>
+    <menu action="ViewMenu" label="View">
+      <menuitem action="ZoomIn" stock_id="gtk-zoom-in"/>
+      <menuitem action="ZoomOut" stock_id="gtk-zoom-out"/>
+      <menuitem action="ZoomOff" stock_id="gtk-zoom-100" label="Reset zoom"/>
+    </menu>
+  </menubar>
+
+  <toolbar>
+    <toolitem action="Semibreve"/>
+    <toolitem action="Minim"/>
+    <toolitem action="Crotchet"/>
+    <toolitem action="Quaver"/>
+    <toolitem action="Semiquaver"/>
+    <toolitem action="Rest"/>
+    <toolitem action="AddDot"/>
+    <toolitem action="Tie"/>
+    <separator/>
+    <toolitem action="Sharp"/>
+    <toolitem action="Flat"/>
+    <toolitem action="Natural"/>
+    <separator/>
+    <toolitem action="KeySig"/>
+    <toolitem action="TimeSig"/>
+    <toolitem action="Barline"/>
+    <toolitem action="Properties"/>
+    <separator/>
+    <toolitem action="ClefTreble"/>
+    <toolitem action="ClefAlto"/>
+    <toolitem action="ClefTenor"/>
+    <toolitem action="ClefBass"/>
+    <separator/>
+    <toolitem action="MidiPlay"/>
+    <toolitem action="MidiPlayHere"/>
+    <toolitem action="MidiStop"/>
+    <toolitem action="ToLily"/>
+  </toolbar>
+
+  <accelerator action="Backspace"/>
+  <accelerator action="Left"/>
+  <accelerator action="Right"/>
+  <accelerator action="Home"/>
+  <accelerator action="End"/>
+  <accelerator action="Up"/>
+  <accelerator action="Down"/>
+</ui>

@@ -11,8 +11,7 @@ use MooX::MethodAttributes
 use App::Jacana::Gtk2::RadioGroup;
 use App::Jacana::View;
 
-use Encode ();
-use YAML::XS ();
+use XML::LibXML;
 
 with qw/
     MooX::Gtk2
@@ -23,14 +22,21 @@ with qw/
 has doc         => is => "ro";
 has view        => is => "lazy";
 
-# we own the canonical copy of the actions
-has "+actions"  => lazy => 1, builder => 1, required => 0;
-
 has frame       => is => "lazy";
 has status_bar  => is => "lazy";
 has status_mode => is => "lazy";
 
-has uimgr       => is => "lazy";
+# we need to BUILD the actions and uimgr
+has "+actions"  => is => "rwp", required => 0;
+has uimgr       => is => "rwp";
+
+sub BUILD {
+    my ($self, @args) = @_;
+
+    my ($xml, $actions, $radios) = $self->_parse_actions_xml();
+    $self->_set_actions($self->_build_actions($actions, $radios));
+    $self->_set_uimgr($self->_build_uimgr($xml));
+}
 
 # view
 
@@ -94,219 +100,43 @@ sub _destroy :Signal(frame.destroy) {
 
 # actions
 
-sub _build_actions {
+sub _parse_actions_xml {
     my ($self) = @_;
-    my $actions = YAML::XS::Load Encode::encode "utf8", <<'YAML';
-        FileMenu:
-            label:      File
-        New:
-        Open:
-            label:      Open…
-            stock_id:   gtk-open
-        Save:
-            stock_id:   gtk-save
-        SaveAs:
-            label:      Save As…
-            stock_id:   gtk-save-as
-        ToLily:
-            label:      Show Lilypond source
-            icon_name:  icon-lily
-        Quit:
 
-        EditMenu:
-            label:      Edit
-        InsertMode:
-        EditMode:
-        GotoPosition:
-            label:      Goto position…
-        SetMark:
-        ClearMark:
-        GotoMark:
-        Cut:
-        Paste:
-        Properties:
-            label:      Properties…
-            stock_id:   gtk-properties
+    my $xml = $self->app->resource->find("actions.xml");
+    my $XML = XML::LibXML->load_xml(location => $xml);
 
-        RegionMenu:
-            label:      Selection
-        RegionOctaveUp:
-            label:      Octave up
-        RegionOctaveDown:
-            label:      Octave down
-        RegionTranspose:
-            label:      Transpose…
-        RegionHalve:
-            label:      Halve durations
-        RegionDouble:
-            label:      Double durations
+    my (%radios, %hasr);
+    for my $r ($XML->getElementsByTagName('radiogroup')) {
+        my $grp = $$r{action};
+        $hasr{$grp} = 1;
+        my $p = $r->parentNode;
+        foreach my $i ($r->childNodes) {
+            if ($i->isa('XML::LibXML::Element')) {
+                push @{$radios{$grp}}, {%$i};
+                $hasr{$$i{action}} = 1;
+            }
+            $r->removeChild($i);
+            $p->insertBefore($i, $r);
+        }
+        $p->removeChild($r);
+    }
 
-        MovementMenu:
-            label:      Movement
-        PreviousMovement:
-        NextMovement:
-        NameMovement:
-            label:      Name movement…
+    my %actions;
+    for my $e ($XML->findnodes(q!//*[@action]!)) {
+        my $act = $$e{action};
+        $hasr{$act} and next;
+        my $h = $actions{$act} ||= {};
+        for (qw/label toggle stock_id icon_name/) {
+            exists $$e{$_} and $$h{$_} = $$e{$_};
+        }
+    }
 
-        StaffMenu:
-            label:      Staff
-        ClefMenu:
-            label:      Clef
-        ClefTreble:
-            label:      Treble clef
-            icon_name:  icon-treble
-        ClefSoprano:
-            label:      Soprano clef
-            icon_name:  icon-soprano
-        ClefAlto:
-            label:      Alto clef
-            icon_name:  icon-alto
-        ClefTenor:
-            label:      Tenor clef
-            icon_name:  icon-tenor
-        ClefBass:
-            label:      Bass clef
-            icon_name:  icon-bass
-        KeySig:
-            label:      Key signature…
-            icon_name:  icon-keysig
-        TimeSig:
-            label:      Time signature…
-            icon_name:  icon-timesig
-        Barline:
-            label:      Barline…
-            icon_name:  icon-barline
-        InsertStaff:
-        DeleteStaff:
-        MoveStaff:
-            label:      Move staff down
-        NameStaff:
-            label:      Name staff…
-        RehearsalMark:
-            label:  Rehearsal mark…
-        TextMark:
-            label:  Text mark…
+    return ($XML, \%actions, \%radios);
+}
 
-
-        NoteMenu:
-            label:      Note
-        NotePitchMenu:
-            label:      Pitch
-        PitchA:
-            label:      A
-        PitchB:
-            label:      B
-        PitchC:
-            label:      C
-        PitchD:
-            label:      D
-        PitchE:
-            label:      E
-        PitchF:
-            label:      F
-        PitchG:
-            label:      G
-        Rest:
-            icon_name:  icon-rest-1
-        MultiRest:
-            label:      Whole bar rest
-        
-        NoteLengthMenu:
-            label:      Length
-        AddDot:
-            icon_name:  icon-dot
-        Tie:
-            icon_name:  icon-tie
-            toggle:     1
-
-        NoteAccidentalMenu:
-            label:      Accidental
-        Sharpen:
-        Flatten:
-
-        MarksMenu:
-            label:  Marks
-
-        MarksArticMenu:
-            label:      Articulation
-        ClearArticulation:
-        Staccato:
-        Accent:
-        Tenuto:
-        Marcato:
-        Staccatissimo:
-        Trill:
-        Turn:
-        Prall:
-        Mordent:
-        Fermata:
-        Segno:
-        Coda:
-
-        MarksSlurMenu:
-            label: Slurs
-        SlurStart:
-        SlurEnd:
-        ClearSlur:
-
-        MarksDynamicMenu:
-            label:  Dynamics
-        ClearDynamic:
-        DynamicPP:
-            label:  Pianissimo
-        DynamicP:
-            label:  Piano
-        DynamicMP:
-            label:  Mezzo-piano
-        DynamicMF:
-            label:  Mezzo-forte
-        DynamicF:
-            label:  Forte
-        DynamicFF:
-            label:  Fortissimo
-        DynamicFP:
-            label:  Forte-piano
-        DynamicSF:
-            label:  Sforzato
-        DynamicSFZ:
-            label:  Sforzando
-
-        Left:
-        Right:
-        Home:
-        End:
-        Up:
-        Down:
-
-        Backspace:
-
-        OctaveUp:
-        OctaveDown:
-
-        MidiMenu:
-            label:      MIDI
-        MidiPlay:
-            label:      Play
-            icon_name:  icon-play
-        MidiPlayHere:
-            label:      Play from cursor
-            icon_name:  icon-play-here
-        MidiStop:
-            label:      Stop
-            icon_name:  icon-stop
-        MidiSpeed:
-            label:      Playback speed
-
-        ViewMenu:
-            label:      View
-        ZoomIn:
-            stock_id:   gtk-zoom-in
-        ZoomOut:
-            stock_id:   gtk-zoom-out
-        ZoomOff:
-            label:      Reset zoom
-            stock_id:   gtk-zoom-100
-YAML
+sub _build_actions {
+    my ($self, $actions, $radios) = @_;
     
     my $grp = Gtk2::ActionGroup->new("edit");
     for my $nm (keys %$actions) {
@@ -324,74 +154,17 @@ YAML
         $grp->add_action_with_accel($act, "");
     }
 
-    my $radios = YAML::XS::Load <<'YAML';
-    NoteLength:
-        Breve:
-            label:      Breve
-            value:      0
-        Semibreve:
-            label:      Semibreve
-            icon_name:  icon-note-1
-            value:      1
-        Minim:
-            label:      Minim
-            icon_name:  icon-note-2
-            value:      2
-        Crotchet:
-            label:      Crotchet
-            icon_name:  icon-note-3
-            value:      3
-        Quaver:
-            label:      Quaver
-            icon_name:  icon-note-4
-            value:      4
-        Semiquaver:
-            label:      Semiquaver
-            icon_name:  icon-note-5
-            value:      5
-        DSquaver:
-            label:      D.s.quaver
-            value:      6
-        HDSquaver:
-           label:       H.d.s.quaver
-           value:       7
-        QHDSquaver:
-            label:      Q.h.d.s.quaver
-            value:      8
-
-    NoteChroma:
-        Natural:
-            label:      Natural
-            icon_name:  icon-natural
-            value:      0
-        Sharp:
-            label:      Sharp
-            icon_name:  icon-sharp
-            value:      1
-        Flat:
-            label:      Flat
-            icon_name:  icon-flat
-            value:      -1
-        DoubleSharp:
-            label:      Double sharp
-            icon_name:  icon-dsharp
-            value:      2
-        DoubleFlat:
-            label:      Double flat
-            icon_name:  icon-dflat
-            value:      -2
-YAML
-
     for my $gnm (keys %$radios) {
         my $gact = App::Jacana::Gtk2::RadioGroup->new(
             name => $gnm,
         );
         $grp->add_action_with_accel($gact, "");
-        for my $nm (keys %{$$radios{$gnm}}) {
-            my $def = $$radios{$gnm}{$nm};
+        for my $def (@{$$radios{$gnm}}) {
+            my $label = $$def{label} // 
+                $$def{action} =~ s/([a-z])([A-Z])/$1 \L$2/gr;
             my $act = App::Jacana::Gtk2::RadioMember->new(
-                name        => $nm,
-                label       => $$def{label},
+                name        => $$def{action},
+                label       => $label,
                 value       => $$def{value},
             );
             $gact->add_member($act);
@@ -404,197 +177,12 @@ YAML
 }
 
 sub _build_uimgr {
-    my ($self) = @_;
+    my ($self, $xml) = @_;
+
     my $ui = Gtk2::UIManager->new;
-
-    $ui->add_ui_from_string(<<XML);
-        <menubar>
-            <menu action="FileMenu">
-                <menuitem action="New"/>
-                <menuitem action="Open"/>
-                <menuitem action="Save"/>
-                <menuitem action="SaveAs"/>
-                <menuitem action="ToLily"/>
-                <menuitem action="Quit"/>
-            </menu>
-            <menu action="EditMenu">
-                <menuitem action="InsertMode"/>
-                <menuitem action="EditMode"/>
-                <separator/>
-                <menuitem action="SetMark"/>
-                <menuitem action="ClearMark"/>
-                <menuitem action="GotoMark"/>
-                <menuitem action="GotoPosition"/>
-                <separator/>
-                <menuitem action="Properties"/>
-            </menu>
-            <menu action="RegionMenu">
-                <menuitem action="Cut"/>
-                <menuitem action="Paste"/>
-                <separator/>
-                <menuitem action="RegionOctaveUp"/>
-                <menuitem action="RegionOctaveDown"/>
-                <menuitem action="RegionTranspose"/>
-                <separator/>
-                <menuitem action="RegionHalve"/>
-                <menuitem action="RegionDouble"/>
-            </menu>
-            <menu action="MovementMenu">
-                <menuitem action="PreviousMovement"/>
-                <menuitem action="NextMovement"/>
-                <menuitem action="NameMovement"/>
-            </menu>
-            <menu action="StaffMenu">
-                <menu action="ClefMenu">
-                    <menuitem action="ClefTreble"/>
-                    <menuitem action="ClefBass"/>
-                    <menuitem action="ClefTenor"/>
-                    <menuitem action="ClefAlto"/>
-                    <separator/>
-                    <menuitem action="ClefSoprano"/>
-                </menu>
-                <menuitem action="KeySig"/>
-                <menuitem action="TimeSig"/>
-                <menuitem action="Barline"/>
-                <separator/>
-                <menuitem action="Barline"/>
-                <menuitem action="RehearsalMark"/>
-                <menuitem action="TextMark"/>
-                <separator/>
-                <menuitem action="InsertStaff"/>
-                <menuitem action="DeleteStaff"/>
-                <menuitem action="MoveStaff"/>
-                <menuitem action="NameStaff"/>
-            </menu>
-            <menu action="NoteMenu">
-                <menu action="NotePitchMenu">
-                    <menuitem action="PitchC"/>
-                    <menuitem action="PitchD"/>
-                    <menuitem action="PitchE"/>
-                    <menuitem action="PitchF"/>
-                    <menuitem action="PitchG"/>
-                    <menuitem action="PitchA"/>
-                    <menuitem action="PitchB"/>
-                    <separator/>
-                    <menuitem action="OctaveUp"/>
-                    <menuitem action="OctaveDown"/>
-                    <separator/>
-                    <menuitem action="Natural"/>
-                    <menuitem action="Sharp"/>
-                    <menuitem action="Flat"/>
-                    <menuitem action="DoubleSharp"/>
-                    <menuitem action="DoubleFlat"/>
-                    <separator/>
-                    <menuitem action="Sharpen"/>
-                    <menuitem action="Flatten"/>
-                </menu>
-                <menu action="NoteLengthMenu">
-                    <menuitem action="Breve"/>
-                    <menuitem action="Semibreve"/>
-                    <menuitem action="Minim"/>
-                    <menuitem action="Crotchet"/>
-                    <menuitem action="Quaver"/>
-                    <menuitem action="Semiquaver"/>
-                    <menuitem action="DSquaver"/>
-                    <menuitem action="HDSquaver"/>
-                    <menuitem action="QHDSquaver"/>
-                    <separator/>
-                    <menuitem action="AddDot"/>
-                    <menuitem action="Tie"/>
-                </menu>
-                <menuitem action="Rest"/>
-                <menuitem action="MultiRest"/>
-            </menu>
-            <menu action="MarksMenu">
-                <menu action="MarksArticMenu">
-                    <menuitem action="ClearArticulation"/>
-                    <separator/>
-                    <menuitem action="Staccato"/>
-                    <menuitem action="Accent"/>
-                    <menuitem action="Tenuto"/>
-                    <menuitem action="Marcato"/>
-                    <menuitem action="Staccatissimo"/>
-                    <separator/>
-                    <menuitem action="Trill"/>
-                    <menuitem action="Turn"/>
-                    <menuitem action="Prall"/>
-                    <menuitem action="Mordent"/>
-                    <separator/>
-                    <menuitem action="Fermata"/>
-                    <menuitem action="Segno"/>
-                    <menuitem action="Coda"/>
-                </menu>
-                <menu action="MarksSlurMenu">
-                    <menuitem action="ClearSlur"/>
-                    <menuitem action="SlurStart"/>
-                    <menuitem action="SlurEnd"/>
-                </menu>
-                <menu action="MarksDynamicMenu">
-                    <menuitem action="ClearDynamic"/>
-                    <separator/>
-                    <menuitem action="DynamicPP"/>
-                    <menuitem action="DynamicP"/>
-                    <menuitem action="DynamicMP"/>
-                    <menuitem action="DynamicMF"/>
-                    <menuitem action="DynamicF"/>
-                    <menuitem action="DynamicFF"/>
-                    <separator/>
-                    <menuitem action="DynamicFP"/>
-                    <menuitem action="DynamicSF"/>
-                    <menuitem action="DynamicSFZ"/>
-                </menu>
-            </menu>
-            <menu action="MidiMenu">
-                <menuitem action="MidiPlay"/>
-                <menuitem action="MidiPlayHere"/>
-                <menuitem action="MidiStop"/>
-                <menuitem action="MidiSpeed"/>
-            </menu>
-            <menu action="ViewMenu">
-                <menuitem action="ZoomIn"/>
-                <menuitem action="ZoomOut"/>
-                <menuitem action="ZoomOff"/>
-            </menu>
-        </menubar>
-        <toolbar>
-            <toolitem action="Semibreve"/>
-            <toolitem action="Minim"/>
-            <toolitem action="Crotchet"/>
-            <toolitem action="Quaver"/>
-            <toolitem action="Semiquaver"/>
-            <toolitem action="Rest"/>
-            <toolitem action="AddDot"/>
-            <toolitem action="Tie"/>
-            <separator/>
-            <toolitem action="Sharp"/>
-            <toolitem action="Flat"/>
-            <toolitem action="Natural"/>
-            <separator/>
-            <toolitem action="KeySig"/>
-            <toolitem action="TimeSig"/>
-            <toolitem action="Barline"/>
-            <toolitem action="Properties"/>
-            <separator/>
-            <toolitem action="ClefTreble"/>
-            <toolitem action="ClefAlto"/>
-            <toolitem action="ClefTenor"/>
-            <toolitem action="ClefBass"/>
-            <separator/>
-            <toolitem action="MidiPlay"/>
-            <toolitem action="MidiPlayHere"/>
-            <toolitem action="MidiStop"/>
-            <toolitem action="ToLily"/>
-        </toolbar>
-
-        <accelerator action="Backspace"/>
-        <accelerator action="Left"/>
-        <accelerator action="Right"/>
-        <accelerator action="Home"/>
-        <accelerator action="End"/>
-        <accelerator action="Up"/>
-        <accelerator action="Down"/>
-XML
-
+    # stringify the docElem rather than the whole doc because otherwise
+    # Gtk chokes on the <?xml?>. <sigh>
+    $ui->add_ui_from_string($xml->documentElement->toString);
     $ui->insert_action_group($self->actions, 0);
     $ui;
 }
