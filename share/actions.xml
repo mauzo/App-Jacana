@@ -36,6 +36,8 @@
     <menu action="MovementMenu" label="Movement">
       <menuitem action="PreviousMovement"/>
       <menuitem action="NextMovement"/>
+      <separator/>
+      <menuitem action="InsertMovement"/>
       <menuitem action="NameMovement" label="Name movement…"/>
     </menu>
     <menu action="StaffMenu" label="Staff">

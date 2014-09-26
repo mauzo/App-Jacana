@@ -224,6 +224,28 @@ sub name_mvmt :Action(view.NameMovement) {
     $self->view->reset_title;
 }
 
+sub insert_mvmt :Action(view.InsertMovement) {
+    my ($self) = @_;
+    
+    my $m = App::Jacana::Document::Movement->new(name => "");
+    my $v = $self->movement->next_voice;
+    while (1) {
+        warn "OLD VOICE [$v]";
+        my $n = App::Jacana::Music::Voice->new(name => $v->name);
+        my $c = $v->find_next_with("Clef");
+        $n->insert(App::Jacana::Music::Clef->new(clef => $c->clef));
+        $m->prev_voice->insert_voice($n);
+        $v->is_voice_end and last;
+        $v = $v->next_voice;
+    }
+
+    $self->movement->insert_movement($m);
+    $self->movement($m);
+    $self->name_mvmt;
+
+    $self->view->refresh;
+}
+
 sub up_down_staff {
     my ($self, $dir) = @_;
     my $v = $self->voice->$dir;
