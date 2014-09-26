@@ -18,6 +18,12 @@ with    qw/
     App::Jacana::Music::HasAmbient
 /;
 
+has name => (
+    is          => "rw", 
+    required    => 1,
+    isa         => Match("[a-zA-Z]+", "voice name"),
+);
+
 has "+key" => default => 0;
 has "+mode" => default => "major";
 

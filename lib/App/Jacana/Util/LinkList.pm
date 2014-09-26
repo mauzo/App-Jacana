@@ -3,10 +3,12 @@ package App::Jacana::Util::LinkList;
 use 5.012;
 use warnings;
 
+use B               qw/perlstring/;
 use Class::Method::Modifiers    qw/install_modifier/;
 use Exporter        qw/import/;
 use Role::Tiny;
-use Scalar::Util    qw/ refaddr blessed weaken isweak /;
+use Scalar::Util    qw/ refaddr blessed weaken isweak looks_like_number /;
+use List::Util      qw/ max /;
 
 use App::Jacana::Util::Types;
 
@@ -17,6 +19,13 @@ sub mod {
     my ($mod, $meth) = @_;
     warn "LINKLIST: [$mod] [$pkg] [$meth]";
     install_modifier $pkg, @_;
+}
+
+sub qperl {
+    my ($val) = @_;
+    ref $val                and return "$val";
+    looks_like_number $val  and return "$val";
+    perlstring $val;
 }
 
 sub linklist {
@@ -134,8 +143,9 @@ sub linklist {
         my $dump;
         while (1) {
             $dump .= sprintf "%s(0x%x)={\n", blessed $i, refaddr $i;
+            my $w = max map length, keys %$i;
             for (sort keys %$i) {
-                $dump .= sprintf "  %s => %s,\n", $_, $$i{$_};
+                $dump .= sprintf "  %-*s => %s,\n", $w, $_, qperl($$i{$_});
             }
             $dump .= "}";
             $i->$isend and last;

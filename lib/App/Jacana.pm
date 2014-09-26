@@ -46,7 +46,7 @@ sub _build_window {
     my $args    = $self->args;
     my $doc     = @$args 
         ? App::Jacana::Document->open($$args[0])
-        : App::Jacana::Document->new;
+        : App::Jacana::Document->new->empty_document;
 
     App::Jacana::Window->new(
         copy_from   => $self,

@@ -31,16 +31,12 @@ has dirty => (
 
 sub BUILD { }
 
-sub _build_music {
+sub empty_document {
     my ($self) = @_;
-
-    return [
-        App::Jacana::Document::Movement->new(
-            voices  => [
-                App::Jacana::Music::Voice->new(name => "voice"),
-            ],
-        ),
-    ];
+    my $m = $self->find_movement("");
+    $m->prev_voice->insert_voice(
+        App::Jacana::Music::Voice->new(name => "voice"));
+    $self;
 }
 
 sub open {
@@ -69,7 +65,7 @@ sub save {
     write_file $self->filename, $lily;
 }
 
-sub find_mvmt {
+sub find_movement {
     my ($self, $n) = @_;
 
     my $m = $self;
@@ -82,6 +78,7 @@ sub find_mvmt {
         $m = App::Jacana::Document::Movement->new(name => $n);
         $self->prev_movement->insert_movement($m);
     }
+    warn "FOUND MVMT [$n] [$m]: " . $self->dump_movement;
     return $m;
 }
 
@@ -95,7 +92,7 @@ sub parse_music {
             \s* = \s*
             (?<music> $RE{balanced}{-parens => "{}"} )
         )()x) {
-            my $m = $self->find_mvmt($+{mvmt} // "");
+            my $m = $self->find_movement($+{mvmt} // "");
             my $v = $m->prev_voice->insert_voice(
                 App::Jacana::Music::Voice->from_lily(%+));
         }

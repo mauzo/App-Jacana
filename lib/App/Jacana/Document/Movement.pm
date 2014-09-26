@@ -13,6 +13,12 @@ with qw/
     App::Jacana::Has::Voices
 /;
 
+has name => (
+    is      => "rw",
+    default => "",
+    isa     => Match("[a-zA-Z]*", "movement name"),
+);
+
 sub BUILD { }
 
 sub to_lily {

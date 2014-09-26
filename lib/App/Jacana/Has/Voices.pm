@@ -10,10 +10,4 @@ use namespace::clean;
 linklist "voice";
 warn "CAN WITH: " . __PACKAGE__->can("with");
 
-has name => (
-    is          => "rw", 
-    required    => 1,
-    isa         => Match("[a-zA-Z]+", "voice name"),
-);
-
 1;
