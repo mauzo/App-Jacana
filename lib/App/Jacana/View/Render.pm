@@ -177,7 +177,7 @@ sub _show_scale {
 sub _show_music {
     my ($self, $c, $start, $top) = @_;
 
-    my $width   = $c->width - 6;
+    my $width   = $c->width;
     my @voices  = @$start;
     my $voices  = @voices;
 
@@ -190,7 +190,8 @@ sub _show_music {
             ($c->u2d(4), $c->u2d($_->y - 12) + $top);
     }
 
-    while ($x < $width) {
+    my $lastx;
+    while ($x < $width - 6) {
         my $skip = min map $_->when, @voices;
         $_->skip($skip) for @voices;
 
@@ -208,11 +209,24 @@ sub _show_music {
             map $self->_show_barline($c, $x, $_),
             grep $_->barline,
             @draw;
+        $lastx = $x; warn "LASTX [$lastx]";
         $x += max 0, map $_->lsb($c), map $_->item, @draw;
         $x += max 0, map $self->_show_item($c, $x, $_), @draw;
 
         @voices = grep $_->has_item, @voices or last;
     }
+
+    my $ht = ($voices + 1) * 24;
+    $c->save;
+        $c->set_operator("clear");
+        $c->set_source_rgb(0, 0, 0);
+        $c->move_to($lastx, 0);
+        $c->line_to($width, 0);
+        $c->line_to($width, $ht);
+        $c->line_to($lastx, $ht);
+        $c->close_path;
+        $c->fill;
+    $c->restore;
 
     return ($x, !!@voices);
 }
