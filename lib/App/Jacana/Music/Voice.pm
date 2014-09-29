@@ -24,6 +24,8 @@ has name => (
     isa         => Match("[a-zA-Z]+", "voice name"),
 );
 
+# We default to treble clef, because Lily does.
+has "+clef" => default => "treble";
 has "+key" => default => 0;
 has "+mode" => default => "major";
 
@@ -90,9 +92,6 @@ sub to_lily {
     "$name = {\n$lily\n}\n";
 }
 
-# We default to treble clef, because Lily does.
-sub clef { "treble" }
-sub centre_line { 13 }
 
 sub draw { 4 }
 

@@ -3,15 +3,41 @@ package App::Jacana::Has::Clef;
 use Moo::Role;
 
 use App::Jacana::Util::Pitch;
+use App::Jacana::Util::Types;
 
 use POSIX ();
 
-# A named clef type. This must be provided so key signatures know where
-# to draw their sharps and flats.
-requires "clef";
+use namespace::clean;
 
-# The note on the centre line, counting in staff lines above 4' C = 0.
-requires "centre_line";
+with qw/MooX::Role::Copiable/;
+
+my %Clef = (
+    treble      => [qw/G -2/],
+    alto        => [qw/C 0/],
+    tenor       => [qw/C 2/],
+    bass        => [qw/F 2/],
+    soprano     => [qw/C -4/],
+);
+
+has clef => (
+    is          => "rw",
+    isa         => Enum[keys %Clef],
+    required    => 1,
+    copiable    => 1,
+);
+
+sub clef_type { $Clef{$_[0]->clef}[0] }
+
+sub staff_line {
+    my ($self) = @_;
+    $Clef{$self->clef}[1];
+}
+
+my %Centre = qw/C 7 F 3 G 11/;
+sub centre_line {
+    my ($self) = @_;
+    $Centre{$Clef{$self->clef}[0]} - $self->staff_line;
+}
 
 sub centre_pitch {
     my ($self) = @_;

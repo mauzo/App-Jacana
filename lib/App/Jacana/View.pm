@@ -260,6 +260,12 @@ sub clip_cut :Action(Cut) {
     $self->refresh;
 }
 
+sub clip_copy :Action(Copy) {
+    my ($self) = @_;
+    my ($start, $end) = $self->find_region or return;
+    $self->clip($start->clone_music($end));
+}
+
 sub clip_paste :Action(Paste) {
     my ($self) = @_;
 

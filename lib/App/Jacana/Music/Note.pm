@@ -15,9 +15,8 @@ with    qw/
     App::Jacana::Has::Length 
     App::Jacana::Has::Marks
     App::Jacana::Has::Pitch 
+    App::Jacana::Has::Tie
 /;
-
-has tie => is => "rw", isa => Bool, default => 0;
 
 sub lily_rx {
     my ($self)  = @_;

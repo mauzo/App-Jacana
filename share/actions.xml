@@ -24,6 +24,7 @@
     </menu>
     <menu action="RegionMenu" label="Selection">
       <menuitem action="Cut"/>
+      <menuitem action="Copy"/>
       <menuitem action="Paste"/>
       <separator/>
       <menuitem action="RegionOctaveUp" label="Octave up"/>

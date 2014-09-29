@@ -36,7 +36,8 @@ sub linklist {
     my $Moo     = $role ? "Moo::Role" : "Moo";
 
     (my $p, $nm)        = $nm =~ /^(_?)(.*)/;
-    my ($_prev, $_next) = map "$p$_\_$nm", qw/prev next/;
+    my ($_prev, $_next, $_insert) = 
+        map "$p$_\_$nm", qw/prev next insert/;
     my ($isend, $mkend) = map "${p}${_}_${nm}_end", qw/is mk/;
 
     Role::Tiny->apply_roles_to_package("MooX::NoGlobalDestruction");
@@ -153,6 +154,21 @@ sub linklist {
             $i = $i->$_next;
         }
         $dump;
+    };
+
+    mod fresh => "${p}clone_${nm}" => sub {
+        my ($pos, $end) = @_;
+        $end //= $pos;
+        
+        my $new;
+        while (1) {
+            # assume Copiable
+            my $n = blessed($pos)->new(copy_from => $pos);
+            $new ? $new->$_prev->$_insert($n) : ($new = $n);
+            $pos == $end || $pos->$isend and last;
+            $pos = $pos->$_next;
+        }
+        $new;
     };
 }
 
