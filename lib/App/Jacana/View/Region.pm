@@ -72,6 +72,8 @@ sub rgn_transpose :Action(RegionTranspose) {
     my ($self) = @_;
 
     my ($pos, $end) = $self->find_region or return;
+    $pos->isa(My "Music::Voice") 
+        and ($pos = $pos->next or return);
     $pos = $pos->find_next_with(qw/Key Pitch/) or do {
         $self->status_flash("Nothing to transpose!");
         return;
