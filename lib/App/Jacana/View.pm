@@ -405,13 +405,15 @@ sub _button_release_event :Signal {
     my ($self, $widget, $event) = @_;
 
     $event->button == 1 or return;
-    my $bb = first { $$_[0] > $event->x } @{$self->bbox}
+
+    my ($x, $y) = ($event->x, $event->y);
+    my $line    = $self->renderer->find_line_at($y)
         or return;
-    my $it = first { $$_[0] > $event->y } @$bb[1..$#$bb]
+    my $item    = $line->find_item_at($x, $y)
         or return;
-    my $nt = $$it[1];
-    $self->cursor->voice($nt->ambient->find_voice);
-    $self->cursor->position($nt);
+
+    $self->cursor->voice($item->ambient->find_voice);
+    $self->cursor->position($item);
 }
 
 sub _show_lily :Action(ToLily) {

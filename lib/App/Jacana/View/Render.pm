@@ -6,8 +6,9 @@ use App::Jacana::DrawCtx;
 use App::Jacana::StaffCtx::Draw;
 use App::Jacana::Util::Types;
 use App::Jacana::View::Line;
+use App::Jacana::View::StaffInfo;
 
-use List::BinarySearch      qw/binsearch_range/;
+use List::BinarySearch      qw/binsearch_pos binsearch_range/;
 use List::Util              qw/first max min/;
 use POSIX                   qw/ceil/;
 
@@ -34,6 +35,14 @@ has height  => is => "rw", isa => Int, default => 0;
 sub _trigger_width {
     my ($self) = @_;
     @{$self->lines} = ();
+}
+
+sub find_line_at {
+    my ($self, $y) = @_;
+
+    my $lines = $self->lines;
+    my $l = binsearch_pos { $a <=> $b->bottom } $y, @$lines;
+    $$lines[$l];
 }
 
 sub show_lines {
@@ -71,7 +80,7 @@ sub render_upto {
     my ($start, $top);
     if (@$lines) {
         my $l   = $$lines[-1];
-        $start  = [ map $_->clone, @{$l->upto} ];
+        $start  = [ map $_->continue, @{$l->staffs} ];
         $top    = $l->bottom;
     }
     else {
@@ -105,10 +114,16 @@ sub render_upto {
             copy_from   => $self->view,
             surface     => $l->surface,
         );
-        $start      = $self->_show_music($c, $start, $top);
-        $top        += $l->height;
+        my @staffs = map My("View::StaffInfo")->create(
+            $_, $c, 0, $top
+        ), @$start;
+        $l->staffs(\@staffs);
+
+        my ($wd, $more) = $self->_show_music($c, $start, $top);
+        $top += $l->height;
+        $staffs[$_]->update($$start[$_], $c, $wd) for 0..$#staffs;
         push @$lines, $l;
-        @{$l->upto} = @$start;
+        $more or last;
     }
 
     return @$start ? $top + 24*$scale : $top;
@@ -199,7 +214,7 @@ sub _show_music {
         @voices = grep $_->has_item, @voices or last;
     }
 
-    return \@voices;
+    return ($x, !!@voices);
 }
 
 sub _show_stave {

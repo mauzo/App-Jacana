@@ -17,6 +17,9 @@ has tie_x => (
     isa         => Num,
 );
 
+sub top     { $_[0]->y - 12 }
+sub bottom  { $_[0]->y + 12 }
+
 around clone => sub {
     my ($orig, $self, @args) = @_;
     my $new = $self->$orig(

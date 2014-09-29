@@ -1,7 +1,11 @@
 package App::Jacana::View::Line;
 
 use Moo;
+
 use App::Jacana::Util::Types;
+
+use List::Util      qw/first/;
+
 use namespace::clean;
 
 has surface => (
@@ -13,11 +17,9 @@ has top     => is => "ro", isa => Int, required => 1;
 has height  => is => "ro", isa => Int, required => 1;
 has width   => is => "ro", isa => Int, required => 1;
 
-has upto => (
-    is      => "ro",
-    lazy    => 1,
-    isa     => ArrayRef[InstanceOf[My "StaffCtx::Draw"]],
-    default => sub { +[] },
+has staffs => (
+    is      => "rw",
+    isa     => ArrayRef[InstanceOf[My "View::StaffInfo"]],
 );
 
 sub _build_surface {
@@ -26,5 +28,22 @@ sub _build_surface {
 }
 
 sub bottom { $_[0]->top + $_[0]->height }
+
+sub find_item_at {
+    my ($self, $x, $y) = @_;
+
+    my $staff = first {
+        my $bot = $_->bottom;
+        warn "FIND STAFF [$_] [$y] [$bot]";
+        $_->bottom >= $y 
+    } @{$self->staffs};
+    my ($i, $e) = ($staff->start, $staff->end);
+    while (1) {
+        $i->bbox->[2] > $x  and return $i;
+        $i = $i->next   or return;
+        $i == $e        and return;
+    }
+    $i;
+}
 
 1;
