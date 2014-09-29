@@ -93,7 +93,7 @@ sub to_lily {
 }
 
 
-sub draw { 4 }
+sub draw { 0 }
 
 # Returns a Music item and the length of time left in that item
 sub find_time {

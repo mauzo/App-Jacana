@@ -92,7 +92,7 @@ sub render_upto {
         ];
     }
 
-    while ($top < $upto) {
+    while (@$start && $top < $upto) {
         warn "RENDERING LINE AT [$top]:\n" .
             join "\n", map "  $_",
             map $_->item, @$start;
@@ -108,10 +108,10 @@ sub render_upto {
         $start      = $self->_show_music($c, $start, $top);
         $top        += $l->height;
         push @$lines, $l;
-        @{$l->upto} = @$start or return $top;
+        @{$l->upto} = @$start;
     }
 
-    return $top + 24*$scale;
+    return @$start ? $top + 24*$scale : $top;
 }
 
 sub _show_scale {
@@ -169,10 +169,10 @@ sub _show_music {
     $c->set_source_rgb(0, 0, 0);
     $self->_show_stave($c, $_) for map $_->y, @voices;
 
-    my $x = max map $self->_show_item($c, 0, $_), @voices;
+    my $x = 4 + max map $self->_show_item($c, 4, $_), @voices;
     for (@voices) {
-        @{$_->item->bbox}[0,1,4] = 
-            (0, $c->d2u($_->y - 12) + $top, 0);
+        @{$_->item->bbox}[0,1] = 
+            ($c->u2d(4), $c->u2d($_->y - 12) + $top);
     }
 
     while ($x < $width) {
@@ -194,11 +194,7 @@ sub _show_music {
             grep $_->barline,
             @draw;
         $x += max 0, map $_->lsb($c), map $_->item, @draw;
-        $x += max 0, map {
-            my $w = $self->_show_item($c, $x, $_);
-            ${$_->item->bbox}[4] = $c->u2d($x + $w);
-            $w;
-        } @draw;
+        $x += max 0, map $self->_show_item($c, $x, $_), @draw;
 
         @voices = grep $_->has_item, @voices or last;
     }
@@ -234,7 +230,9 @@ sub _show_item {
     $item->DOES(My "Has::Tie") && $item->tie
         and $v->start_tie($x + $wd);
 
-    ($wd // 0) + $item->rsb;
+    $wd = ($wd // 0) + $item->rsb;
+    $item->bbox->[4] = $c->u2d($x + $wd);
+    $wd;
 }
 
 sub _draw_item {
