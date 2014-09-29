@@ -2,11 +2,13 @@ package App::Jacana::StaffCtx;
 
 use Moo;
 use App::Jacana::Util::Types;
+use Scalar::Util                qw/blessed/;
 use namespace::clean;
 
 has item => (
     is          => "rw", 
     isa         => InstanceOf["App::Jacana::Music"],
+    weak_ref    => 1,
     required    => 1,
     clearer     => 1,
     predicate   => 1,
@@ -20,6 +22,16 @@ has tie_from => (
     clearer     => "clear_tie",
     predicate   => "has_tie",
 );
+
+sub clone {
+    my ($self, @args) = @_;
+    my $class = blessed $self;
+    $class->new(
+        map(+($_, $self->$_), qw/item when/),
+        ($self->has_tie ? $self->tie_from : ()),
+        @args,
+    );
+}
 
 sub skip {
     my ($self, $by) = @_;

@@ -8,15 +8,10 @@ with qw/
     App::Jacana::Has::Zoom
 /;
 
-has widget  => (
+has surface => (
     is          => "ro",
     required    => 1,
-    isa         => InstanceOf["Gtk2::Widget"],
-    weak_ref    => 1,
-);
-has surface => (
-    is      => "ro",
-    isa     => InstanceOf["Cairo::Surface"],
+    isa         => InstanceOf["Cairo::Surface"],
 );
 has c       => (
     is      => "lazy",
@@ -58,11 +53,10 @@ sub _build_font {
 
 sub BUILD { }
 
-sub width {
-    my ($self) = @_;
-    my ($wd) = $self->widget->get_size_request;
-    $wd;
-}
+sub width { $_[0]->d2u($_[0]->surface->get_width) }
+
+sub u2d { $_[1] * $_[0]->zoom }
+sub d2u { $_[1] / $_[0]->zoom }
 
 sub glyph {
     my ($self, $gly) = @_;

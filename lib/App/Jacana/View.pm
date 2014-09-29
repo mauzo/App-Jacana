@@ -8,9 +8,8 @@ use MooX::MethodAttributes
     use     => [qw/ MooX::Gtk2 /];
 
 use App::Jacana::Cursor;
-use App::Jacana::DrawCtx;
-use App::Jacana::StaffCtx::Draw;
 use App::Jacana::Util::Types;
+use App::Jacana::View::Render;
 
 use Data::Dump              qw/pp/;
 use Hash::Util::FieldHash   qw/idhash/;
@@ -41,10 +40,9 @@ has clip => (
     isa         => Music,
 );
 
-has "+zoom"    => default => 4, trigger => 1;
+has "+zoom" => default => 4, trigger => 1;
 
-has rendered    => is => "lazy", clearer => 1;
-has bbox => is => "ro", default => sub { +[] };
+has renderer => is => "lazy", isa => InstanceOf[My "View::Render"];
 
 has _midi_id    => is => "rw";
 has _speed      => is => "rw", default => 12;
@@ -244,7 +242,7 @@ sub scroll_to_cursor {
         $bbx = $item->bbox or return;
     }
 
-    $haj->clamp_page($$bbx[0] - 16, $$bbx[2] + 16);
+    $haj->clamp_page($$bbx[0] - 32, $$bbx[2] + 32);
     $vaj->clamp_page($$bbx[1] - 16, $$bbx[3] + 16);
 }
 
@@ -289,11 +287,13 @@ sub _realize :Signal {
     my $e = $w->get_events;
     $e |= ["button-press-mask", "button-release-mask"];
     $w->set_events($e);
+
+    $widget->set_size_request(100, 100);
 }
 
 sub refresh {
     my ($self) = @_;
-    $self->clear_rendered;
+    $self->renderer->clear_lines;
     $self->redraw;
 }
 
@@ -301,16 +301,34 @@ sub redraw {
     $_[0]->widget->get_window->invalidate_rect(undef, 0);
 }
 
+sub _build_renderer {
+    my ($self) = @_;
+    my $w = $self->widget->get_allocation;
+    $w = $w ? $w->width : 100;
+    warn "BUILDING RENDERER [$w]";
+    My("View::Render")->new(view => $self, width => $w);
+}
+
+sub _size_allocate :Signal {
+    my ($self, $widget, $rect) = @_;
+    my $rnd = $self->renderer;
+    my $new = $rect->width;
+    $new == $rnd->width and return;
+    warn "SIZE ALLOCATE [$new]";
+    $rnd->width($new);
+}
+
 sub _expose_event :Signal {
     my ($self, $widget, $event) = @_;
 
-    my $surf = $self->rendered;
+    my $r = $event->area;
     my $c = Gtk2::Gdk::Cairo::Context->create($widget->get_window);
 
     $self->_show_highlights($c);
-    $c->set_source_surface($surf, 0, 0);
-    $c->paint;
+    my $ht = $self->renderer->show_lines($c, $r->y, $r->y + $r->height);
     $self->_show_cursor($c);
+
+    $widget->set_size_request(100, $ht);
 }
 
 sub _show_highlights {
@@ -334,6 +352,26 @@ sub _show_highlights {
         $c->fill;
         $c->restore;
     }
+}
+
+sub _show_cursor {
+    my ($self, $c) = @_;
+
+    my $curs = $self->cursor;
+    $curs->mode eq "insert" or return;
+    my $bb = $curs->position->bbox;
+
+    my $x = $$bb[4] + ($$bb[2] - $$bb[4]) / 2;
+    my $z = $self->zoom;
+
+    $c->save;
+        $c->move_to($x, $$bb[1] + 4*$z);
+        $c->line_to($x, $$bb[3] - 4*$z);
+        $c->set_source_rgb(0, 0, 0);
+        $c->set_line_width(0.8*$z);
+        $c->set_line_cap("round");
+        $c->stroke;
+    $c->restore;
 }
 
 sub _build_rendered {
@@ -361,246 +399,6 @@ sub _build_rendered {
     }
 
     $surf;
-}
-
-sub _show_scale {
-    my ($self, $c, $wd, $ht) = @_;
-
-    my ($nx) = $c->c->user_to_device($wd, 0);
-
-    $ht += 6;
-    $c->set_line_width(0.2); $c->set_source_rgb(0, 0.7, 0);
-    $c->move_to(0, $ht); $c->line_to($wd, $ht);
-    for (0..($nx / 10)) {
-        my ($x) = $c->c->device_to_user($_*10, 0);
-        $c->move_to($x, $ht);
-        $c->line_to($x, $ht + (
-            $_ % 10 ?
-                $_ % 5 ? 3 : 5
-            : 7));
-        unless ($_ % 10) {
-            $c->move_to($x, $ht + 12);
-            $c->c->show_text($_/10);
-        }
-    }
-    $c->stroke;
-    $ht + 18;
-}
-
-#        $c->save;
-#            $c->set_line_width(0.1);
-#            $c->set_source_rgb(0.8, 0, 0);
-#            $c->move_to($x, 0);
-#            $c->line_to($x, 24*@voices);
-#            $c->stroke;
-#        $c->restore;
-#            $c->save;
-#                $c->set_line_width(0.1);
-#                if (my $lsb = $item->lsb($c)) {
-#                    $c->set_source_rgb(0.8, 0, 0.8);
-#                    $c->move_to($x - $lsb, $y - 6);
-#                    $c->line_to($x - $lsb, $y + 6);
-#                    $c->stroke;
-#                }
-#                $c->set_source_rgb(0, 0.8, 0);
-#                $c->move_to($x + $mywd, $y - 10);
-#                $c->line_to($x + $mywd, $y + 10);
-#                $c->stroke;
-#            $c->restore;
-
-sub _reset_bb { @{$_[0]->bbox} = () }
-
-sub _add_to_bb {
-    my ($self, $c, $x, @voices) = @_;
-
-    my $bb = [
-        ($c->c->user_to_device($x, 0))[0],
-        map [
-            ($c->c->user_to_device(0, $_->y + 12))[1],
-            $_->item,
-        ], @voices,
-    ];
-    Scalar::Util::weaken $_ for
-        map $_->[1],
-        @$bb[1..$#$bb];
-
-    push @{$self->bbox}, $bb;
-}
-
-sub _show_music {
-    my ($self, $c) = @_;
-
-    my @voices;
-    my $v = $self->cursor->movement;
-    while (1) {
-        $v->is_voice_end and last;
-        $v = $v->next_voice;
-        push @voices, App::Jacana::StaffCtx::Draw->new(
-            item    => $v,
-            y       => 24*(@voices + 1),
-        );
-    }
-    my $voices = @voices;
-
-    $c->set_source_rgb(0, 0, 0);
-    $self->_show_stave($c, $_) for map $_->y, @voices;
-
-    my $x = max map $self->_show_item($c, 0, $_), @voices;
-    $self->_reset_bb;
-    $self->_add_to_bb($c, $x, @voices);
-    for (@voices) {
-        @{$_->item->bbox}[0,1] = $c->c->user_to_device(0, $_->y - 12);
-        $_->item->bbox->[4] = ($c->c->user_to_device(0, 0))[0];
-    }
-
-    for (;;) {
-        my $skip = min map $_->when, @voices;
-        $_->skip($skip) for @voices;
-
-        my @draw = grep !$_->when, @voices;
-        @{$_->item->bbox}[2,3] = $c->c->user_to_device($x, $_->y + 12) 
-            for @draw;
-
-        @draw = grep $_->next, @draw;
-        @{$_->item->bbox}[0,1] = $c->c->user_to_device($x, $_->y - 12) 
-            for @draw;
-
-        $x += max 0, 
-            map $self->_show_barline($c, $x, $_),
-            grep $_->barline,
-            @draw;
-        $x += max 0, map $_->lsb($c), map $_->item, @draw;
-        $x += max 0, map {
-            my $w = $self->_show_item($c, $x, $_);
-            ${$_->item->bbox}[4] = ($c->c->user_to_device($x + $w, 0))[0];
-            $w;
-        } @draw;
-
-        @voices = grep $_->has_item, @voices or last;
-        $self->_add_to_bb($c, $x, @voices);
-    }
-
-    ($x + 6, 24*($voices + 1));
-}
-
-sub _show_stave {
-    my ($self, $c, $y) = @_;
-
-    $c->save;
-        for (-2..2) {
-            $c->move_to(0, 2*$_ + $y);
-            $c->line_to($c->width, 2*$_ + $y);
-        }
-        $c->set_line_width(0.1);
-        $c->stroke;
-    $c->restore;
-}
-
-sub _show_item {
-    my ($self, $c, $x, $v) = @_;
-    my $y       = $v->y;
-    my $item    = $v->item;
-
-    $v->has_tie and $self->_show_tie($c, $x, $v);
-
-    $c->save;
-        $c->translate($x, $y);
-        my $wd = $self->_draw_item($c, $item);
-    $c->restore;
-
-    $item->isa("App::Jacana::Music::Note") && $item->tie
-        and $v->start_tie($x + $wd);
-
-    ($wd // 0) + $item->rsb;
-}
-
-sub _draw_item {
-    my ($self, $c, $item) = @_;
-    no warnings "uninitialized";
-
-    my $cursor  = $self->cursor;
-    my $curpos  = $cursor->position;
-    my $mode    = $cursor->mode;
-    my $mark    = $self->mark;
-
-    my $pos = $item->staff_line;
-    $c->save;
-        $c->translate(0, -$pos);
-        $c->move_to(0, 0);
-        my $wd = $item->draw($c, $pos);
-    $c->restore;
-
-    return $wd;
-}
-
-sub _show_tie {
-    my ($self, $c, $x, $v) = @_;
-    my $item    = $v->item;
-    my $from    = $v->tie_from;
-
-    $c->save;
-        if ($item->isa("App::Jacana::Music::Note")
-            && $from->pitch == $item->pitch
-        )       { $c->set_source_rgb(0, 0, 0) }
-        else    { $c->set_source_rgb(1, 0, 0) }
-        $c->set_line_width(0.5);
-
-        my $x1  = $v->tie_x;
-        my $x2  = $x - $item->lsb($c);
-        my $xc  = ($x2 - $x1) / 4;
-        my $y   = $v->y - $from->staff_line - 1;
-        $c->move_to($x1, $y);
-        $c->curve_to(
-            $x1 + $xc,  $y - 2,
-            $x2 - $xc,  $y - 2,
-            $x2,        $y,
-        );
-        $c->stroke;
-    $c->restore;
-
-    $v->clear_tie;
-}
-
-sub _show_barline {
-    my ($self, $c, $x, $bar) = @_;
-
-    my $y = $bar->y;
-    $c->save;
-        my $p = $bar->pos 
-            and $c->set_source_rgb(0.9, 0, 0);
-        $c->set_line_width(0.5);
-        $c->set_line_cap("butt");
-        $c->move_to($x + 1, $y - 4);
-        $c->line_to($x + 1, $y + 4);
-        $c->stroke;
-        if ($p) {
-            $c->translate($x, $y - 4.5);
-            $c->scale(0.5, 0.5);
-            my (undef, @gly) = $c->layout_num($p);
-            $c->show_glyphs(@gly);
-        }
-    $c->restore;
-    return 3;
-}
-
-sub _show_cursor {
-    my ($self, $c) = @_;
-
-    my $curs = $self->cursor;
-    $curs->mode eq "insert" or return;
-    my $bb = $curs->position->bbox;
-
-    my $x = $$bb[4] + ($$bb[2] - $$bb[4]) / 2;
-    my $z = $self->zoom;
-
-    $c->save;
-        $c->move_to($x, $$bb[1] + 4*$z);
-        $c->line_to($x, $$bb[3] - 4*$z);
-        $c->set_source_rgb(0, 0, 0);
-        $c->set_line_width(0.8*$z);
-        $c->set_line_cap("round");
-        $c->stroke;
-    $c->restore;
 }
 
 sub _button_release_event :Signal {

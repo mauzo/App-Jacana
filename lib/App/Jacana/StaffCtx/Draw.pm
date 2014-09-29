@@ -17,6 +17,15 @@ has tie_x => (
     isa         => Num,
 );
 
+around clone => sub {
+    my ($orig, $self, @args) = @_;
+    my $new = $self->$orig(
+        map(+($_, $self->$_), qw/y bar pos/),
+        tie_x   => 0,
+        @args,
+    );
+};
+
 before next => sub {
     my ($self) = @_;
 
