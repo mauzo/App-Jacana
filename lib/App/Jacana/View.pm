@@ -324,11 +324,15 @@ sub _size_allocate :Signal {
 sub _expose_event :Signal {
     my ($self, $widget, $event) = @_;
 
-    my $r = $event->area;
-    my $c = Gtk2::Gdk::Cairo::Context->create($widget->get_window);
+    my $rct = $event->area;
+    my $top = $rct->y;
+    my $bot = $top + $rct->height;
+    my $c   = Gtk2::Gdk::Cairo::Context->create($widget->get_window);
+    my $rnd = $self->renderer;
 
+    $rnd->render_upto(sub { $_[0]->bottom >= $bot });
     $self->_show_highlights($c);
-    my $ht = $self->renderer->show_lines($c, $r->y, $r->y + $r->height);
+    my $ht = $rnd->show_lines($c, $top, $bot);
     $self->_show_cursor($c);
 
     $widget->set_size_request(100, $ht);
@@ -355,6 +359,17 @@ sub _show_highlights {
         $c->fill;
         $c->restore;
     }
+
+    if (my $l = $curs->position->system) {
+        warn sprintf "HIGHLIGHTING SYSTEM [%d][%d]-[%d][%d]",
+            0, $l->top, $l->width, $l->height;
+        $c->save;
+        $c->set_source_rgba(1, 1, 0, 0.04);
+        $c->rectangle(0, $l->top, $l->width, $l->height);
+        $c->fill;
+        $c->restore;
+    }
+    else { warn "NO SYSTEM REF FOUND" }
 }
 
 sub _show_cursor {

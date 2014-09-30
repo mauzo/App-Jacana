@@ -121,7 +121,7 @@ sub render_upto {
         ), @$start;
         $l->staffs(\@staffs);
 
-        my ($wd, $more) = $self->_show_music($c, $start, $top);
+        my ($wd, $more) = $self->_show_music($c, $start, $top, $l);
         $top += $l->height;
         $staffs[$_]->update($$start[$_], $c, $wd) for 0..$#staffs;
         push @$lines, $l;
@@ -177,7 +177,7 @@ sub _show_scale {
 #            $c->restore;
 
 sub _show_music {
-    my ($self, $c, $start, $top) = @_;
+    my ($self, $c, $start, $top, $l) = @_;
 
     my $width   = $c->width;
     my @voices  = @$start;
@@ -190,6 +190,7 @@ sub _show_music {
     for (@voices) {
         @{$_->item->bbox}[0,1] = 
             ($c->u2d(4), $c->u2d($_->y - 12) + $top);
+        $_->item->system($l);
     }
 
     my $lastx;
@@ -203,15 +204,17 @@ sub _show_music {
             for @draw;
 
         @draw = grep $_->next, @draw;
-        @{$_->item->bbox}[0,1] = 
-            ($c->u2d($x), $c->u2d($_->y - 12) + $top)
-            for @draw;
+        for (@draw) {
+            @{$_->item->bbox}[0,1] = 
+                ($c->u2d($x), $c->u2d($_->y - 12) + $top);
+            $_->item->system($l);
+        }
 
         $x += max 0, 
             map $self->_show_barline($c, $x, $_),
             grep $_->barline,
             @draw;
-        $lastx = $x; warn "LASTX [$lastx]";
+        $lastx = $x;
         $x += max 0, map $_->lsb($c), map $_->item, @draw;
         $x += max 0, map $self->_show_item($c, $x, $_), @draw;
 

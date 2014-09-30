@@ -33,6 +33,13 @@ has rendered    => (
 );
 
 has bbox => is => "rw", default => sub { +[] };
+has system => (
+    is              => "rw",
+    isa             => InstanceOf[My "View::System"],
+    predicate       => 1,
+    weak_ref        => 1,
+    ignore_undef    => 1,
+);
 
 sub _build_ambient {
     my ($self) = @_;

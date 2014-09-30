@@ -13,6 +13,7 @@ has surface => (
     isa     => InstanceOf["Cairo::ImageSurface"],
 );
 
+# device coordinates
 has top     => is => "ro", isa => Int, required => 1;
 has height  => is => "ro", isa => Int, required => 1;
 has width   => is => "ro", isa => Int, required => 1;
