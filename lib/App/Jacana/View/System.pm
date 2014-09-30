@@ -1,4 +1,4 @@
-package App::Jacana::View::Line;
+package App::Jacana::View::System;
 
 use Moo;
 

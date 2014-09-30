@@ -5,8 +5,8 @@ use Moo;
 use App::Jacana::DrawCtx;
 use App::Jacana::StaffCtx::Draw;
 use App::Jacana::Util::Types;
-use App::Jacana::View::Line;
 use App::Jacana::View::StaffInfo;
+use App::Jacana::View::System;
 
 use List::BinarySearch      qw/binsearch_pos binsearch_range/;
 use List::Util              qw/first max min/;
@@ -25,7 +25,7 @@ has lines => (
     is      => "ro",
     lazy    => 1,
     clearer => 1,
-    isa     => ArrayRef[InstanceOf[My "View::Line"]],
+    isa     => ArrayRef[InstanceOf[My "View::System"]],
     default => sub { +[] },
 );
 
@@ -107,7 +107,7 @@ sub render_upto {
         warn "RENDERING LINE AT [$top]:\n" .
             join "\n", map "  $_",
             map $_->item, @$start;
-        my $l = My("View::Line")->new(
+        my $l = My("View::System")->new(
             top     => $top,
             width   => $self->width,
             height  => ceil((@$start + 1)*24*$scale),
