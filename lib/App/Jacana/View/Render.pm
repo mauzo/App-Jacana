@@ -48,7 +48,9 @@ sub find_line_at {
 sub show_lines {
     my ($self, $c, $from, $to) = @_;
 
-    my $bottom = $self->render_upto($to);
+    my $bottom = $self->render_upto(sub { 
+        $_[0] && $_[0]->bottom > $to;
+    });
     $to = min $to, $bottom;
     warn "SHOWING LINES FROM [$from] TO [$to]";
 
@@ -101,7 +103,7 @@ sub render_upto {
         ];
     }
 
-    while (@$start && $top < $upto) {
+    until (!@$start || @$lines && $upto->($$lines[-1])) {
         warn "RENDERING LINE AT [$top]:\n" .
             join "\n", map "  $_",
             map $_->item, @$start;

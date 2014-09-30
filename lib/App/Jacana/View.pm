@@ -232,18 +232,21 @@ sub scroll_to_cursor {
     my $item = $self->cursor->position  or return;
 
     my $scr = $self->scrolled;
-    my $haj = $scr->get_hadjustment;
     my $vaj = $scr->get_vadjustment;
     my $bbx = $item->bbox;
 
     unless ($bbx && @$bbx) {
-        $self->refresh;
-        $self->rendered;
-        $bbx = $item->bbox or return;
+        $self->renderer->render_upto(sub {
+            $bbx = $item->bbox;
+            $bbx && @$bbx;
+        });
+        $bbx && @$bbx and Glib::Idle->add(sub {
+            $self->scroll_to_cursor;
+            return;
+        });
+        return;
     }
-
-    $haj->clamp_page($$bbx[0] - 32, $$bbx[2] + 32);
-    $vaj->clamp_page($$bbx[1] - 16, $$bbx[3] + 16);
+    $vaj->clamp_page($$bbx[1] - 6, $$bbx[3] + 6);
 }
 
 sub clip_cut :Action(Cut) {
