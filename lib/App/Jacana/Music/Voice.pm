@@ -24,6 +24,12 @@ has name => (
     isa         => Match("[a-zA-Z]+", "voice name"),
 );
 
+has muted => (
+    is          => "rw",
+    default     => 0,
+    isa         => Bool,
+);
+
 # We default to treble clef, because Lily does.
 has "+clef" => default => "treble";
 has "+key" => default => 0;

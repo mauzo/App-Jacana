@@ -303,6 +303,12 @@ sub move_staff :Action(view.MoveStaff) {
     $self->view->refresh;
 }
 
+sub mute_staff :Action(view.MuteStaff) {
+    my ($self) = @_;
+    my $v = $self->voice;
+    $v->muted(!$v->muted);
+}
+
 sub name_staff :Action(view.NameStaff) {
     my ($self) = @_;
 

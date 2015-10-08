@@ -125,6 +125,7 @@ sub play_music {
     while (1) {
         $m->is_voice_end and last;
         $m = $m->next_voice;
+        $m->muted and next;
         my @t = $m->find_time($arg{time});
         push @music, App::Jacana::StaffCtx::MIDI->new(
             midi => $self, chan => $self->alloc_chan,
