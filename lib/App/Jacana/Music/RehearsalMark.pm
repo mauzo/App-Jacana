@@ -8,6 +8,7 @@ extends "App::Jacana::Music";
 with    qw/ 
     App::Jacana::Has::RehearsalMark
     App::Jacana::Has::Dialog
+    App::Jacana::Music::FindAmbient
 /;
 
 sub dialog { "RehearsalMark" }

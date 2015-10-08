@@ -6,6 +6,7 @@ extends "App::Jacana::Music";
 with    qw/
     App::Jacana::Has::Length
     App::Jacana::Has::Marks
+    App::Jacana::Music::FindAmbient
 /;
 
 has bars    => (

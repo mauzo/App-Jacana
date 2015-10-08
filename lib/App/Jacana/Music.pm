@@ -1,8 +1,6 @@
 package App::Jacana::Music;
 
 use Moo;
-use MooX::AccessorMaker
-    apply => [qw/ MooX::MakerRole::IgnoreUndef /];
 
 use App::Jacana::Util::LinkList;
 use App::Jacana::Util::Types;
@@ -15,16 +13,6 @@ with qw/
 /;
 
 linklist "music";
-
-has ambient     => (
-    is          => "rw",
-    lazy        => 1,
-    builder     => 1,
-    isa         => InstanceOf["App::Jacana::Music::Ambient"],
-    weak_ref    => 1,
-    ignore_undef    => 1,
-    clearer     => 1,
-);
 
 has rendered    => (
     is      => "lazy",
@@ -40,13 +28,6 @@ has system => (
     weak_ref        => 1,
     ignore_undef    => 1,
 );
-
-sub _build_ambient {
-    my ($self) = @_;
-
-    $self->is_music_start and die "Start of list must be HasAmbient";
-    $self->prev->ambient;
-}
 
 # Otherwise we get a method conflict (grr)
 sub BUILD { }

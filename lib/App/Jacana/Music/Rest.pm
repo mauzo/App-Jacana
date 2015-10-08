@@ -6,6 +6,7 @@ extends "App::Jacana::Music";
 with    qw/
     App::Jacana::Has::Length
     App::Jacana::Has::Marks
+    App::Jacana::Music::FindAmbient
 /;
 
 my @Glyph   = qw/ M1 0 1 2 3 4 5 6 7 /;

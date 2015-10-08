@@ -6,6 +6,7 @@ extends "App::Jacana::Music";
 with    qw/
     App::Jacana::Has::Dialog
     App::Jacana::Has::Lily
+    App::Jacana::Music::FindAmbient
 /;
 
 sub dialog { "Lily" }

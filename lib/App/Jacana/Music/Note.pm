@@ -16,6 +16,7 @@ with    qw/
     App::Jacana::Has::Marks
     App::Jacana::Has::Pitch 
     App::Jacana::Has::Tie
+    App::Jacana::Music::FindAmbient
 /;
 
 sub lily_rx {
