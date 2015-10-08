@@ -38,8 +38,9 @@
       <menuitem action="PreviousMovement"/>
       <menuitem action="NextMovement"/>
       <separator/>
-      <menuitem action="InsertMovement"/>
       <menuitem action="NameMovement" label="Name movement…"/>
+      <menuitem action="InsertMovement"/>
+      <menuitem action="DeleteMovement"/>
     </menu>
     <menu action="StaffMenu" label="Staff">
       <menu action="ClefMenu" label="Clef">

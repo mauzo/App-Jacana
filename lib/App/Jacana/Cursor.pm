@@ -246,6 +246,22 @@ sub insert_mvmt :Action(view.InsertMovement) {
     $self->view->refresh;
 }
 
+sub delete_movement :Action(view.DeleteMovement) {
+    my ($self) = @_;
+
+    my $m = $self->movement->remove_movement;
+    $m->is_movement_start and $m = $m->next_movement;
+    $m->is_movement_start and $m = $m->insert_movement(
+        App::Jacana::Music::Movement->new(name => ""));
+    
+    $self->movement($m);
+    my $v = $self->view;
+    $v->stop_playing;
+    $v->refresh;
+    $v->scroll_to_cursor;
+    $v->reset_title;
+}
+
 sub up_down_staff {
     my ($self, $dir) = @_;
     my $v = $self->voice->$dir;
