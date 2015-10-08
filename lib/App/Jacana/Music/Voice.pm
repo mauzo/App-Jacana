@@ -4,6 +4,7 @@ use Moo;
 
 use App::Jacana::Util::Types;
 
+use Data::Dump      qw/pp/;
 use Module::Runtime     qw/use_module/;
 use Text::Wrap          qw/wrap/;
 
@@ -39,7 +40,7 @@ has "+beats" => default => 4;
 has "+divisor" => default => 4;
 
 my @MTypes = map "App::Jacana::Music::$_",
-    qw/ Barline Clef KeySig MultiRest Note 
+    qw/ Barline Clef KeySig MultiRest Note Note::Grace
         RehearsalMark Rest Text::Mark TimeSig 
     /;
 for (@MTypes) {
@@ -58,6 +59,8 @@ sub from_lily {
 
     my $unknown = "";
     (my $text   = $n{music}) =~ s/^\{|\}$//g;
+
+    warn "MTYPES: " . pp {map +($_ => $_->lily_rx), @MTypes};
 
     ITEM: while ($text) {
         $text =~ s/^\s+//;

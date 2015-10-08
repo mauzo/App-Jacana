@@ -62,22 +62,25 @@ sub _trigger_position {
         and return $self->position($note->next);
 
     my %isa     = map +($_, $note->isa("App::Jacana::Music::$_")),
-        qw/ Note /;
+        qw/ Note Note::Grace /;
     my %does    = map +($_, $note->DOES("App::Jacana::Has::$_")),
         qw/Pitch Length Key Dialog/;
     my %act     = map +($_, $view->get_action($_)), qw/
         AddDot NoteChroma Sharpen Flatten OctaveUp OctaveDown
-        Tie Properties
+        Tie Grace Properties
     /;
 
     $act{AddDot}->set_sensitive($does{Length});
     if ($isa{Note}) {
-        $act{Tie}->set_sensitive(1);
+        $act{$_}->set_sensitive(1) for qw/Tie Grace/;
         $act{Tie}->set_active($note->tie);
+        $act{Grace}->set_active($isa{"Note::Grace"});
     }
     else {
-        $act{Tie}->set_sensitive(0);
-        $act{Tie}->set_active(0);
+        for (qw/Tie Grace/) {
+            $act{$_}->set_sensitive(0);
+            $act{$_}->set_active(0);
+        }
     }
     if ($does{Pitch}) {
         $act{NoteChroma}->set_current_value($note->chroma);
@@ -417,6 +420,23 @@ sub _toggle_tie :Action(view.Tie) {
     my $note = $self->position;
     $note->isa("App::Jacana::Music::Note") or return;
     $note->tie($act->get_active);
+    $self->view->refresh;
+}
+
+sub _toggle_grace :Action(view.Grace) {
+    my ($self, $act) = @_;
+    
+    my $note = $self->position;
+
+    if ($act->get_active) {
+        $note->isa("App::Jacana::Music::Note") or return;
+        bless $note, "App::Jacana::Music::Note::Grace"; # XXX
+    }
+    else {
+        $note->isa("App::Jacana::Music::Note::Grace") or return;
+        bless $note, "App::Jacana::Music::Note"; # XXX
+    }
+
     $self->view->refresh;
 }
 

@@ -63,6 +63,11 @@ my %Heads   = qw/0 sM1 1 s0 2 s1/;
 my %Tails   = qw/4 3 5 4 6 5 7 6 8 7/;
 my %Acci    = qw/0 natural 1 sharp -1 flat 2 doublesharp -2 flatflat/;
 
+sub _tail_dir {
+    my ($self, $pos) = @_;
+    $pos < 0;
+}
+
 sub _notehead {
     my ($self, $c) = @_;
     my $len = $Heads{$self->length} || "s2";
@@ -181,7 +186,7 @@ sub draw {
     my $wd  = $self->_draw_head($c);
 
     my $len = $self->length;
-    my $up  = $pos < 0;
+    my $up  = $self->_tail_dir($pos);
 
     if ($len >= 2) {
         my ($ex, $ey) = $self->_draw_stem($c, $up, $wd);

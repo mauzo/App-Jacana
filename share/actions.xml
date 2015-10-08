@@ -112,6 +112,7 @@
         <separator/>
         <menuitem action="AddDot" icon_name="icon-dot"/>
         <menuitem action="Tie" icon_name="icon-tie" toggle="1"/>
+        <menuitem action="Grace" toggle="1"/>
       </menu>
       <menuitem action="Rest" icon_name="icon-rest-1"/>
       <menuitem action="MultiRest" label="Whole bar rest"/>
