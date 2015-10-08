@@ -116,9 +116,12 @@ sub render_upto {
             copy_from   => $self->view,
             surface     => $l->surface,
         );
-        my @staffs = map My("View::StaffInfo")->create(
-            $_, $c, 0, $top
-        ), @$start;
+        my @staffs = 
+            map My("View::StaffInfo")->create(
+                $_, $c, 0, $top
+            ), 
+            grep $_->has_item,
+            @$start;
         $l->staffs(\@staffs);
 
         my ($wd, $more) = $self->_show_music($c, $start, $top, $l);
@@ -180,7 +183,7 @@ sub _show_music {
     my ($self, $c, $start, $top, $l) = @_;
 
     my $width   = $c->width;
-    my @voices  = @$start;
+    my @voices  = grep $_->has_item, @$start;
     my $voices  = @voices;
 
     $c->set_source_rgb(0, 0, 0);
