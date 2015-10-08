@@ -38,12 +38,20 @@ sub find_region {
     my $curs    = $self->cursor->position;
     my $cv      = $curs->ambient->find_voice;
 
+    for ($mark, $curs) {
+        if ($_ && $_->is_music_start) {
+            $_->is_music_end and return;
+            $_ = $_->next_music;
+        }
+    }
+
     if ($mark) {
         my $mv = $mark->ambient->find_voice;
         $mv == $cv or $mark = $cv->find_time($mark->get_time);
         return $mark->order_music($curs);
     }
 
+    $cv->is_music_end and return;
     return ($cv, $cv->prev_music);
 }
 
