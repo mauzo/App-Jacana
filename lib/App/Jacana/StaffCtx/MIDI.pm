@@ -6,7 +6,7 @@ use namespace::clean;
 
 extends "App::Jacana::StaffCtx";
 
-has midi => is => "ro", required => 1;
+has midi => is => "ro", required => 1, weak_ref => 1;
 has chan => is => "ro", required => 1;
 
 has pitch   => is => "rw";

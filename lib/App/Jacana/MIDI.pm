@@ -85,7 +85,7 @@ sub BUILD {
     $self->driver;
 }
 
-sub DESTROY {
+sub DEMOLISH {
     my ($self) = @_;
     $self->remove_active($_) for keys %{$self->active};
 }
