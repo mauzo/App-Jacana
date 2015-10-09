@@ -509,11 +509,11 @@ for my $t (qw/
 }
 
 sub _slur_start :Action(view.SlurStart) {
-    $_[0]->_do_marks(Slur => span_start => 1);
+    $_[0]->_do_marks(Slur => is_start => 1);
 }
 
 sub _slur_end :Action(view.SlurEnd) {
-    $_[0]->_do_marks(Slur => span_start => 0);
+    $_[0]->_do_marks(Slur => is_start => 0);
 }
 
 sub _slur_clear :Action(view.ClearSlur) {

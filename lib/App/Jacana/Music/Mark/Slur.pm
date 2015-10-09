@@ -1,26 +1,30 @@
 package App::Jacana::Music::Mark::Slur;
 
 use Moo;
+use App::Jacana::Util::Types;
 
 extends "App::Jacana::Music::Mark";
-with    qw/ App::Jacana::Has::Span /;
 
-sub span_types { "slur" }
+has is_start => (
+    is          => "ro",
+    required    => 1,
+    isa         => Bool,
+);
 
 sub lily_rx { qr/ (?<slur> \( | \) ) /x }
 
 sub from_lily {
     my ($self, %n) = @_;
     $n{slur} or return;
-    $self->new({ span_start => ($n{slur} eq "(") });
+    $self->new({ is_start => ($n{slur} eq "(") });
 }
 
-sub to_lily { $_[0]->span_start ? "(" : ")" }
+sub to_lily { $_[0]->is_start ? "(" : ")" }
 
 sub draw {
     my ($self, $c, $pos, $up) = @_;
 
-    my @y = $self->span_start 
+    my @y = $self->is_start 
         ? $up ? (3, 4, 4, 4) : (-3, -4, -4, -4)
         : $up ? (4, 4, 4, 3) : (-4, -4, -4, -3);
     $c->save;

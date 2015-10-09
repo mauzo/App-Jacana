@@ -5,7 +5,6 @@ use Moo;
 use App::Jacana::Util::Types;
 
 extends "App::Jacana::Music::Mark";
-with    qw/ App::Jacana::Has::Span /;
 
 my @Dynamics = qw/
     pp p mp mf f ff fp sf sfz rf
@@ -16,14 +15,6 @@ has dynamic => (
     required    => 1,
     isa         => Enum[@Dynamics],
 );
-
-has "+span_start" => (
-    is          => "ro",
-    init_arg    => undef,
-    default     => 0,
-);
-
-sub span_types { "cresc" }
 
 sub lily_rx { 
     my $dyn = join "|", @Dynamics;
