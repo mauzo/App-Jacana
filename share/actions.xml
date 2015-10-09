@@ -68,7 +68,22 @@
       <menuitem action="DeleteStaff"/>
       <menuitem action="MoveStaff" label="Move staff down"/>
       <menuitem action="NameStaff" label="Name staff…"/>
+      <separator/>
       <menuitem action="MuteStaff"/>
+      <menu action="StaffMidiMenu" label="MIDI voice">
+        <radiogroup action="StaffMidiVoice">
+          <menuitem action="MidiFlute" label="Flute" value="73"/>
+          <menuitem action="MidiOboe" label="Oboe" value="68"/>
+          <menuitem action="MidiCorAnglais" label="Cor anglais" value="69"/>
+          <menuitem action="MidiClarinet" label="Clarinet" value="71"/>
+          <menuitem action="MidiBassoon" label="Bassoon" value="70"/>
+          <separator/>
+          <menuitem action="MidiTrumpet" label="Trumpet" value="56"/>
+          <menuitem action="MidiTrombone" label="Trombone" value="57"/>
+          <menuitem action="MidiTuba" label="Tuba" value="58"/>
+          <menuitem action="MidiFrenchHorn" label="French horn" value="60"/>
+        </radiogroup>
+      </menu>
     </menu>
     <menu action="NoteMenu" label="Note">
       <menu action="NotePitchMenu" label="Pitch">

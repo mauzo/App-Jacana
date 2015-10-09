@@ -72,11 +72,16 @@ sub free_chan {
     $s->in_use->[$c] = 0;
 }
 
+sub set_program {
+    my ($s, $c, $v) = @_;
+    $s->synth->program_select($c, $s->sfont, 0, $v);
+}
+
 sub BUILD {
     my ($self) = @_;
 
-    $self->synth->program_select($_, $self->sfont, 0, 68)
-        for 0..10;
+    $self->settings;
+    $self->synth;
     $self->driver;
 }
 
@@ -126,9 +131,14 @@ sub play_music {
         $m->is_voice_end and last;
         $m = $m->next_voice;
         $m->muted and next;
+        
         my @t = $m->find_time($arg{time});
+        my $c = $self->alloc_chan;
+
+        $self->set_program($c, $m->midi_prg);
+
         push @music, App::Jacana::StaffCtx::MIDI->new(
-            midi => $self, chan => $self->alloc_chan,
+            midi => $self, chan => $c,
             on_start => $arg{start}, on_stop => $arg{stop},
             item => $t[0], when => $t[1]
         );

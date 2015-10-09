@@ -31,6 +31,12 @@ has muted => (
     isa         => Bool,
 );
 
+has midi_prg => (
+    is          => "rw",
+    default     => 68,
+    isa         => Int,
+);
+
 # We default to treble clef, because Lily does.
 has "+clef" => default => "treble";
 has "+key" => default => 0;

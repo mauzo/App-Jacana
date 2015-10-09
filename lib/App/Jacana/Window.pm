@@ -112,7 +112,9 @@ sub _parse_actions_xml {
         $hasr{$grp} = 1;
         my $p = $r->parentNode;
         foreach my $i ($r->childNodes) {
-            if ($i->isa('XML::LibXML::Element')) {
+            if ($i->isa('XML::LibXML::Element') &&
+                $i->nodeName ne "separator"
+            ) {
                 push @{$radios{$grp}}, {%$i};
                 $hasr{$$i{action}} = 1;
             }

@@ -49,8 +49,10 @@ sub _trigger_movement   { $_[0]->clear_voice; $_[0]->clear_position }
 
 sub _trigger_voice      { 
     my ($self, $new) = @_;
+
     my $time = $self->position->get_time;
     $self->position($new->find_time($time));
+    $self->set_midi_program;
 }
 
 sub _trigger_position {
@@ -106,10 +108,22 @@ sub _build_midi_chan {
     $self->view->midi->alloc_chan;
 }
 
+sub set_midi_program {
+    my ($self) = @_;
+
+    my $view    = $self->view;
+    my $midi    = $view->midi;
+    my $prg     = $self->voice->midi_prg;
+
+    $midi->set_program($self->midi_chan, $prg);
+    $view->get_action("StaffMidiVoice")->set_current_value($prg);
+}
+
 sub BUILD {
     my ($self) = @_;
     $self->length(3);
     $self->position($self->position);
+    $self->set_midi_program;
     $self->view->refresh;
 }
 
@@ -310,6 +324,13 @@ sub mute_staff :Action(view.MuteStaff) {
     my ($self) = @_;
     my $v = $self->voice;
     $v->muted(!$v->muted);
+}
+
+sub staff_midi :Action(view.StaffMidiVoice) {
+    my ($self, $action) = @_;
+
+    $self->voice->midi_prg($action->get_current_value);
+    $self->set_midi_program;
 }
 
 sub name_staff :Action(view.NameStaff) {
