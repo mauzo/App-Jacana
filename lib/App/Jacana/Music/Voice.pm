@@ -14,6 +14,7 @@ extends "App::Jacana::Music";
 with    qw/ 
     App::Jacana::Has::Clef 
     App::Jacana::Has::Key
+    App::Jacana::Has::MidiInstrument
     App::Jacana::Has::Time
     App::Jacana::Has::Voices
     App::Jacana::Music::HasAmbient
@@ -31,12 +32,6 @@ has muted => (
     isa         => Bool,
 );
 
-has midi_prg => (
-    is          => "rw",
-    default     => 68,
-    isa         => Int,
-);
-
 # We default to treble clef, because Lily does.
 has "+clef" => default => "treble";
 has "+key" => default => 0;
@@ -45,8 +40,11 @@ has "+mode" => default => "major";
 has "+beats" => default => 4;
 has "+divisor" => default => 4;
 
+# oboe
+has "+program" => default => 68;
+
 my @MTypes = map "App::Jacana::Music::$_",
-    qw/ Barline Clef KeySig MultiRest Note Note::Grace
+    qw/ Barline Clef KeySig MidiInstrument MultiRest Note Note::Grace
         RehearsalMark Rest Text::Mark TimeSig 
     /;
 for (@MTypes) {

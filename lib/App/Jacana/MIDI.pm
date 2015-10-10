@@ -92,8 +92,9 @@ sub DEMOLISH {
 
 sub play_note {
     my ($self, $chan, $pitch, $length) = @_;
-    my $time = (16*128)/$length;
-    my $syn = $self->synth;
+
+    my $time    = (16*128)/$length;
+    my $syn     = $self->synth;
 
     eval { $syn->noteon($chan, $pitch, 85) };
     Glib::Timeout->add($time, sub {
@@ -104,6 +105,10 @@ sub play_note {
 
 sub note_on {
     my ($self, $chan, $note) = @_;
+
+    $note->DOES("App::Jacana::Has::MidiInstrument")
+        and $self->set_program($chan, $note->program);
+
     my $pitch;
     if ($note->DOES("App::Jacana::Has::Pitch")) {
         $pitch = $note->pitch;
@@ -132,15 +137,16 @@ sub play_music {
         $m = $m->next_voice;
         $m->muted and next;
         
-        my @t = $m->find_time($arg{time});
-        my $c = $self->alloc_chan;
+        my ($note, $when) = $m->find_time($arg{time});
+        my $c   = $self->alloc_chan;
+        my $prg = $note->ambient->find_role("MidiInstrument");
 
-        $self->set_program($c, $m->midi_prg);
+        $self->set_program($c, $prg->program);
 
         push @music, App::Jacana::StaffCtx::MIDI->new(
             midi => $self, chan => $c,
             on_start => $arg{start}, on_stop => $arg{stop},
-            item => $t[0], when => $t[1]
+            item => $note, when => $when,
         );
     }
     $_->start_note for @music;
