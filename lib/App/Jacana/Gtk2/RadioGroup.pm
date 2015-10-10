@@ -70,13 +70,9 @@ sub set_current_value {
     my ($self, $val) = @_;
 
     defined $val or return $self->set_current(undef);
-    
-    my @new = grep $_->get_value eq $val, @{$self->{members}};
-    @new or return;
-    @new > 1 and Carp::croak "Duplicate values ($val) for " .
-        join ", ", map $_->get_name, @new;
 
-    $self->set_current($new[0]);
+    my $new = $self->find_member($val);
+    $self->set_current($new);
 }
 
 sub set_sensitive {
@@ -98,6 +94,20 @@ sub add_member {
     push @{$self->{members}}, $new;
     $new->set_group($self);
 }
+
+sub get_members { @{$_[0]->{members}} }
+
+sub find_member {
+    my ($self, $val) = @_;
+
+    my @new = grep $_->get_value eq $val, @{$self->{members}};
+    @new or return;
+    @new > 1 and Carp::croak "Duplicate values ($val) for " .
+        join ", ", map $_->get_name, @new;
+
+    $new[0];
+}
+
 
 1;
 

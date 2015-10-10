@@ -6,6 +6,7 @@ use App::Jacana::Util::Types;
 extends "App::Jacana::Music";
 with qw/
     App::Jacana::Music::HasAmbient
+    App::Jacana::Has::Dialog
     App::Jacana::Has::MidiInstrument
 /;
 
@@ -26,6 +27,8 @@ sub to_lily {
     my $ins = $self->instrument;
     qq/\\set Staff.midiInstrument = #"$ins"/;
 }
+
+sub dialog { "MidiInstrument" }
 
 sub draw {
     my ($self, $c) = @_;
