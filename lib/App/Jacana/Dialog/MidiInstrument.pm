@@ -15,9 +15,9 @@ with    qw/
     App::Jacana::Has::MidiInstrument
 /;
 
+has _current        => is => "lazy";
 has _menu           => is => "lazy";
 has _menu_group     => is => "lazy";
-has _menu_button    => is => "lazy";
 
 has "+program" => (
     isa         => Any,
@@ -26,6 +26,20 @@ has "+program" => (
 );
 
 sub title { "MIDI instrument" }
+
+sub _build__current {
+    my ($self) = @_;
+    
+    my $grp     = $self->_menu_group;
+    my $lab     = Gtk2::Label->new($grp->get_current->get_label);
+
+    $lab->set_alignment(0, 0.5);
+    $grp->signal_connect("notify::current", sub {
+        $lab->set_text($grp->get_current->get_label);
+    });
+
+    $lab;
+}
 
 sub _build__menu_group {
     my ($self)  = @_;
@@ -76,22 +90,28 @@ sub _build__menu {
     }
 
     @menu == 1 or die "Badly nested MIDI instrument menu";
+    $menu[0]->show_all;
     $menu[0];
 }
                 
-sub _build__menu_button {
-    my ($self)  = @_;
-    my $prg     = $self->program;
-    my $but = Gtk2::OptionMenu->new;
-
-    $but->set_menu($self->_menu);
-    $but;
-}
-
 sub _build_content_area {
     my ($self, $vb) = @_;
 
-    $vb->pack_start($self->_menu_button, 1, 1, 5);
+    my $menu = $self->_menu;
+
+    my $button  = Gtk2::Button->new;
+    my $arrow   = Gtk2::Arrow->new("down", "out");
+    $button->add($arrow);
+    $button->signal_connect("button-press-event", sub {
+        $menu->popup(undef, undef, undef, undef, 0,
+            Gtk2->get_current_event_time);
+    });
+
+    my $hb      = Gtk2::HBox->new;
+    $hb->pack_start($self->_current, 1, 1, 5);
+    $hb->pack_end($button, 0, 0, 5);
+
+    $vb->pack_start($hb, 1, 1, 5);
 }
     
 1;

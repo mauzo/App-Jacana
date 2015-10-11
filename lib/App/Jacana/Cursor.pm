@@ -124,7 +124,7 @@ sub DEMOLISH {
 
 sub _trigger_mode { 
     my ($self, $mode) = @_;
-    for (qw/ Rest KeySig TimeSig Barline /) {
+    for (qw/ Rest KeySig TimeSig Barline MidiInstrument /) {
         $self->view->get_action($_)
             ->set_sensitive($mode eq "insert");
     }
@@ -565,7 +565,9 @@ sub _insert_with_dialog {
     $self->view->refresh;
 }
 
-for my $t (qw/ Barline KeySig RehearsalMark Text::Mark TimeSig /) {
+for my $t (qw/ 
+    Barline KeySig RehearsalMark Text::Mark TimeSig MidiInstrument
+/) {
     my $a = $t =~ s/:://gr;
     my $m = "_insert_\L$a";
     fresh $m, sub { $_[0]->_insert_with_dialog($t) };
