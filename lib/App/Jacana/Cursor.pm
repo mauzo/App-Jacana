@@ -292,13 +292,19 @@ sub insert_staff :Action(view.InsertStaff) {
 sub delete_staff :Action(view.DeleteStaff) {
     my ($self) = @_;
 
-    my $v = $self->voice->remove_voice;
-    $v->is_voice_start and $v = $v->next_voice;
-    $v->is_voice_start and $v = $v->insert_voice(
-        App::Jacana::Music::Voice->new(name => "voice"));
-    
-    $self->voice($v);
+    my $v = $self->voice;
+    my $n = $v->next_voice;
+
+    if ($v->is_voice_end) {
+        $n = $n->next_voice;
+        $n == $v and $n = $n->insert_voice(
+            App::Jacana::Music::Voice->new(name => "voice"));
+    }
+
     $self->view->stop_playing;
+    $self->voice($n);
+    $v->remove_voice;
+
     $self->view->refresh;
     $self->view->scroll_to_cursor;
 }
@@ -308,10 +314,11 @@ sub move_staff :Action(view.MoveStaff) {
 
     my $v = $self->voice;
     my $n = $v->next_voice;
+
+    $self->view->stop_playing;
     $v->remove_voice;
     $n->insert_voice($v);
 
-    $self->view->stop_playing;
     $self->view->refresh;
     $self->view->scroll_to_cursor;
 }
