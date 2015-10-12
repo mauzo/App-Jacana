@@ -305,9 +305,15 @@ sub delete_staff :Action(view.DeleteStaff) {
 
 sub move_staff :Action(view.MoveStaff) {
     my ($self) = @_;
-    my $v = $self->voice;
 
+    my $v = $self->voice;
+    my $n = $v->next_voice;
+    $v->remove_voice;
+    $n->insert_voice($v);
+
+    $self->view->stop_playing;
     $self->view->refresh;
+    $self->view->scroll_to_cursor;
 }
 
 sub mute_staff :Action(view.MuteStaff) {
