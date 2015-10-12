@@ -1,11 +1,8 @@
 package App::Jacana::Has::Movements;
 
-use Moo::Role;
+use Moose::Role;
 
-use App::Jacana::Util::LinkList;
-use App::Jacana::Util::Types;
-
-use namespace::clean;
+use App::Jacana::MUtil::LinkList;
 
 linklist "movement";
 

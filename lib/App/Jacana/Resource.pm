@@ -1,9 +1,6 @@
 package App::Jacana::Resource;
 
-use 5.012;
-use warnings;
-
-use Moo;
+use App::Jacana::Moose;
 
 use Cairo;
 use File::Path      qw/mkpath/;

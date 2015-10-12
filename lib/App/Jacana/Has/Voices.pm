@@ -1,11 +1,10 @@
 package App::Jacana::Has::Voices;
 
-use Moo::Role;
+use Moose::Role;
 
-use App::Jacana::Util::LinkList;
-use App::Jacana::Util::Types;
+use App::Jacana::MUtil::LinkList;
 
-use namespace::clean;
+use namespace::autoclean;
 
 linklist "voice";
 warn "CAN WITH: " . __PACKAGE__->can("with");

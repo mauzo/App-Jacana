@@ -3,7 +3,8 @@ package App::Jacana::Document;
 use 5.012;
 use warnings;
 
-use Moo;
+use App::Jacana::Moose;
+use MooseX::Types::Moose qw/:all/;
 
 use File::Slurp     qw/read_file write_file/;
 use List::Util      qw/first/;
@@ -11,9 +12,8 @@ use Module::Runtime qw/use_module/;
 use Regexp::Common;
 
 use App::Jacana::Document::Movement;
-use App::Jacana::Util::Types;
 
-use namespace::clean;
+use namespace::autoclean;
 
 with qw/App::Jacana::Has::Movements/;
 

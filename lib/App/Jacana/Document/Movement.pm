@@ -1,11 +1,11 @@
 package App::Jacana::Document::Movement;
 
-use Moo;
+use App::Jacana::Moose;
 
 use App::Jacana::Music::Voice;
 use App::Jacana::Util::Types;
 
-use namespace::clean;
+use namespace::autoclean;
 
 warn "CAN BUILD: " . __PACKAGE__->can("BUILD");
 with qw/ 
