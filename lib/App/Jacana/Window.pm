@@ -4,9 +4,8 @@ use utf8;
 use 5.012;
 use warnings;
 
-use Moo;
-use MooX::MethodAttributes
-    use     => [qw/MooX::Gtk2/];
+use App::Jacana::Moose;
+use MooseX::Gtk2;
 
 use App::Jacana::Gtk2::RadioGroup;
 use App::Jacana::View;
@@ -14,7 +13,6 @@ use App::Jacana::View;
 use XML::LibXML;
 
 with qw/
-    MooX::Gtk2
     App::Jacana::Has::App
     App::Jacana::Has::Actions
 /;
@@ -27,7 +25,7 @@ has status_bar  => is => "lazy";
 has status_mode => is => "lazy";
 
 # we need to BUILD the actions and uimgr
-has "+actions"  => is => "rwp", required => 0;
+has "+actions"  => is => "rw", writer => "_set_actions", required => 0;
 has uimgr       => is => "rwp";
 
 sub BUILD {

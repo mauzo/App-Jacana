@@ -3,9 +3,8 @@ package App::Jacana::View;
 use 5.012;
 use utf8;
 use Gtk2;
-use Moo;
-use MooX::MethodAttributes
-    use     => [qw/ MooX::Gtk2 /];
+use App::Jacana::Moose;
+use MooseX::Gtk2;
 
 use App::Jacana::Cursor;
 use App::Jacana::Util::Types;
@@ -21,7 +20,6 @@ use Scalar::Util            qw/blessed/;
 use namespace::clean;
 
 with qw/ 
-    MooX::Gtk2
     App::Jacana::Has::App
     App::Jacana::Has::Actions
     App::Jacana::Has::Zoom
@@ -52,7 +50,8 @@ has _playing    => (
     default => sub { +[] },
 );
 
-with qw/ App::Jacana::View::Region /;
+# Must come after 'cursor' attribute
+with qw/App::Jacana::View::Region/;
 
 sub _build_cursor { 
     App::Jacana::Cursor->new(

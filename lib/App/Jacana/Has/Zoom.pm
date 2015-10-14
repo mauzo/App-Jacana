@@ -1,8 +1,7 @@
 package App::Jacana::Has::Zoom;
 
-use Moo::Role;
-
-with "MooX::Role::Copiable";
+use Moose::Role;
+use MooseX::Copiable;
 
 has zoom => is => "rw", copiable => 1;
 

@@ -1,6 +1,6 @@
 package App::Jacana::DrawCtx;
 
-use Moo;
+use App::Jacana::Moose;
 use App::Jacana::Util::Types;
 
 with qw/ 

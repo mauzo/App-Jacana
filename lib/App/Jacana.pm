@@ -6,7 +6,7 @@ use warnings;
 
 our $VERSION = "0";
 
-use Moo;
+use App::Jacana::Moose;
 
 use App::Jacana::Document;
 use App::Jacana::MIDI;
@@ -66,6 +66,8 @@ sub BUILD {
 
 sub start {
     my ($self) = @_;
+
+    warn "START APP";
 
     my $res = $self->resource;
     Gtk2::AccelMap->load($res->find_user_file("accelmap"));

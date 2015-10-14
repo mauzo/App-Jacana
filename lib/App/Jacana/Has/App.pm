@@ -1,14 +1,15 @@
 package App::Jacana::Has::App;
 
-use Moo::Role;
-use App::Jacana::Util::Types;
+use Moose::Role;
+use MooseX::Copiable;
 
-with qw/MooX::Role::Copiable/;
+#with qw/App::Jacana::Role::Copiable/;
+#Moose::Util::ensure_all_roles __PACKAGE__, "App::Jacana::Role::Copiable";
 
 has app => (
     is          => "ro",
     required    => 1,
-    isa         => InstanceOf["App::Jacana"],
+#    isa         => InstanceOf["App::Jacana"],
     weak_ref    => 1,
     copiable    => 1,
 );

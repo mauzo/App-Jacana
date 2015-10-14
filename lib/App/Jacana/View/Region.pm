@@ -1,8 +1,7 @@
 package App::Jacana::View::Region;
 
-use Moo::Role;
-use MooX::MethodAttributes
-    use     => [qw/ MooX::Gtk2 /];
+use Moose::Role;
+use MooseX::Gtk2;
 
 use App::Jacana::Util::Types;
 

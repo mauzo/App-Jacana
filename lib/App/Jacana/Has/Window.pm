@@ -1,8 +1,7 @@
 package App::Jacana::Has::Window;
 
-use Moo::Role;
-
-with "MooX::Role::Copiable";
+use Moose::Role;
+use MooseX::Copiable;
 
 has _window => (
     is          => "ro",
