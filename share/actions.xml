@@ -4,6 +4,7 @@
     <menu action="FileMenu" label="File">
       <menuitem action="New"/>
       <menuitem action="Open" label="Open…" stock_id="gtk-open"/>
+      <menuitem action="Import" label="Import…"/>
       <menuitem action="Save" stock_id="gtk-save"/>
       <menuitem action="SaveAs" label="Save as…" stock_id="gtk-save-as"/>
       <menuitem action="ToLily" label="Show Lilypond source" 

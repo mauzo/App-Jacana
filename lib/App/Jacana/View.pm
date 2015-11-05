@@ -117,16 +117,24 @@ sub save :Action(Save) {
     $self->status_flash("Saved '$file'.");
 }
 
-sub open :Action(Open) {
-    my ($self) = @_;
+sub _open_doc {
+    my ($self, $title) = @_;
 
     my $dlg = Gtk2::FileChooserDialog->new(
-        "Open…", $self->_window->frame, "open",
+        "$title…", $self->_window->frame, "open",
         Cancel => "cancel", OK => "ok",
     );
     $dlg->run eq "ok" or $dlg->destroy, return;
     my $doc = App::Jacana::Document->open($dlg->get_filename);
     $dlg->destroy;
+
+    $doc;
+}
+
+sub open :Action(Open) {
+    my ($self) = @_;
+
+    my $doc = $self->_open_doc("Open") or return;
 
     $self->doc($doc);
     $self->reset_title;
@@ -142,6 +150,19 @@ sub file_new :Action(New) {
     $self->clear_mark;
     $self->cursor->position($doc->music->[0]);
     $self->reset_title;
+}
+
+sub file_import :Action(Import) {
+    my ($self) = @_;
+
+    my $from    = $self->_open_doc("Import") or return;
+    $from->is_movement_end and return;
+
+    my $doc     = $self->doc;
+    my $mvmt    = $from->next_movement;
+
+    $mvmt->remove_movement($from->prev_movement);
+    $doc->prev_movement->insert_movement($mvmt);
 }
 
 sub midi {
