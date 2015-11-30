@@ -40,7 +40,7 @@ has clip => (
     isa         => Music,
 );
 
-has "+zoom" => default => 4, trigger => 1;
+has "+zoom" => default => 3, trigger => 1;
 
 has renderer => is => "lazy", isa => InstanceOf[My "View::Render"];
 
