@@ -500,8 +500,7 @@ sub _do_marks {
     my ($self, $type, @args) = @_;
     my $pos = $self->position;
     $pos->DOES("App::Jacana::Has::Marks") or return;
-    $pos->delete_marks($type);
-    @args and $pos->add_mark($type, @args);
+    @args ? $pos->add_mark($type, @args) : $pos->delete_marks($type);
     $self->view->refresh;
 }
 
