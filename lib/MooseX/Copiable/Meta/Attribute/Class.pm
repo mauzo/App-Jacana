@@ -2,6 +2,11 @@ package MooseX::Copiable::Meta::Attribute::Class;
 
 use Moose::Role;
 
+has _copiable_role => (
+    is      => "ro",
+    #isa    => Str,
+);
+
 my $Att = "MooseX::Copiable::Meta::Attribute";
 
 with $Att;
@@ -18,6 +23,7 @@ before initialize_instance_slot => sub {
 
     my $from = $$params{copy_from}  or return;
     my $name = $attr->name;
+    my $role = $attr->_copiable_role;
 
     warn "INITIALIZE COPIABLE SLOT [$name] FOR [$inst] FROM [$from]";
     
@@ -25,9 +31,8 @@ before initialize_instance_slot => sub {
                                     or return;
     my $f_att = $Mfrom->find_attribute_by_name($attr->name)
                                     or return;
-    $f_att->does($Att)              or return;
-    $f_att->copiable || $f_att->deep_copy
-                                    or return;
+    $f_att->does("$Att\::Class")    or return;
+    $f_att->_copiable_role == $role or return;
     $f_att->has_value($from)        or return;
 
     my $val = $f_att->get_value($from);

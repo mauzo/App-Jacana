@@ -8,7 +8,7 @@ my $Att     = "MooseX::Copiable::Meta::Attribute";
 
 Moose::Exporter->setup_import_methods(
     role_metaroles => {
-        attribute           => [$Att],
+        attribute           => ["$Att\::Role"],
         applied_attribute   => ["$Att\::Class"],
     },
     class_metaroles => {
