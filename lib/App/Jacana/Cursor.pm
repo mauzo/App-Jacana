@@ -135,14 +135,11 @@ sub edit_mode :Action(view.EditMode)       { $_[0]->mode("edit") }
 sub _trigger_length {
     my ($self, $new) = @_;
     my $view = $self->view;
-    $self->view->get_action("Rest")->set_icon_name("icon-rest-$new");
-}
 
-sub _reset_length :Action(view.NoteLength) {
-    my ($self) = @_;
+    $view->get_action("Rest")->set_icon_name("icon-rest-$new");
     $self->dots(0);
     #$self->position->copy_from($self, "App::Jacana::Has::Length");
-    $self->view->refresh;
+    $view->refresh;
 }
 
 sub _action_method {
