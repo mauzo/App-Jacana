@@ -117,10 +117,7 @@ sub BUILD {
 
 sub DEMOLISH {
     my ($self) = @_;
-    my $view = $self->view;
-    # For some reason Cursor is outlasting View. This should not happen,
-    # but I can't see where the extra ref is coming from.
-    $view and $view->midi->free_chan($self->midi_chan);
+    $self->view->midi->free_chan($self->midi_chan);
 }
 
 sub _trigger_mode { 
