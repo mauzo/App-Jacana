@@ -2,6 +2,8 @@ package MooseX::Gtk2::Meta::Class;
 
 use Moose::Role;
 
+Moose::Util::meta_class_alias "Gtk2";
+
 BEGIN { *debug = \&MooseX::Gtk2::debug }
 
 sub _gtk_signal_connect {
@@ -81,35 +83,43 @@ around new_object => sub {
         ($act, "activate");
     });
 
-#    my %props;
-#    $self->_gtk2_build_props_list(\%props);
-#    $self->_gtk2_setup_props($_, @{$props{$_}}) for keys %props;
+    my @props =
+        grep $_->gtk_prop,
+        grep $_->does("MooseX::Gtk2::Meta::Attribute"),
+        $self->get_all_attributes;
+    warn "GTK PROPS FOR [$obj]: " . join "; ", map $_->name, @props;
+    $self->_gtk_setup_prop($obj, $_) for @props;
 
     $obj;
 };
 
-sub _gtk2_setup_props {
-    my ($self, $name, $reader, $writer, $path, $prop, $objs) = @_;
+sub _gtk_setup_prop {
+    my ($self, $obj, $att) = @_;
 
-    my $class = Scalar::Util::blessed $self;
+    my $name    = $att->name;
+    my ($reader, $writer)       = map $att->$_, 
+        qw/get_read_method get_write_method/;
+    my ($targs, $path, $prop)   = $att->_gtk_prop_args;
+
+    my $class = Scalar::Util::blessed $obj;
     debug "GTK2: PROP BUILD CALLED FOR [$class][$name] -> [$path][$prop]";
 
-    my $obj = $$objs{$self} = $self->_resolve_object_path($path);
-    Scalar::Util::weaken $$objs{$self};
+    my $targ = $$targs{$obj} = $obj->_resolve_object_path($path);
+    Scalar::Util::weaken $$targs{$obj};
 
     my $id;
-    $id = $obj->signal_connect("notify::$prop", 
-        $self->weak_closure(sub {
+    $id = $targ->signal_connect("notify::$prop", 
+        $obj->weak_closure(sub {
             my ($self) = @_;
             debug "GTK2 GET PROP [$prop] FOR [$name]";
-            my $value = $obj->get_property($prop);
+            my $value = $targ->get_property($prop);
             $value eq $self->$reader and return;
             $self->$writer($value);
         }, sub {
-           $obj->signal_handler_disconnect($id);
+           $targ->signal_handler_disconnect($id);
         }));
     debug "GTK2 SET PROP [$prop] FOR [$name]";
-    $obj->set_property($prop, $self->$reader);
+    $targ->set_property($prop, $obj->$reader);
 }
 
 1;

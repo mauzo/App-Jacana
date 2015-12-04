@@ -2,18 +2,18 @@ package App::Jacana::Cursor;
 
 use utf8;
 
-use Moo;
-use MooX::MethodAttributes use => ["MooX::Gtk2"];
-use Class::Method::Modifiers qw/:all/;
+use App::Jacana::Moose;
+use MooseX::MethodAttributes;
+use MooseX::AttributeShortcuts;
+use MooseX::Gtk2;
 
 use App::Jacana::Util::Types;
 
 use Try::Tiny;
 
-use namespace::clean;
+use namespace::autoclean;
 
 with qw/ 
-    MooX::Gtk2 
     App::Jacana::Has::Length
 /;
 
@@ -35,6 +35,7 @@ has mode        => (
 has midi_chan   => is => "lazy";
 
 has "+length"   => (
+    traits      => [qw/Shortcuts Gtk2/],
     # default doesn't fire the trigger, set it in BUILD instead
     #default     => 3,
     gtk_prop    => "view.get_action(NoteLength).current-value",
@@ -143,8 +144,23 @@ sub _trigger_length {
 sub _reset_length :Action(view.NoteLength) {
     my ($self) = @_;
     $self->dots(0);
-    $self->position->copy_from($self, "App::Jacana::Has::Length");
+    #$self->position->copy_from($self, "App::Jacana::Has::Length");
     $self->view->refresh;
+}
+
+sub _action_method {
+    my ($meth, @actions) = @_;
+
+    my $cv;
+    if (ref $actions[-1]) {
+        $cv = pop @actions;
+        Moose::Util::find_meta(__PACKAGE__)->add_method($meth, $cv);
+    }
+    else {
+        $cv = __PACKAGE__->can($meth);
+    }
+
+    attributes->import(__PACKAGE__, $cv, map "Action(view.$_)", @actions);
 }
 
 sub _reset_chroma :Action(view.NoteChroma) {
@@ -381,8 +397,6 @@ sub _adjust_chroma {
 sub sharpen :Action(view.Sharpen) { $_[0]->_adjust_chroma(+1) }
 sub flatten :Action(view.Flatten) { $_[0]->_adjust_chroma(-1) }
 
-method_attrs change_pitch => map "Action(view.Pitch$_)", "A".."G";
-
 sub change_pitch {
     my ($self, $action) = @_;
 
@@ -420,6 +434,8 @@ sub change_pitch {
     $self->_play_note;
     $self->view->refresh;
 }
+
+BEGIN { _action_method change_pitch => map "Pitch$_", "A".."G" }
 
 sub _add_dot :Action(view.AddDot) {
     my ($self) = @_;
@@ -499,16 +515,16 @@ sub _clear_artic :Action(view.ClearArticulation) {
     $_[0]->_do_marks("Articulation");
 }
 
-for my $t (qw/
-    staccato accent tenuto marcato staccatissimo
-    trill turn prall mordent
-    fermata segno coda
-/) {
-    my $m = "_add_$t";
-    fresh $m, sub { 
-        $_[0]->_do_marks(Articulation => articulation => $t);
-    };
-    method_attrs $m, "Action(view.\u$t)";
+BEGIN {
+    for my $t (qw/
+        staccato accent tenuto marcato staccatissimo
+        trill turn prall mordent
+        fermata segno coda
+    /) {
+        _action_method "_add_$t", ucfirst $t, sub {
+            $_[0]->_do_marks(Articulation => articulation => $t);
+        };
+    }
 }
 
 sub _slur_start :Action(view.SlurStart) {
@@ -527,12 +543,12 @@ sub _dynamic_clear :Action(view.ClearDynamic) {
     $_[0]->_do_marks("Dynamic");
 }
 
-for my $d (qw/ pp p mp mf f ff fp sf sfz /) {
-    my $m = "_dynamic_$d";
-    fresh $m, sub {
-        $_[0]->_do_marks(Dynamic => dynamic => $d);
-    };
-    method_attrs $m, "Action(view.Dynamic\U$d)";
+BEGIN {
+    for my $d (qw/ pp p mp mf f ff fp sf sfz /) {
+        _action_method "_dynamic_$d", "Dynamic\U$d", sub {
+            $_[0]->_do_marks(Dynamic => dynamic => $d);
+        };
+    }
 }
 
 sub _backspace :Action(view.Backspace) {
@@ -556,10 +572,11 @@ sub _do_clef {
     $self->view->refresh;
 }
 
-for my $c (qw/Treble Alto Tenor Bass Soprano/) {
-    my $m = "_clef_\L$c";
-    fresh $m, sub { $_[0]->_do_clef(lc $c) };
-    method_attrs $m, "Action(view.Clef$c)";
+BEGIN {
+    for my $c (qw/Treble Alto Tenor Bass Soprano/) {
+        _action_method "_clef_\L$c", "Clef$c",
+            sub { $_[0]->_do_clef(lc $c) };
+    }
 }
 
 sub _insert_with_dialog {
@@ -578,13 +595,14 @@ sub _insert_with_dialog {
     $self->view->refresh;
 }
 
-for my $t (qw/ 
-    Barline KeySig RehearsalMark Text::Mark TimeSig MidiInstrument
-/) {
-    my $a = $t =~ s/:://gr;
-    my $m = "_insert_\L$a";
-    fresh $m, sub { $_[0]->_insert_with_dialog($t) };
-    method_attrs $m, "Action(view.$a)";
+BEGIN {
+    for my $t (qw/ 
+        Barline KeySig RehearsalMark Text::Mark TimeSig MidiInstrument
+    /) {
+        my $a = $t =~ s/:://gr;
+        _action_method "_insert_\L$a", $a, 
+            sub { $_[0]->_insert_with_dialog($t) };
+    }
 }
 
 sub _properties :Action(view.Properties) {

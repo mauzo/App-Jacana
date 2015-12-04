@@ -187,7 +187,7 @@ sub linklist {
 
     my $m = build_names $nm;
 
-    ensure_all_roles $class, "App::Jacana::Role::NoGlobalDestruction";
+    ensure_all_roles $class, "MooseX::Role::NoGlobalDestruction";
      
     build_attributes $class, $m;
     build_ends $class, $m;

@@ -15,6 +15,9 @@ Moose::Exporter->setup_import_methods(
     /],
 );
 
+Moose::Util::meta_attribute_alias "Shortcuts",
+    "MooseX::AttributeShortcuts::Trait::Attribute";
+
 sub init_meta {
     feature->import(":5.18");
 }
