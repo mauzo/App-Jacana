@@ -6,6 +6,11 @@ use Moose::Util     qw/does_role find_meta/;
 
 use namespace::autoclean;
 
+has copiable_roles => (
+    is      => "ro",
+    default => sub { {} },
+);
+
 # $self is the metaclass we are copying to
 # $for is the object we are copying from
 # $want is a hashref of roles to include, or undef
@@ -15,8 +20,8 @@ sub find_copiable_atts_for {
     my $meta    = find_meta $for;
     does_role $meta, __PACKAGE__ or return;
 
-    my $to      = $self->find_copiable_roles;
-    my $from    = $meta->find_copiable_roles;
+    my $to      = $self->copiable_roles;
+    my $from    = $meta->copiable_roles;
 
     my @out;
     for my $r (keys %$from) {
@@ -30,29 +35,6 @@ sub find_copiable_atts_for {
         }
     }
     @out;
-}
-
-sub find_copiable_roles {
-    my ($self) = @_;
-
-    my @atts =
-        grep $_->copiable || $_->deep_copy,
-        grep $_->does("MooseX::Copiable::Meta::Attribute"),
-        $self->get_all_attributes;
-
-    my %roles;
-    for (@atts) {
-        $_->has_read_method or next;
-
-        my $pred = $_->has_predicate ? $_->predicate : undef;
-        ref $pred and ($pred) = keys %$pred;
-
-        $roles{$_->_copiable_role->name}{$_->name} =
-            [$pred, $_->get_read_method,
-             $_->init_arg, $_->get_write_method]
-    }
-
-    \%roles;
 }
 
 around new_object => sub {
