@@ -1,25 +1,25 @@
 package MooseX::Copiable;
 
 use Moose::Exporter;
-use Moose::Util     qw/ensure_all_roles find_meta is_role with_traits/;
+use Moose::Util;
 
-my $Role    = "MooseX::Copiable::Role";
-my $Att     = "MooseX::Copiable::Meta::Attribute";
+my $My = "MooseX::Copiable";
 
 Moose::Exporter->setup_import_methods(
     role_metaroles => {
-        attribute           => ["$Att\::Role"],
-        applied_attribute   => ["$Att\::Class"],
+        attribute           => ["$My\::Meta::Attribute::Role"],
+        applied_attribute   => ["$My\::Meta::Attribute::Class"],
     },
     class_metaroles => {
-        attribute           => ["$Att\::Class"],
+        class               => ["$My\::Meta::Class"],
+        attribute           => ["$My\::Meta::Attribute::Class"],
     },
 );
 
 sub init_meta {
     my (undef, %args) = @_;
 
-    Moose::Util::apply_all_roles $args{for_class}, $Role;
+    Moose::Util::apply_all_roles $args{for_class}, "$My\::Role";
 }
 
 1;
