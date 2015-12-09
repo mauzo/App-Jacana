@@ -8,11 +8,6 @@ my $My = "MooseX::Copiable";
 Moose::Exporter->setup_import_methods(
     role_metaroles => {
         attribute           => ["$My\::Meta::Attribute::Role"],
-        applied_attribute   => ["$My\::Meta::Attribute::Class"],
-    },
-    class_metaroles => {
-        class               => ["$My\::Meta::Class"],
-        attribute           => ["$My\::Meta::Attribute::Class"],
     },
 );
 

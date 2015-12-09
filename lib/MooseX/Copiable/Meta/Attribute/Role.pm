@@ -6,18 +6,26 @@ my $Att = "MooseX::Copiable::Meta::Attribute";
 
 with $Att;
 
+has copiable => (
+    is      => "ro",
+#   isa     => Bool,
+    default => 0,
+);
+
 around attribute_for_class => sub {
     my ($super, $self) = @_;
 
+    $self->copiable or return $self->$super;
+
     my $role    = $self->original_role;
     my $meta    = $role->applied_attribute_metaclass;
+    my %opts    = %{ $self->original_options };
 
-    $meta->does("$Att\::Class") or return $self->$super;
+    delete $opts{copiable};
+    $opts{_copiable_role} = $role;
+    push @{$opts{traits}}, "$Att\::Class";
 
-    $meta->interpolate_class_and_new($self->name,
-        %{ $self->original_options },
-        _copiable_role => $role,
-    );
+    $meta->interpolate_class_and_new($self->name, %opts);
 };
 
 1;

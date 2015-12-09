@@ -17,7 +17,6 @@ with "$Meta\::Attribute";
 after attach_to_class => sub {
     my ($self, $class) = @_;
 
-    $self->copiable || $self->deep_copy or return;
     $self->has_read_method              or return;
 
     # Can't use ensure_all_roles, it gets confused and tries to do a
