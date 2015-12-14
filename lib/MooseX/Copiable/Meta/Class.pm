@@ -31,7 +31,7 @@ sub find_copiable_atts_for {
         for my $m (keys %$rf) {
             my $mt = $$rt{$m}       or next;
             my $mf = $$rf{$m};
-            push @out, [@$mf[0,1], @$mt[2,3]];
+            push @out, [$mf, $mt];
         }
     }
     @out;
@@ -47,13 +47,14 @@ around new_object => sub {
         or return $self->$super($params);
 
     for (@atts) {
-        my ($p, $r, $i) = @$_;
+        my ($f, $t) = @$_;
         
-        exists $$params{$i} and next;
-        $p && !$from->$p    and next;
-        my $v = $from->$r;
+        my $i = $t->init_arg;
 
-        $$params{$i} = $v;
+        exists $$params{$i}     and next;
+        $f->has_value($from)    or next;
+
+        $$params{$i} = $f->get_value($from);
     }
     
     $self->$super($params);

@@ -12,10 +12,10 @@ sub copy_from {
     my @atts = find_meta($self)->find_copiable_atts_for($from);
 
     for (@atts) {
-        my ($p, $r, $i, $w) = @$_;
+        my ($f, $t) = @$_;
 
-        $p && !$from->$p    and next;
-        $self->$w($from->$r);
+        $f->has_value($from)    or next;
+        $t->set_value($self, $f->get_value($from));
     }
 }
 

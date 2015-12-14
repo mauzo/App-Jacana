@@ -33,9 +33,7 @@ after attach_to_class => sub {
     ref $pred and ($pred) = keys %$pred;
 
     $class->copiable_roles
-        ->{$self->_copiable_role->name}{$self->name} =
-            [$pred, $self->get_read_method,
-             $self->init_arg, $self->get_write_method]
+        ->{$self->_copiable_role->name}{$self->name} = $self;
 };
 
 after detach_from_class => sub {
