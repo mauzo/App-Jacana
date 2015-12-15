@@ -11,6 +11,22 @@ has copiable_roles => (
     default => sub { {} },
 );
 
+sub find_all_copiable_roles {
+    my ($self) = @_;
+
+    my @classes = map find_meta($_), $self->linearized_isa;
+
+    my %roles;
+    for (reverse @classes) {
+        does_role $_, __PACKAGE__ or next;
+        my $r = $_->copiable_roles;
+
+        $roles{$_} = $$r{$_} for keys %$r;
+    }
+
+    return \%roles;
+}
+
 # $self is the metaclass we are copying to
 # $for is the object we are copying from
 # $want is a hashref of roles to include, or undef
@@ -20,8 +36,8 @@ sub find_copiable_atts_for {
     my $meta    = find_meta $for;
     does_role $meta, __PACKAGE__ or return;
 
-    my $to      = $self->copiable_roles;
-    my $from    = $meta->copiable_roles;
+    my $to      = $self->find_all_copiable_roles;
+    my $from    = $meta->find_all_copiable_roles;
 
     my @out;
     for my $r (keys %$from) {
