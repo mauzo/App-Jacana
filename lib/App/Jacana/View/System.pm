@@ -1,26 +1,24 @@
 package App::Jacana::View::System;
 
-use Moo;
-
-use App::Jacana::Util::Types;
+use App::Jacana::Moose;
 
 use List::Util      qw/first/;
 
-use namespace::clean;
+use namespace::autoclean;
 
 has surface => (
     is      => "lazy",
-    isa     => InstanceOf["Cairo::ImageSurface"],
+    #isa     => InstanceOf["Cairo::ImageSurface"],
 );
 
 # device coordinates
-has top     => is => "ro", isa => Int, required => 1;
-has height  => is => "ro", isa => Int, required => 1;
-has width   => is => "ro", isa => Int, required => 1;
+has top     => is => "ro", required => 1;#,isa => Int;
+has height  => is => "ro", required => 1;#,isa => Int;
+has width   => is => "ro", required => 1;#,isa => Int;
 
 has staffs => (
     is      => "rw",
-    isa     => ArrayRef[InstanceOf[My "View::StaffInfo"]],
+    #isa     => ArrayRef[InstanceOf[My "View::StaffInfo"]],
 );
 
 sub _build_surface {

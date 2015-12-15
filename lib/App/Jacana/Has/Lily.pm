@@ -1,8 +1,7 @@
 package App::Jacana::Has::Lily;
 
-use Moo::Role;
-
-with qw/ MooX::Role::Copiable /;
+use Moose::Role;
+use MooseX::Copiable;
 
 has lily => is => "rw", copiable => 1;
 

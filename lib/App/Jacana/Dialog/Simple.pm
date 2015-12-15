@@ -1,11 +1,10 @@
 package App::Jacana::Dialog::Simple;
 
 use utf8;
-use Moo;
-use MooX::MethodAttributes use => ["MooX::Gtk2"];
+use App::Jacana::Moose;
+use MooseX::Gtk2;
 
 extends "App::Jacana::Dialog";
-with    qw/ MooX::Gtk2 /;
 
 has title   => is => "ro";
 has label   => is => "ro";

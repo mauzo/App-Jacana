@@ -1,28 +1,24 @@
 package App::Jacana::Music::Ambient;
 
-use Moo;
-use MooX::AccessorMaker
-    apply => [qw/ MooX::MakerRole::IgnoreUndef /];
-
-use App::Jacana::Util::Types;
+use App::Jacana::Moose;
 
 use Carp;
 
-use namespace::clean;
+use namespace::autoclean;
 
 my $Amb     = "App::Jacana::Music::Ambient";
 my $HasAmb  = "App::Jacana::Music::HasAmbient";
 
 has prev    => (
     is          => "lazy",
-    isa         => Maybe[InstanceOf[$Amb]],
+    #isa         => Maybe[InstanceOf[$Amb]],
     weak_ref    => 1,
-    ignore_undef    => 1,
+    #ignore_undef    => 1,
 );
 has owner   => (
     is          => "ro",
     required    => 1,
-    isa         => ConsumerOf[$HasAmb],
+    #isa         => ConsumerOf[$HasAmb],
     weak_ref    => 1,
 );
 

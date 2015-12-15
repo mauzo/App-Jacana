@@ -1,29 +1,24 @@
 package App::Jacana::Music;
 
-use Moo;
+use App::Jacana::Moose;
 
-use App::Jacana::Util::LinkList;
-use App::Jacana::Util::Types;
+use App::Jacana::MUtil::LinkList;
 use List::Util      qw/first/;
 
-use namespace::clean;
-
-with qw/
-    MooX::Role::Copiable
-/;
+use namespace::autoclean;
 
 linklist "music";
 
 has rendered    => (
     is      => "lazy",
     clearer => 1,
-    isa     => InstanceOf["Cairo::RecordingSurface"],
+    #isa     => InstanceOf["Cairo::RecordingSurface"],
 );
 
 has bbox => is => "rw", default => sub { +[] };
 has system => (
     is              => "rw",
-    isa             => InstanceOf[My "View::System"],
+    #isa             => InstanceOf[My "View::System"],
     predicate       => 1,
     weak_ref        => 1,
     ignore_undef    => 1,
@@ -82,7 +77,7 @@ sub break_ambient {
 sub find_next_with {
     my ($pos, @roles) = @_;
     $pos = $pos->next
-        until !$pos || grep $pos->DOES(My "Has::$_"), @roles;
+        until !$pos || grep $pos->DOES("App::Jacana::Has::$_"), @roles;
     $pos;
 }
 

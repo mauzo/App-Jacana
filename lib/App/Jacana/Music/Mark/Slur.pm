@@ -1,14 +1,13 @@
 package App::Jacana::Music::Mark::Slur;
 
-use Moo;
-use App::Jacana::Util::Types;
+use App::Jacana::Moose;
 
 extends "App::Jacana::Music::Mark";
 
 has is_start => (
     is          => "ro",
     required    => 1,
-    isa         => Bool,
+    #isa         => Bool,
 );
 
 sub lily_rx { qr/ (?<slur> \( | \) ) /x }

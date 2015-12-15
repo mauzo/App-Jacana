@@ -1,9 +1,7 @@
 package App::Jacana::MIDI;
 
 use 5.012;
-use warnings;
-
-use Moo;
+use App::Jacana::Moose;
 
 use App::Jacana::StaffCtx::MIDI;
 
@@ -13,9 +11,9 @@ use Time::HiRes     qw/usleep/;
 use List::Util      qw/min first/;
 use Scalar::Util    qw/refaddr/;
 
-use namespace::clean;
+use namespace::autoclean;
 
-with qw/ MooX::Role::WeakClosure /;
+with qw/ MooseX::Role::WeakClosure /;
 
 has settings    => is => "lazy";
 has synth       => is => "lazy";

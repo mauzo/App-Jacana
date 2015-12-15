@@ -1,13 +1,13 @@
 package App::Jacana::Dialog::Text;
 
 use utf8;
-use Moo;
+use App::Jacana::Moose;
+use MooseX::Gtk2;
 
 use App::Jacana::Gtk2::ComboBox;
 
 extends "App::Jacana::Dialog";
 with    qw/
-    MooX::Gtk2 
     App::Jacana::Dialog::Tweaks
     App::Jacana::Has::Markup
 /;

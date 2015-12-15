@@ -1,6 +1,6 @@
 package App::Jacana::Music::Mark;
 
-use Moo;
+use App::Jacana::Moose;
 
 extends qw/App::Jacana::Music/;
 with    qw/App::Jacana::Music::FindAmbient/;

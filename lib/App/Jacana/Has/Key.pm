@@ -1,9 +1,8 @@
 package App::Jacana::Has::Key;
 
 use 5.012;
-use Moo::Role;
-
-with qw/ MooX::Role::Copiable /;
+use Moose::Role;
+use MooseX::Copiable;
 
 sub _mkfifths { map "$_$_[0]", qw/f c g d a e b/ }
 
@@ -13,18 +12,18 @@ my %Mode = qw/ major 8 minor 11 /;
 
 has key     => (
     is      => "rw",
-    isa     => sub {
-        $_[0] =~ /^0|-?[1-7]$/
-            or die "Bad key signature [$_[0]]";
-    },
+#    isa     => sub {
+#        $_[0] =~ /^0|-?[1-7]$/
+#            or die "Bad key signature [$_[0]]";
+#    },
     copiable => 1,
 );
 has mode    => (
     is      => "rw",
-    isa     => sub {
-        exists $Mode{$_[0]}
-            or die "Bad key signature mode [$_[0]]";
-    },
+#    isa     => sub {
+#        exists $Mode{$_[0]}
+#            or die "Bad key signature mode [$_[0]]";
+#    },
     copiable => 1,
 );
 

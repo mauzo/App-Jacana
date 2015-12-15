@@ -1,6 +1,6 @@
 package App::Jacana::Music::MultiRest;
 
-use Moo;
+use App::Jacana::Moose;
 
 extends "App::Jacana::Music";
 with    qw/
@@ -11,10 +11,10 @@ with    qw/
 
 has bars    => (
     is      => "rw",
-    isa     => sub {
-        ref $_[0] || $_[0] !~ /^\d+$/
-            and Carp::confess "Bad multi-rest length [$_[0]]";
-    },
+#    isa     => sub {
+#        ref $_[0] || $_[0] !~ /^\d+$/
+#            and Carp::confess "Bad multi-rest length [$_[0]]";
+#    },
     default => 1,
 );
 

@@ -1,10 +1,7 @@
 package App::Jacana::Has::Barline;
 
-use Moo::Role;
-
-use App::Jacana::Util::Types;
-
-with qw/MooX::Role::Copiable/;
+use Moose::Role;
+use MooseX::Copiable;
 
 sub barline_types { qw/
     |   ||  .|  |.|     |.
@@ -14,7 +11,7 @@ sub barline_types { qw/
 has barline     => (
     is          => "rw",
     copiable    => 1,
-    isa         => Enum[barline_types()],
+    #isa         => Enum[barline_types()],
 );
 
 sub to_lily {

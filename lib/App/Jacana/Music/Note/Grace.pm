@@ -1,6 +1,6 @@
 package App::Jacana::Music::Note::Grace;
 
-use Moo;
+use App::Jacana::Moose;
 
 extends "App::Jacana::Music::Note";
 

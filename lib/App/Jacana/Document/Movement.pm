@@ -3,7 +3,6 @@ package App::Jacana::Document::Movement;
 use App::Jacana::Moose;
 
 use App::Jacana::Music::Voice;
-use App::Jacana::Util::Types;
 
 use namespace::autoclean;
 
@@ -16,7 +15,7 @@ with qw/
 has name => (
     is      => "rw",
     default => "",
-    isa     => Match("[a-zA-Z]*", "movement name"),
+    #isa     => Match("[a-zA-Z]*", "movement name"),
 );
 
 sub BUILD { }

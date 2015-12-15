@@ -1,14 +1,13 @@
 package App::Jacana::Dialog::KeySig;
 
 use utf8;
-use Moo;
-use MooX::MethodAttributes use => ["MooX::Gtk2"];
+use App::Jacana::Moose;
+use MooseX::Gtk2;
 
 use App::Jacana::Gtk2::ComboBox;
 
 extends "App::Jacana::Dialog";
 with    qw/ 
-    MooX::Gtk2 
     App::Jacana::Has::Key
 /;
 

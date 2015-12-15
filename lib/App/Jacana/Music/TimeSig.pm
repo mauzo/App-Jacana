@@ -1,8 +1,6 @@
 package App::Jacana::Music::TimeSig;
 
-use Moo;
-use MooX::AccessorMaker
-    apply => [qw/ MooX::MakerRole::Coercer /];
+use App::Jacana::Moose;
 
 use App::Jacana::Util::Length;
 
@@ -10,7 +8,7 @@ use Data::Dump      qw/pp/;
 use List::Util      qw/sum max/;
 use Scalar::Util    qw/blessed/;
 
-use namespace::clean;
+use namespace::autoclean;
 
 extends "App::Jacana::Music";
 with qw/
@@ -19,7 +17,7 @@ with qw/
     App::Jacana::Music::HasAmbient
 /;
 
-has "+partial" => coerce_to => "App::Jacana::Util::Length";
+# XXX has "+partial" => coerce_to => "App::Jacana::Util::Length";
 
 sub dialog { "TimeSig" }
 
@@ -32,12 +30,12 @@ sub lily_rx {
 sub from_lily {
     my ($self, %c) = @_;
     if ($c{plen}) {
-        $c{partial} = {
+        $c{partial} = App::Jacana::Util::Length->new({
             App::Jacana::Has::Length->_length_from_lily(
                 length  => delete $c{plen},
                 dots    => delete $c{pdots},
             ),
-        };
+        });
     }
     $self->new(\%c);
 }

@@ -1,20 +1,19 @@
 package App::Jacana::StaffCtx::Draw;
 
-use Moo;
-use App::Jacana::Util::Types;
+use App::Jacana::Moose;
 use Carp;
-use namespace::clean;
+use namespace::autoclean;
 
 extends "App::Jacana::StaffCtx";
 
-has y   => is => "ro", isa => Num, required => 1;
+has y   => is => "ro", required => 1;#, isa => Num
 
 has bar => is => "rw", default => 0;
 has pos => is => "rw", default => 0;
 
 has tie_x => (
     is          => "rw",
-    isa         => Num,
+    #isa         => Num,
 );
 
 sub top     { $_[0]->y - 12 }

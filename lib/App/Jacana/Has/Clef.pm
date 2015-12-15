@@ -1,15 +1,13 @@
 package App::Jacana::Has::Clef;
 
-use Moo::Role;
+use Moose::Role;
+use MooseX::Copiable;
 
 use App::Jacana::Util::Pitch;
-use App::Jacana::Util::Types;
 
 use POSIX ();
 
-use namespace::clean;
-
-with qw/MooX::Role::Copiable/;
+use namespace::autoclean;
 
 my %Clef = (
     treble      => [qw/G -2/],
@@ -21,7 +19,7 @@ my %Clef = (
 
 has clef => (
     is          => "rw",
-    isa         => Enum[keys %Clef],
+    #isa         => Enum[keys %Clef],
     required    => 1,
     copiable    => 1,
 );

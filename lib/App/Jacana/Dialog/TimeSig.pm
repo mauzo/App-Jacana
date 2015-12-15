@@ -1,16 +1,10 @@
 package App::Jacana::Dialog::TimeSig;
 
 use 5.012;
-use Moo;
-use MooX::AccessorMaker     apply => [qw/ 
-    MooX::MakerRole::Coercer
-/];
-use MooX::MethodAttributes  use => [qw/
-    MooX::Gtk2
-/];
+use App::Jacana::Moose;
+use MooseX::Gtk2;
 
 use App::Jacana::Gtk2::ComboBox;
-use App::Jacana::Util::Types;
 
 use Data::Dump      qw/pp/;
 use Scalar::Util    qw/blessed/;
@@ -19,13 +13,13 @@ use namespace::clean;
 
 extends "App::Jacana::Dialog";
 with    qw/ 
-    MooX::Gtk2
     App::Jacana::Has::Time
 /;
 
 package App::Jacana::Dialog::TimeSig::Partial {
-    use Moo;
-    with qw/ MooX::Gtk2 App::Jacana::Has::Length/;
+    use App::Jacana::Moose;
+    use MooseX::Gtk2;
+    with qw/ App::Jacana::Has::Length/;
 
     has dialog      => is => "ro", weak_ref => 1;
     has "+length"   => gtk_prop => "dialog._plen.current-value";
@@ -41,18 +35,18 @@ has _p_check    => is => "lazy";
 has "+beats"    => (
     default     => 4,
     gtk_prop    => "_beats.text", 
-    isa         => sub { 
-        $_[0] eq "" || $_[0] =~ /^[0-9]+$/
-            or Carp::croak "Bad beats: [$_[0]]";
-    },
+#    isa         => sub { 
+#        $_[0] eq "" || $_[0] =~ /^[0-9]+$/
+#            or Carp::croak "Bad beats: [$_[0]]";
+#    },
 );
 has "+divisor"  => (
     default     => 4,
     gtk_prop    => "_divisor.current-value"
 );
-has "+partial"  => (
-    coercer     => 1, 
-);
+#has "+partial"  => (
+#    coercer     => 1, 
+#);
 
 sub title   { "Time signature" }
 

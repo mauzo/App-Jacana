@@ -7,7 +7,6 @@ use App::Jacana::Moose;
 use MooseX::Gtk2;
 
 use App::Jacana::Cursor;
-use App::Jacana::Util::Types;
 use App::Jacana::View::Render;
 
 use Data::Dump              qw/pp/;
@@ -17,7 +16,7 @@ use Module::Runtime         qw/use_module/;
 use POSIX                   qw/ceil/;
 use Scalar::Util            qw/blessed/;
 
-use namespace::clean;
+use namespace::autoclean;
 
 with qw/ 
     App::Jacana::Has::App
@@ -35,12 +34,12 @@ has clip => (
     is          => "rw",
     predicate   => 1,
     clearer     => 1,
-    isa         => Music,
+    #isa         => Music,
 );
 
 has "+zoom" => default => 3, trigger => 1;
 
-has renderer => is => "lazy", isa => InstanceOf[My "View::Render"];
+has renderer => is => "lazy";#, isa => InstanceOf[My "View::Render"];
 
 has _midi_id    => is => "rw";
 has _speed      => is => "rw", default => 12;

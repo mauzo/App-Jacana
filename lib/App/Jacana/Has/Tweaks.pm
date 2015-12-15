@@ -1,12 +1,11 @@
 package App::Jacana::Has::Tweaks;
 
-use Moo::Role;
-
-use App::Jacana::Util::Types;
+use Moose::Role;
+use MooseX::AttributeShortcuts;
 
 has tweaks  => (
     is          => "ro",
-    isa         => HashRef,
+    #isa         => HashRef,
     predicate   => 1,
     clearer     => 1,
 );

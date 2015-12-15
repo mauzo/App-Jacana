@@ -1,10 +1,8 @@
 package App::Jacana::Has::Marks;
 
-use Moo::Role;
+use Moose::Role;
 
 use Module::Runtime qw/use_module/;
-
-use App::Jacana::Util::Types;
 
 use namespace::autoclean;
 
@@ -12,7 +10,7 @@ my $Mark = "App::Jacana::Music::Mark";
 
 has marks => (
     is          => "rw",
-    isa         => ArrayRef[InstanceOf[$Mark]],
+    #isa         => ArrayRef[InstanceOf[$Mark]],
     default     => sub { [] },
 );
 

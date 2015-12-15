@@ -1,13 +1,12 @@
 package App::Jacana::StaffCtx;
 
-use Moo;
-use App::Jacana::Util::Types;
+use App::Jacana::Moose;
 use Scalar::Util                qw/blessed/;
-use namespace::clean;
+use namespace::autoclean;
 
 has item => (
     is          => "rw", 
-    isa         => InstanceOf["App::Jacana::Music"],
+    #isa         => InstanceOf["App::Jacana::Music"],
     weak_ref    => 1,
     required    => 1,
     clearer     => 1,
@@ -17,7 +16,7 @@ has when => is => "rw", default => 0;
 
 has tie_from => (
     is          => "rw",
-    isa         => ConsumerOf["App::Jacana::Has::Pitch"],
+    #isa         => ConsumerOf["App::Jacana::Has::Pitch"],
     weak_ref    => 1,
     clearer     => "clear_tie",
     predicate   => "has_tie",

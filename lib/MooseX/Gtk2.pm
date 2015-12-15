@@ -33,15 +33,4 @@ sub init_meta {
     }
 }
 
-=pod
-
-package MooX::Gtk2::AccessorMaker;
-
-use Moo::Role;
-
-BEGIN { *debug = \&MooseX::Gtk2::debug }
-
-
-=cut
-
 1;

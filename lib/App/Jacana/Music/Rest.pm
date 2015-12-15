@@ -1,6 +1,6 @@
 package App::Jacana::Music::Rest;
 
-use Moo;
+use App::Jacana::Moose;
 
 extends "App::Jacana::Music";
 with    qw/

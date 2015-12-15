@@ -1,49 +1,45 @@
 package App::Jacana::Has::MidiInstrument;
 
-use Moo::Role;
-use App::Jacana::Util::Types;
+use Moose::Role;
+use MooseX::Copiable;
 
 use Data::Dump      qw/pp/;
 use Readonly::Tiny;
 
-use namespace::clean;
-
-with qw/ MooX::Role::Copiable /;
+use namespace::autoclean;
 
 has program => (
     is          => "rw",
     default     => 68,
-    isa         => Int,
+    #isa         => Int,
     copiable    => 1,
 );
 
 my (@Name, %Prg, @Menu);
-{
-    while (<DATA>) {
-        chomp;
-        if (s/^(-|\[|\])//) {
-            if ($1 eq "-") {
-                push @Menu, { typ => "separator" };
-            }
-            elsif ($1 eq "[") {
-                push @Menu, { typ => "push", label => $_ };
-            }
-            else {
-                push @Menu, { typ => "pop" };
-            }
-            next;
+while (<DATA>) {
+    chomp;
+    if (s/^(-|\[|\])//) {
+        if ($1 eq "-") {
+            push @Menu, { typ => "separator" };
         }
-        
-        my ($ix, $lily, $name) = split /:/;
-        $name ||= ucfirst $lily;
-
-        $Name[$ix] = $lily;
-        $Prg{$lily} = $ix;
-        push @Menu, { typ => "entry", label => $name, prg => $ix };
+        elsif ($1 eq "[") {
+            push @Menu, { typ => "push", label => $_ };
+        }
+        else {
+            push @Menu, { typ => "pop" };
+        }
+        next;
     }
-    close DATA;
+    
+    my ($ix, $lily, $name) = split /:/;
+    $name ||= ucfirst $lily;
+
+    $Name[$ix] = $lily;
+    $Prg{$lily} = $ix;
+    push @Menu, { typ => "entry", label => $name, prg => $ix };
 }
-readonly \@Menu;
+close DATA;
+readonly \(@Name, %Prg, @Menu);
 
 sub instrument { $Name[$_[0]->program] }
 

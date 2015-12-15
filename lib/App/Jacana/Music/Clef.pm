@@ -1,9 +1,8 @@
 package App::Jacana::Music::Clef;
 
-use Moo;
-use App::Jacana::Util::Types;
+use App::Jacana::Moose;
 use Carp ();
-use namespace::clean;
+use namespace::autoclean;
 
 extends "App::Jacana::Music";
 
@@ -13,7 +12,7 @@ with qw/
 /;
 
 # XXX I have no idea what's going on here...
-*staff_line = \&App::Jacana::Has::Clef::staff_line;
+#*staff_line = \&App::Jacana::Has::Clef::staff_line;
 
 warn sprintf "STAFF_LINE: Music [%s] Music::Clef [%s] Has::Clef [%s]",
     App::Jacana::Music->can("staff_line"),

@@ -1,10 +1,9 @@
 package App::Jacana::View::Render;
 
-use Moo;
+use App::Jacana::Moose;
 
 use App::Jacana::DrawCtx;
 use App::Jacana::StaffCtx::Draw;
-use App::Jacana::Util::Types;
 use App::Jacana::View::StaffInfo;
 use App::Jacana::View::System;
 
@@ -12,12 +11,12 @@ use List::BinarySearch      qw/binsearch_pos binsearch_range/;
 use List::Util              qw/first max min/;
 use POSIX                   qw/ceil/;
 
-use namespace::clean;
+use namespace::autoclean;
 
 has view => (
     is          => "ro",
     required    => 1,
-    isa         => InstanceOf[My "View"],
+    #isa         => InstanceOf[My "View"],
     weak_ref    => 1,
 );
 
@@ -25,12 +24,12 @@ has lines => (
     is      => "ro",
     lazy    => 1,
     clearer => 1,
-    isa     => ArrayRef[InstanceOf[My "View::System"]],
+    #isa     => ArrayRef[InstanceOf[My "View::System"]],
     default => sub { +[] },
 );
 
-has width   => is => "rw", isa => Int, required => 1, trigger => 1;
-has height  => is => "rw", isa => Int, default => 0;
+has width   => is => "rw", required => 1, trigger => 1;# isa => Int;
+has height  => is => "rw", default => 0;#, isa => Int;
 
 sub _trigger_width {
     my ($self) = @_;

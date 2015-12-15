@@ -1,30 +1,29 @@
 package App::Jacana::View::StaffInfo;
 
-use Moo;
-use App::Jacana::Util::Types;
+use App::Jacana::Moose;
 use POSIX       qw/ceil floor/;
-use namespace::clean;
+use namespace::autoclean;
 
 has start => (
     is          => "ro",
     required    => 1,
-    isa         => Music,
+    #isa         => Music,
     weak_ref    => 1,
 );
 has end => (
     is          => "rw",
-    isa         => Maybe[Music],
+    #isa         => Maybe[Music],
     weak_ref    => 1,
 );
 
-has ctxinfo => is => "rw", isa => ArrayRef;
+has ctxinfo => is => "rw";#, isa => ArrayRef;
 
 # device coordinates
-has offset  => is => "ro", required => 1, isa => Int;
-has top     => is => "ro", required => 1, isa => Int;
-has bottom  => is => "rw", isa => Int;
-has left    => is => "ro", required => 1, isa => Int;
-has right   => is => "rw", isa => Int;
+has offset  => is => "ro", required => 1;#, isa => Int;
+has top     => is => "ro", required => 1;#, isa => Int;
+has bottom  => is => "rw";#, isa => Int;
+has left    => is => "ro", required => 1;#, isa => Int;
+has right   => is => "rw";#, isa => Int;
 
 sub create {
     my ($class, $s, $c, $x, $y) = @_;

@@ -1,7 +1,7 @@
 package App::Jacana::Dialog::Tweak::Enum;
 
-use Moo;
-use MooX::Gtk2;
+use App::Jacana::Moose;
+use MooseX::Gtk2;
 
 use App::Jacana::Gtk2::ComboBox;
 

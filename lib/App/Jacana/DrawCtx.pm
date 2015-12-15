@@ -1,7 +1,6 @@
 package App::Jacana::DrawCtx;
 
 use App::Jacana::Moose;
-use App::Jacana::Util::Types;
 
 with qw/ 
     App::Jacana::Has::App
@@ -11,11 +10,11 @@ with qw/
 has surface => (
     is          => "ro",
     required    => 1,
-    isa         => InstanceOf["Cairo::Surface"],
+    #isa         => InstanceOf["Cairo::Surface"],
 );
 has c       => (
     is      => "lazy",
-    isa     => InstanceOf["Cairo::Context"],
+    #isa     => InstanceOf["Cairo::Context"],
     handles => [qw/
         save restore push_group pop_group pop_group_to_source
         translate scale move_to line_to curve_to close_path
@@ -25,7 +24,7 @@ has c       => (
 );
 has font    => (
     is      => "lazy",
-    isa     => InstanceOf["Font::FreeType::Face"],
+    #isa     => InstanceOf["Font::FreeType::Face"],
 );
 
 sub _build_c {

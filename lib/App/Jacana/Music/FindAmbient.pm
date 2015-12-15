@@ -1,10 +1,7 @@
 package App::Jacana::Music::FindAmbient;
 
-use Moo::Role;
-use MooX::AccessorMaker
-    apply => [qw/ MooX::MakerRole::IgnoreUndef /];
-
-use App::Jacana::Util::Types;
+use Moose::Role;
+use MooseX::AttributeShortcuts;
 
 requires    qw/prev is_music_start/;
 
@@ -12,9 +9,9 @@ has ambient     => (
     is          => "rw",
     lazy        => 1,
     builder     => 1,
-    isa         => InstanceOf["App::Jacana::Music::Ambient"],
+    #isa         => InstanceOf["App::Jacana::Music::Ambient"],
     weak_ref    => 1,
-    ignore_undef    => 1,
+    #ignore_undef    => 1,
     clearer     => 1,
 );
 

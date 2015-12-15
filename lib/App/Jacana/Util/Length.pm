@@ -1,6 +1,6 @@
 package App::Jacana::Util::Length;
 
-use Moo;
+use App::Jacana::Moose;
 
 with "App::Jacana::Has::Length";
 

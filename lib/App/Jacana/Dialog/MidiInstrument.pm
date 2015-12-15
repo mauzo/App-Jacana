@@ -1,17 +1,14 @@
 package App::Jacana::Dialog::MidiInstrument;
 
 use utf8;
-use Moo;
-use MooX::MethodAttributes use => ["MooX::Gtk2"];
-
-use App::Jacana::Util::Types;
+use App::Jacana::Moose;
+use MooseX::Gtk2;
 
 use App::Jacana::Gtk2::RadioGroup;
 use App::Jacana::Gtk2::RadioMember;
 
 extends "App::Jacana::Dialog";
 with    qw/ 
-    MooX::Gtk2 
     App::Jacana::Has::MidiInstrument
 /;
 
@@ -20,7 +17,7 @@ has _menu           => is => "lazy";
 has _menu_group     => is => "lazy";
 
 has "+program" => (
-    isa         => Any,
+    #isa         => Any,
     default     => 68,
     gtk_prop    => "_menu_group.current-value",
 );

@@ -1,10 +1,8 @@
 package App::Jacana::Has::Articulation;
 
-use Moo::Role;
-
-use App::Jacana::Util::Types;
-
-with qw/MooX::Role::Copiable/;
+use Moose::Role;
+use MooseX::AttributeShortcuts;
+use MooseX::Copiable;
 
 my %Artic = (
     staccato    => { pos => 1,  glyph => 0  },
@@ -29,7 +27,7 @@ has articulation     => (
     is          => "rw",
     copiable    => 1,
     clearer     => 1,
-    isa         => Maybe[Enum[keys %Artic]],
+    #isa         => Maybe[Enum[keys %Artic]],
 );
 
 sub articulation_types { \%Artic }

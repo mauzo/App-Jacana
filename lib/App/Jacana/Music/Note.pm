@@ -1,14 +1,12 @@
 package App::Jacana::Music::Note;
 
 use 5.012;
-use warnings;
 
-use Moo;
-use App::Jacana::Util::Types;
+use App::Jacana::Moose;
 
 use Module::Runtime qw/use_module/;
 
-use namespace::clean;
+use namespace::autoclean;
 
 extends "App::Jacana::Music";
 with    qw/

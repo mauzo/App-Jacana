@@ -1,14 +1,11 @@
 package App::Jacana::Dialog::Tweak;
 
-use Moo;
-
-use App::Jacana::Util::Types;
-
-with    qw/ MooX::Gtk2 /;
+use App::Jacana::Moose;
+use MooseX::Gtk2;
 
 has tweak => (
     is          => "ro",
-    isa         => HashRef,
+    #isa         => HashRef,
     predicate   => 1,
 );
 has exists => is => "ro";

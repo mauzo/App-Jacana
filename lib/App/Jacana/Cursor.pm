@@ -7,8 +7,6 @@ use MooseX::MethodAttributes;
 use MooseX::AttributeShortcuts;
 use MooseX::Gtk2;
 
-use App::Jacana::Util::Types;
-
 use Try::Tiny;
 
 use namespace::autoclean;
@@ -20,13 +18,13 @@ with qw/
 my @Mutable = qw/is rw lazy 1 builder 1 clearer 1 trigger 1/;
 
 has view        => is => "ro", weak_ref => 1;
-has movement    => @Mutable, isa => InstanceOf[My "Document::Movement"];
-has voice       => @Mutable, isa => Music "Voice";
-has position    => @Mutable, isa => Music;
+has movement    => @Mutable;#, isa => InstanceOf[My "Document::Movement"];
+has voice       => @Mutable;#, isa => Music "Voice";
+has position    => @Mutable;#, isa => Music;
 
 has mode        => (
     is          => "rw",
-    isa         => Enum[qw/insert edit/],
+    #isa         => Enum[qw/insert edit/],
     default     => "insert",
     gtk_prop    => "view.status_mode.label",
     trigger     => 1,

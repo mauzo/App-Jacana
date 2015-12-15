@@ -1,10 +1,6 @@
 package App::Jacana::Has::Markup;
 
-use Moo::Role;
-
-with    qw/ MooX::Role::Copiable /;
-
-use App::Jacana::Util::Types;
+use Moose::Role;
 
 has text    => (
     is          => "rw",
@@ -17,7 +13,7 @@ my @Styles = qw/ normal italic bold /;
 has style   => (
     is          => "rw",
     default     => "normal",
-    isa         => Enum[@Styles],
+    #isa         => Enum[@Styles],
     copiable    => 1,
 );
 

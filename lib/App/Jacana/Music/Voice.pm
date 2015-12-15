@@ -1,14 +1,12 @@
 package App::Jacana::Music::Voice;
 
-use Moo;
-
-use App::Jacana::Util::Types;
+use App::Jacana::Moose;
 
 use Data::Dump      qw/pp/;
 use Module::Runtime     qw/use_module/;
 use Text::Wrap          qw/wrap/;
 
-use namespace::clean;
+use namespace::autoclean;
 
 extends "App::Jacana::Music";
 with    qw/ 
@@ -23,13 +21,13 @@ with    qw/
 has name => (
     is          => "rw", 
     required    => 1,
-    isa         => Match("[a-zA-Z]+", "voice name"),
+    #isa         => Match("[a-zA-Z]+", "voice name"),
 );
 
 has muted => (
     is          => "rw",
     default     => 0,
-    isa         => Bool,
+    #isa         => Bool,
 );
 
 # We default to treble clef, because Lily does.

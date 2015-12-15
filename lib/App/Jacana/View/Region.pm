@@ -1,9 +1,8 @@
 package App::Jacana::View::Region;
 
 use Moose::Role;
+use MooseX::AttributeShortcuts;
 use MooseX::Gtk2;
-
-use App::Jacana::Util::Types;
 
 requires qw/ cursor redraw refresh /;
 
@@ -11,8 +10,10 @@ has mark => (
     is          => "rw", 
     predicate   => 1, 
     clearer     => 1, 
-    isa         => Music,
+    #isa         => Music,
 );
+
+sub My ($) { "App::Jacana::$_[0]" }
 
 sub set_mark :Action(SetMark) { 
     my ($self) = @_;

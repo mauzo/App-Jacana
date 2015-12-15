@@ -1,6 +1,6 @@
 package App::Jacana::Music::Mark::Articulation;
 
-use Moo;
+use App::Jacana::Moose;
 
 extends "App::Jacana::Music::Mark";
 with    qw/ App::Jacana::Has::Articulation /;

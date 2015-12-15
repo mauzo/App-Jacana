@@ -1,17 +1,16 @@
 package App::Jacana::Has::Pitch;
 
-use Moo::Role;
+use Moose::Role;
+use MooseX::Copiable;
 
 use App::Jacana::Util::Pitch;
 
-with qw/MooX::Role::Copiable/;
-
 has note    => (
     is          => "rw", 
-    isa         => sub { 
-        $_[0] =~ /^[a-g]$/
-            or Carp::confess("Bad note value [$_[0]]");
-    },
+#    isa         => sub { 
+#        $_[0] =~ /^[a-g]$/
+#            or Carp::confess("Bad note value [$_[0]]");
+#    },
     copiable    => 1,
 );
 has octave  => is => "rw", copiable => 1;

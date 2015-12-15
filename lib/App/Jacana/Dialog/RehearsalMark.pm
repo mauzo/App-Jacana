@@ -1,19 +1,17 @@
 package App::Jacana::Dialog::RehearsalMark;
 
 use utf8;
-use Moo;
-use MooX::MethodAttributes use => [qw/MooX::Gtk2/];
-
-use App::Jacana::Util::Types;
+use App::Jacana::Moose;
+use MooseX::Gtk2;
 
 extends "App::Jacana::Dialog";
-with    qw/ MooX::Gtk2 App::Jacana::Has::RehearsalMark /;
+with    qw/ App::Jacana::Has::RehearsalMark /;
 
 has _automatic  => is => "lazy";
 has _number     => is => "lazy";
 
 has "+number"   => (
-    isa         => Str,
+    #isa         => Str,
     gtk_prop    => "_number.text",
 );
 

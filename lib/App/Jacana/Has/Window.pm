@@ -1,6 +1,7 @@
 package App::Jacana::Has::Window;
 
 use Moose::Role;
+use MooseX::AttributeShortcuts;
 use MooseX::Copiable;
 
 has _window => (

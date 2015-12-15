@@ -1,6 +1,6 @@
 package App::Jacana::Has::Dialog;
 
-use Moo::Role;
+use Moose::Role;
 
 requires "dialog";
 

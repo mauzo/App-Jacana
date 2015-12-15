@@ -1,8 +1,6 @@
 package App::Jacana::Music::Barline;
 
-use Moo;
-
-use App::Jacana::Util::Types;
+use App::Jacana::Moose;
 
 use Carp ();
 

@@ -1,7 +1,6 @@
 package App::Jacana::Music::MidiInstrument;
 
-use Moo;
-use App::Jacana::Util::Types;
+use App::Jacana::Moose;
 
 extends "App::Jacana::Music";
 with qw/

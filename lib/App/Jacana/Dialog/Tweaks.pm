@@ -1,7 +1,7 @@
 package App::Jacana::Dialog::Tweaks;
 
-use Moo::Role;
-use MooX::Gtk2;
+use Moose::Role;
+use MooseX::AttributeShortcuts;
 
 use Module::Runtime qw/use_module/;
 

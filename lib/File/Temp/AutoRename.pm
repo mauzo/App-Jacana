@@ -1,12 +1,12 @@
 package File::Temp::AutoRename;
 
 use autodie;
-use Moo;
+use Moose;
 
 use Carp;
 use File::Temp  qw/tempfile/;
 
-use namespace::clean;
+use namespace::autoclean;
 
 has fh          => is => "ro";
 has tempname    => is => "ro";
@@ -25,7 +25,7 @@ sub BUILDARGS {
     };
 }
 
-sub DESTROY {
+sub DEMOLISH {
     my ($self) = @_;
 
     close $self->fh;

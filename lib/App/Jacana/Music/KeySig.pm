@@ -1,6 +1,6 @@
 package App::Jacana::Music::KeySig;
 
-use Moo;
+use App::Jacana::Moose;
 
 use YAML::XS ();
 

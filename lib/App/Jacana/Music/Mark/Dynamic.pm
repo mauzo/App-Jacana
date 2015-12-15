@@ -1,8 +1,6 @@
 package App::Jacana::Music::Mark::Dynamic;
 
-use Moo;
-
-use App::Jacana::Util::Types;
+use App::Jacana::Moose;
 
 extends "App::Jacana::Music::Mark";
 
@@ -13,7 +11,7 @@ my @Dynamics = qw/
 has dynamic => (
     is          => "rw",
     required    => 1,
-    isa         => Enum[@Dynamics],
+    #isa         => Enum[@Dynamics],
 );
 
 sub lily_rx { 

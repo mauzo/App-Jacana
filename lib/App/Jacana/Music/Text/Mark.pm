@@ -1,6 +1,6 @@
 package App::Jacana::Music::Text::Mark;
 
-use Moo;
+use App::Jacana::Moose;
 
 extends "App::Jacana::Music::Text";
 

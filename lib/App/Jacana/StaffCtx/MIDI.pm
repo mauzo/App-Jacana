@@ -1,8 +1,7 @@
 package App::Jacana::StaffCtx::MIDI;
 
-use Moo;
-use App::Jacana::Util::Types;
-use namespace::clean;
+use App::Jacana::Moose;
+use namespace::autoclean;
 
 extends "App::Jacana::StaffCtx";
 
@@ -11,8 +10,8 @@ has chan => is => "ro", required => 1;
 
 has pitch   => is => "rw";
 
-has on_start    => is => "ro", isa => CodeRef;
-has on_stop     => is => "ro", isa => CodeRef;
+has on_start    => is => "ro";#, isa => CodeRef;
+has on_stop     => is => "ro";#, isa => CodeRef;
 
 sub start_note {
     my ($self) = @_;
