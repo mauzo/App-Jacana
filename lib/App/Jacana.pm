@@ -39,7 +39,7 @@ has resource => (
 sub busy  { Gtk2::Ex::WidgetCursor->busy }
 sub yield { Gtk2::Gdk::Window->process_all_updates }
 
-has window      => is => "lazy";
+has window      => is => "lazy", clearer => 1;
 sub _build_window {
     my ($self) = @_;
 
@@ -62,6 +62,11 @@ sub BUILD {
     my $it      = Gtk2::IconTheme->get_default;
     my $icons   = File::ShareDir::dist_dir("App-Jacana") . "/icons";
     $it->prepend_search_path($icons);
+}
+
+sub DEMOLISH {
+    my ($self) = @_;
+    $self->clear_window;
 }
 
 sub start {

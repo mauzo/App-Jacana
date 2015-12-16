@@ -88,6 +88,11 @@ sub BUILD {
     $self->get_action("MidiStop")->set_sensitive(0);
 }
 
+sub DEMOLISH {
+    my ($self) = @_;
+    $self->clear_cursor;
+}
+
 sub save_as :Action(SaveAs) {
     my ($self)  = @_;
     my $doc     = $self->doc;

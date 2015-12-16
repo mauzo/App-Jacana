@@ -18,7 +18,7 @@ with qw/
 /;
 
 has doc         => is => "ro";
-has view        => is => "lazy";
+has view        => is => "lazy", clearer => 1;
 
 has frame       => is => "lazy";
 has status_bar  => is => "lazy";
@@ -34,6 +34,11 @@ sub BUILD {
     my ($xml, $actions, $radios) = $self->_parse_actions_xml();
     $self->_set_actions($self->_build_actions($actions, $radios));
     $self->_set_uimgr($self->_build_uimgr($xml));
+}
+
+sub DEMOLISH {
+    my ($self) = @_;
+    $self->clear_view;
 }
 
 # view
