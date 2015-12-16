@@ -70,10 +70,8 @@ push @Data::Dump::FILTERS, sub {
     };
 };
 
-around new_object => sub {
-    my ($super, $self, @args) = @_;
-
-    my $obj     = $self->$super(@args);
+sub _gtk_extra_init {
+    my ($self, $obj) = @_;
 
     $self->_gtk_process_attribute($obj, "Signal", "widget");
     $self->_gtk_process_attribute($obj, "Action", "actions", sub {
@@ -89,8 +87,24 @@ around new_object => sub {
         $self->get_all_attributes;
     warn "GTK PROPS FOR [$obj]: " . join "; ", map $_->name, @props;
     $self->_gtk_setup_prop($obj, $_) for @props;
+}
 
+around new_object => sub {
+    my ($super, $self, @args) = @_;
+
+    my $obj = $self->$super(@args);
+    $self->_gtk_extra_init($obj);
+    
     $obj;
+};
+
+around _inline_extra_init => sub {
+    my ($super, $self) = @_;
+
+    return (
+        $self->$super,
+        q{Moose::Util::find_meta($instance)->_gtk_extra_init($instance);},
+    );
 };
 
 sub _gtk_setup_prop {
