@@ -17,11 +17,11 @@ has rendered    => (
 
 has bbox => is => "rw", default => sub { +[] };
 has system => (
+    traits          => ["IgnoreUndef"],
     is              => "rw",
     #isa             => InstanceOf[My "View::System"],
     predicate       => 1,
     weak_ref        => 1,
-    ignore_undef    => 1,
 );
 
 # Otherwise we get a method conflict (grr)

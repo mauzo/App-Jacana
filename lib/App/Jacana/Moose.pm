@@ -7,6 +7,7 @@ use Moose::Exporter;
 use Moose ();
 use Moose::Util ();
 use MooseX::AttributeShortcuts ();
+use MooseX::Trait::IgnoreUndef;
 
 Moose::Exporter->setup_import_methods(
     as_is   => [qw/ My /],

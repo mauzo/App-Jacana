@@ -6,12 +6,12 @@ use MooseX::AttributeShortcuts;
 requires    qw/prev is_music_start/;
 
 has ambient     => (
+    traits      => ["IgnoreUndef"],
     is          => "rw",
     lazy        => 1,
     builder     => 1,
     #isa         => InstanceOf["App::Jacana::Music::Ambient"],
     weak_ref    => 1,
-    #ignore_undef    => 1,
     clearer     => 1,
 );
 

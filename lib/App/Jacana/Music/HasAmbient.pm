@@ -8,11 +8,11 @@ use App::Jacana::Music::Ambient;
 use namespace::autoclean;
 
 has ambient     => (
+    traits      => [qw/IgnoreUndef/],
     is          => "ro",
     lazy        => 1,
     builder     => 1,
     #isa         => InstanceOf["App::Jacana::Music::Ambient"],
-    #ignore_undef    => 1,
     clearer     => 1,
 );
 

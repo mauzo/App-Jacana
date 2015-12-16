@@ -10,10 +10,10 @@ my $Amb     = "App::Jacana::Music::Ambient";
 my $HasAmb  = "App::Jacana::Music::HasAmbient";
 
 has prev    => (
+    traits      => [qw/IgnoreUndef/],
     is          => "lazy",
     #isa         => Maybe[InstanceOf[$Amb]],
     weak_ref    => 1,
-    #ignore_undef    => 1,
 );
 has owner   => (
     is          => "ro",
