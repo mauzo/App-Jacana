@@ -15,7 +15,7 @@ has copiable => (
 around attribute_for_class => sub {
     my ($super, $self) = @_;
 
-    $self->copiable or return $self->$super;
+    $self->copiable || $self->deep_copy or return $self->$super;
 
     my $role    = $self->original_role;
     my $meta    = $role->applied_attribute_metaclass;

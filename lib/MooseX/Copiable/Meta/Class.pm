@@ -53,18 +53,17 @@ sub find_copiable_atts_for {
     @out;
 }
 
-around new_object => sub {
-    my ($super, $self, @params) = @_;
-    my $params = @params == 1 ? $params[0] : { @params };
+sub _copiable_process_params {
+    my ($self, $params) = @_;
 
-    my $from    = delete $$params{copy_from} 
-        or return $self->$super($params);
-    my @atts    = $self->find_copiable_atts_for($from)
-        or return $self->$super($params);
+
+    my $from    = delete $$params{copy_from}            or return;
+    my @atts    = $self->find_copiable_atts_for($from)  or return;
 
     for (@atts) {
         my ($f, $t) = @$_;
         
+        my $n = $t->name;
         my $i = $t->init_arg;
 
         exists $$params{$i}     and next;
@@ -72,27 +71,24 @@ around new_object => sub {
 
         $$params{$i} = $f->get_value($from);
     }
-    
+}
+
+around new_object => sub {
+    my ($super, $self, @params) = @_;
+    my $params = @params == 1 ? $params[0] : { @params };
+
+    $self->_copiable_process_params($params);
     $self->$super($params);
 };
-
-=for later
 
 around _inline_params => sub {
     my ($super, $self, $params, $class) = @_;
 
-    require Data::Dump;
-    my $name  = $self->name;
-    my $roles = Data::Dump::pp($self->find_copiable_roles);
-
-    warn "INLINE PARAMS FOR [$name]";
-
     return (
         $self->$super($params, $class),
-        qq{warn "COPIABLE ROLES FOR [\Q$name\E]: \Q$roles\E";},
+        qq{Moose::Util::find_meta($class)} .
+            qq{->_copiable_process_params($params);},
     );
 };
-
-=cut
 
 1;
