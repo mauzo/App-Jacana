@@ -14,6 +14,7 @@ with    qw/
 has _barline    => is => "lazy";
 
 has "+barline" => (
+    traits      => ["Gtk2"],
     default     => "|.",
     gtk_prop    => "_barline.current-value",
 );
@@ -24,7 +25,6 @@ sub _build__barline {
     my ($self) = @_;
     my $bl = App::Jacana::Gtk2::ComboBox->new;
     $bl->add_pairs(map +($_, $_), $self->barline_types);
-    $bl->set_current_value("|.");
     $bl;
 }
 

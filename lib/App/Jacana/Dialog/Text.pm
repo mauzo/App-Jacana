@@ -13,10 +13,16 @@ with    qw/
 /;
 
 has _text => is => "lazy";
-has "+text" => gtk_prop => "_text.text";
+has "+text" => (
+    traits      => ["Gtk2"],
+    gtk_prop    => "_text.text",
+);
 
 has _style => is => "lazy";
-has "+style" => gtk_prop => "_style.current-value";
+has "+style" => (
+    traits      => ["Gtk2"],
+    gtk_prop    => "_style.current-value",
+);
 
 sub title { $_[0]->src->dialog_title }
 

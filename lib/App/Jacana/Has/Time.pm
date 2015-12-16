@@ -19,6 +19,7 @@ has divisor => (
 has partial => (
     is          => "rw",
     #isa         => Maybe[ConsumerOf["App::Jacana::Has::Length"]],
+    copiable    => 1,
     deep_copy   => 1,
     predicate   => 1,
     clearer     => 1,

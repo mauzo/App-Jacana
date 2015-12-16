@@ -9,7 +9,7 @@ use App::Jacana::Gtk2::ComboBox;
 use Data::Dump      qw/pp/;
 use Scalar::Util    qw/blessed/;
 
-use namespace::clean;
+use namespace::autoclean;
 
 extends "App::Jacana::Dialog";
 with    qw/ 
@@ -19,11 +19,19 @@ with    qw/
 package App::Jacana::Dialog::TimeSig::Partial {
     use App::Jacana::Moose;
     use MooseX::Gtk2;
+    use namespace::autoclean;
+
     with qw/ App::Jacana::Has::Length/;
 
     has dialog      => is => "ro", weak_ref => 1;
-    has "+length"   => gtk_prop => "dialog._plen.current-value";
-    has "+dots"     => gtk_prop => "dialog._pdots.current-value";
+    has "+length"   => (
+        traits      => ["Gtk2"],
+        gtk_prop    => "dialog._plen.current-value",
+    );
+    has "+dots"     => (
+        traits      => ["Gtk2"],
+        gtk_prop    => "dialog._pdots.current-value",
+    );
 }
 
 has _beats      => is => "lazy";
@@ -33,6 +41,7 @@ has _pdots      => is => "lazy";
 has _p_check    => is => "lazy";
 
 has "+beats"    => (
+    traits      => ["Gtk2"],
     default     => 4,
     gtk_prop    => "_beats.text", 
 #    isa         => sub { 
@@ -41,6 +50,7 @@ has "+beats"    => (
 #    },
 );
 has "+divisor"  => (
+    traits      => ["Gtk2"],
     default     => 4,
     gtk_prop    => "_divisor.current-value"
 );

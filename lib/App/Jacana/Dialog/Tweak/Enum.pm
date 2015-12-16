@@ -7,7 +7,10 @@ use App::Jacana::Gtk2::ComboBox;
 
 extends "App::Jacana::Dialog::Tweak";
 
-has "+value" => gtk_prop => "_value.current-value";
+has "+value" => (
+    traits      => ["Gtk2"],
+    gtk_prop    => "_value.current-value",
+);
 
 sub _build__value {
     my ($self) = @_;

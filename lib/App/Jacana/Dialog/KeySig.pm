@@ -15,10 +15,12 @@ has _key  => is => "lazy";
 has _mode => is => "lazy";
 
 has "+key"  => (
+    traits      => ["Gtk2"],
     default     => 0,
     gtk_prop    => "_key.current-value",
 );
 has "+mode" => (
+    traits      => [qw/Gtk2 Shortcuts/],
     #default     => "major",
     gtk_prop    => "_mode.current-value", 
     trigger => 1,

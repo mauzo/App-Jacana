@@ -17,6 +17,7 @@ has _menu           => is => "lazy";
 has _menu_group     => is => "lazy";
 
 has "+program" => (
+    traits      => ["Gtk2"],
     #isa         => Any,
     default     => 68,
     gtk_prop    => "_menu_group.current-value",

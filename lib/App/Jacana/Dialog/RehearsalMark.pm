@@ -11,6 +11,7 @@ has _automatic  => is => "lazy";
 has _number     => is => "lazy";
 
 has "+number"   => (
+    traits      => ["Gtk2"],
     #isa         => Str,
     gtk_prop    => "_number.text",
 );
