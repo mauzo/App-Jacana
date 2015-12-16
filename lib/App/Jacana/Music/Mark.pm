@@ -15,4 +15,4 @@ sub from_lily {
 
 sub draw        {...}
 
-1;
+Moose::Util::find_meta(__PACKAGE__)->make_immutable;

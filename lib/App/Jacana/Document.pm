@@ -101,4 +101,4 @@ sub parse_music {
     $text and die "Unparsable music [$text]";
 }
 
-1;
+Moose::Util::find_meta(__PACKAGE__)->make_immutable;

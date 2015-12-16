@@ -12,4 +12,4 @@ with    qw/
 sub dialog { "Text" }
 sub dialog_title {...}
 
-1;
+Moose::Util::find_meta(__PACKAGE__)->make_immutable;

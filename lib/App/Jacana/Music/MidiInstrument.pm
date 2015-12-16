@@ -43,4 +43,4 @@ sub draw {
     return $wd;
 }
 
-1;
+Moose::Util::find_meta(__PACKAGE__)->make_immutable;

@@ -45,4 +45,4 @@ sub find_item_at {
     $i;
 }
 
-1;
+Moose::Util::find_meta(__PACKAGE__)->make_immutable;

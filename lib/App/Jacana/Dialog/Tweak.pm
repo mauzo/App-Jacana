@@ -17,4 +17,4 @@ has _value => is => "lazy";
 
 sub _build__value { Gtk2::Entry->new }
 
-1;
+Moose::Util::find_meta(__PACKAGE__)->make_immutable;

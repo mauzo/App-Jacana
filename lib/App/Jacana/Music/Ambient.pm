@@ -55,4 +55,4 @@ sub find_voice {
     $self->prev->find_voice;
 }
 
-1;
+Moose::Util::find_meta(__PACKAGE__)->make_immutable;

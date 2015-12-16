@@ -58,4 +58,4 @@ sub _build_content_area {
     warn "AUTO ACTIVE [$ac] HAS NUMBER [$hn]";
 }
 
-1;
+Moose::Util::find_meta(__PACKAGE__)->make_immutable;

@@ -128,4 +128,4 @@ sub show_text {
     wantarray ? @$ext{"width", "height"} : $$ext{width};
 }
 
-1;
+Moose::Util::find_meta(__PACKAGE__)->make_immutable;

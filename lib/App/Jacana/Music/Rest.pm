@@ -48,4 +48,4 @@ sub draw {
     return $wd + $self->_draw_dots($c, $wd, $pos);
 }
 
-1;
+Moose::Util::find_meta(__PACKAGE__)->make_immutable;

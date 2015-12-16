@@ -79,4 +79,4 @@ sub start {
     Gtk2::AccelMap->save_fd(fileno $tmp->fh);
 }
 
-1;
+Moose::Util::find_meta(__PACKAGE__)->make_immutable;

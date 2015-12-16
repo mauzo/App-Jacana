@@ -6,4 +6,4 @@ with "App::Jacana::Has::Length";
 
 sub BUILD { }
 
-1;
+Moose::Util::find_meta(__PACKAGE__)->make_immutable;

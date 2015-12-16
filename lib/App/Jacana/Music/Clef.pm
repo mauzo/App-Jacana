@@ -35,4 +35,4 @@ sub draw {
     return $c->glyph_width($gly);
 }
 
-1;
+Moose::Util::find_meta(__PACKAGE__)->make_immutable;

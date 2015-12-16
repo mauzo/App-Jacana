@@ -19,4 +19,4 @@ sub _build__value {
     $cb;
 }
 
-1;
+Moose::Util::find_meta(__PACKAGE__)->make_immutable;

@@ -67,4 +67,4 @@ sub draw {
     return max $nwd, $dwd;
 }
 
-1;
+Moose::Util::find_meta(__PACKAGE__)->make_immutable;

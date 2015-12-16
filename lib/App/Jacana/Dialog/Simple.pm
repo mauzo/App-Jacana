@@ -27,4 +27,4 @@ sub _build_content_area {
     $vb->pack_start($hb, 1, 1, 5);
 }
 
-1;
+Moose::Util::find_meta(__PACKAGE__)->make_immutable;
