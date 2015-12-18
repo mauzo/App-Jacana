@@ -2,6 +2,7 @@ package MooseX::Copiable::Meta::Attribute::Class;
 
 use Moose::Role;
 use Moose::Util     qw/does_role/;
+use Scalar::Util    qw/blessed/;
 
 use namespace::autoclean;
 
@@ -46,5 +47,17 @@ after detach_from_class => sub {
     delete $self->associated_class->copiable_roles
         ->{$self->_copiable_role->name}{$self->name};
 };
+
+before initialize_instance_slot => sub {
+    my ($self, $meta, $obj, $params) = @_;
+
+    my $i = $self->init_arg     or return;
+    my $v = $$params{$i}        or return;
+    blessed($v) && blessed($v) eq "MooseX::Copiable::DeepCopy"
+                                or return;
+
+    $$params{$i} = $v->evaluate($obj);
+};
+
 
 1;

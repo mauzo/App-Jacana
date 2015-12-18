@@ -3,6 +3,9 @@ package MooseX::Copiable::Meta::Class;
 use Moose::Role;
 
 use Moose::Util     qw/does_role find_meta/;
+use Scalar::Util    qw/blessed/;
+
+use MooseX::Copiable::DeepCopy;
 
 use namespace::autoclean;
 
@@ -56,7 +59,6 @@ sub find_copiable_atts_for {
 sub _copiable_process_params {
     my ($self, $params) = @_;
 
-
     my $from    = delete $$params{copy_from}            or return;
     my @atts    = $self->find_copiable_atts_for($from)  or return;
 
@@ -69,7 +71,10 @@ sub _copiable_process_params {
         exists $$params{$i}     and next;
         $f->has_value($from)    or next;
 
-        $$params{$i} = $f->get_value($from);
+        my $v = $f->get_value($from);
+
+        $$params{$i} =
+            MooseX::Copiable::DeepCopy->new($t, $v);
     }
 }
 
@@ -89,6 +94,26 @@ around _inline_params => sub {
         qq{Moose::Util::find_meta($class)} .
             qq{->_copiable_process_params($params);},
     );
+};
+
+around _inline_init_attr_from_constructor => sub {
+    my ($super, $self, $attr, $idx) = @_;
+
+    my @code = $self->$super($attr, $idx);
+
+    $attr->deep_copy            or return @code;
+    my $init = $attr->init_arg  or return @code;
+
+    my $param = qq{\$params->{"\Q$init\E"}};
+    my $bless = "Scalar::Util::blessed";
+    
+    return split(/\n/, <<PERL), @code;
+    {
+        my \$v = $param;
+        $bless(\$v) && $bless(\$v) eq "MooseX::Copiable::DeepCopy"
+            and $param = \$v->evaluate(\$instance);
+    }
+PERL
 };
 
 1;

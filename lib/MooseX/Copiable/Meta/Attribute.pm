@@ -4,8 +4,8 @@ use Moose::Role;
 
 has deep_copy => (
     is      => "ro",
+    default => undef,
     #isa    => Bool,
-    default => 0,
 );
 
 1;

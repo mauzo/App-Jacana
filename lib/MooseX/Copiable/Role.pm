@@ -15,7 +15,21 @@ sub copy_from {
         my ($f, $t) = @$_;
 
         $f->has_value($from)    or next;
-        $t->set_value($self, $f->get_value($from));
+
+        my $v = $f->get_value($from);
+        if (!$t->deep_copy) {
+            $t->set_value($self, $v);
+        }
+        elsif ($t->has_value($self)) {
+            $t->get_value($self)->copy_from($v);
+        }
+        else {
+            $t->set_value($self,
+                MooseX::Copiable::DeepCopy
+                    ->new($t, $v)
+                    ->evaluate($self)
+            );
+        }
     }
 }
 
