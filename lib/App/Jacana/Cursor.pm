@@ -101,6 +101,11 @@ sub _trigger_position {
     $view->redraw;
 }
 
+sub _trigger_length {
+    my ($self, $new) = @_;
+    $self->view->get_action("Rest")->set_icon_name("icon-rest-$new");
+}
+
 sub _build_midi_chan {
     my ($self) = @_;
     $self->view->midi->alloc_chan;
@@ -130,11 +135,10 @@ sub _trigger_mode {
 sub insert_mode :Action(view.InsertMode)   { $_[0]->mode("insert") }
 sub edit_mode :Action(view.EditMode)       { $_[0]->mode("edit") }
 
-sub _trigger_length {
-    my ($self, $new) = @_;
+sub _reset_length :Action(view.NoteLength) {
+    my ($self, $action) = @_;
     my $view = $self->view;
 
-    $view->get_action("Rest")->set_icon_name("icon-rest-$new");
     $self->dots(0);
     $self->position->copy_from($self, "App::Jacana::Has::Length");
     $view->refresh;
