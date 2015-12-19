@@ -3,6 +3,8 @@ package MooseX::Copiable;
 use Moose::Exporter;
 use Moose::Util;
 
+use MooseX::Copiable::Meta::Attribute::Class;
+
 my $My = "MooseX::Copiable";
 
 Moose::Exporter->setup_import_methods(
@@ -14,7 +16,7 @@ Moose::Exporter->setup_import_methods(
 sub init_meta {
     my (undef, %args) = @_;
 
-    Moose::Util::apply_all_roles $args{for_class}, "$My\::Role";
+    Moose::Util::ensure_all_roles $args{for_class}, "$My\::Role";
 }
 
 1;

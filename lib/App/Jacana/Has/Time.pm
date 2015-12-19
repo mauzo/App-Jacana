@@ -8,18 +8,18 @@ use App::Jacana::Util::Length;
 
 has beats => (
     is      => "rw",
+    traits      => [qw/Copiable/],
     #isa     => Int,
-    copiable => 1,
 );
 has divisor => (
     is      => "rw",
+    traits      => [qw/Copiable/],
     #isa     => Enum[qw/1 2 4 8 16 32/],
-    copiable => 1,
 );
 has partial => (
     is          => "rw",
+    traits      => [qw/Copiable/],
     #isa         => Maybe[ConsumerOf["App::Jacana::Has::Length"]],
-    copiable    => 1,
     deep_copy   => 1,
     predicate   => 1,
     clearer     => 1,

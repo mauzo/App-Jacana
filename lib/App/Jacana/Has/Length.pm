@@ -11,11 +11,15 @@ subtype "NoteLength",
 
 # length is a number, 0-8, 0=breve, 1=semibreve, 2=minim, &c.
 has length  => (
-    is          => "rw", 
-    copiable    => 1,
+    is      => "rw", 
+    traits  => [qw/Copiable/],
     #isa         => "NoteLength",
 );
-has dots    => is => "rw", default => 0, copiable => 1;
+has dots    => (
+    is      => "rw", 
+    traits  => [qw/Copiable/],
+    default => 0,
+);
 
 my @Length = qw/ \breve 1 2 4 8 16 32 64 128 /;
 my %Length = map +($Length[$_], $_), 0..$#Length;

@@ -136,7 +136,7 @@ sub _trigger_length {
 
     $view->get_action("Rest")->set_icon_name("icon-rest-$new");
     $self->dots(0);
-    #$self->position->copy_from($self, "App::Jacana::Has::Length");
+    $self->position->copy_from($self, "App::Jacana::Has::Length");
     $view->refresh;
 }
 

@@ -6,10 +6,10 @@ use MooseX::Copiable;
 
 has number  => (
     is          => "rw",
+    traits      => [qw/Copiable/],
     predicate   => 1,
     clearer     => 1,
     #isa         => Int,
-    copiable    => 1,
 );
 
 1;

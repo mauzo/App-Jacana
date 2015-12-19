@@ -7,14 +7,14 @@ use App::Jacana::Util::Pitch;
 
 has note    => (
     is          => "rw", 
+    traits      => [qw/Copiable/],
 #    isa         => sub { 
 #        $_[0] =~ /^[a-g]$/
 #            or Carp::confess("Bad note value [$_[0]]");
 #    },
-    copiable    => 1,
 );
-has octave  => is => "rw", copiable => 1;
-has chroma  => is => "rw", default => "", copiable => 1;
+has octave  => is => "rw", traits => [qw/Copiable/];
+has chroma  => is => "rw", default => "", traits => [qw/Copiable/];
 
 my %Chr2Ly  = (0, "", qw/1 is -1 es 2 isis -2 eses/);
 my %Ly2Chr  = reverse %Chr2Ly;

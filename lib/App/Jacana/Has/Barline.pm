@@ -10,7 +10,7 @@ sub barline_types { qw/
 
 has barline     => (
     is          => "rw",
-    copiable    => 1,
+    traits      => [qw/Copiable/],
     #isa         => Enum[barline_types()],
 );
 

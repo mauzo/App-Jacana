@@ -19,9 +19,9 @@ my %Clef = (
 
 has clef => (
     is          => "rw",
+    traits      => [qw/Copiable/],
     #isa         => Enum[keys %Clef],
     required    => 1,
-    copiable    => 1,
 );
 
 sub clef_type { $Clef{$_[0]->clef}[0] }

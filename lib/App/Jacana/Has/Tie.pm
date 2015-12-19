@@ -5,9 +5,9 @@ use MooseX::Copiable;
 
 has tie => (
     is          => "rw", 
+    traits      => [qw/Copiable/],
     #isa         => Bool, 
     default     => 0, 
-    copiable    => 1,
 );
 
 1;

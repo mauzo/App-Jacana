@@ -5,17 +5,17 @@ use MooseX::Copiable;
 
 has text    => (
     is          => "rw",
+    traits      => [qw/Copiable/],
     default     => "",
-    copiable    => 1,
 );
 
 my @Styles = qw/ normal italic bold /;
 
 has style   => (
     is          => "rw",
+    traits      => [qw/Copiable/],
     default     => "normal",
     #isa         => Enum[@Styles],
-    copiable    => 1,
 );
 
 sub markup_rx {

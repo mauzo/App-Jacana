@@ -10,9 +10,9 @@ use namespace::autoclean;
 
 has program => (
     is          => "rw",
+    traits      => [qw/Copiable/],
     default     => 68,
     #isa         => Int,
-    copiable    => 1,
 );
 
 my (@Name, %Prg, @Menu);

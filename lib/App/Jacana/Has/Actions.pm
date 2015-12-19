@@ -5,10 +5,10 @@ use MooseX::Copiable;
 
 has actions     => (
     is          => "ro",
+    traits      => [qw/Copiable/],
     required    => 1,
 #    isa         => InstanceOf["Gtk2::ActionGroup"],
     handles     => ["get_action"],
-    copiable    => 1,
 );
 
 1;

@@ -25,7 +25,7 @@ my %Artic = (
 
 has articulation     => (
     is          => "rw",
-    copiable    => 1,
+    traits      => [qw/Copiable/],
     clearer     => 1,
     #isa         => Maybe[Enum[keys %Artic]],
 );

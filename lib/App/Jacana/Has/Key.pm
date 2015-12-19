@@ -12,19 +12,19 @@ my %Mode = qw/ major 8 minor 11 /;
 
 has key     => (
     is      => "rw",
+    traits      => [qw/Copiable/],
 #    isa     => sub {
 #        $_[0] =~ /^0|-?[1-7]$/
 #            or die "Bad key signature [$_[0]]";
 #    },
-    copiable => 1,
 );
 has mode    => (
     is      => "rw",
+    traits      => [qw/Copiable/],
 #    isa     => sub {
 #        exists $Mode{$_[0]}
 #            or die "Bad key signature mode [$_[0]]";
 #    },
-    copiable => 1,
 );
 
 sub staff_line { 0 }
