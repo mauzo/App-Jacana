@@ -56,9 +56,9 @@ has "+divisor"  => (
     default     => 4,
     gtk_prop    => "_divisor.current-value"
 );
-#has "+partial"  => (
-#    coercer     => 1, 
-#);
+has "+partial"  => (
+    traits      => ["Coercer"],
+);
 
 sub title   { "Time signature" }
 

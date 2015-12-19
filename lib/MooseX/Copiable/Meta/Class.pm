@@ -72,9 +72,7 @@ sub _copiable_process_params {
         $f->has_value($from)    or next;
 
         my $v = $f->get_value($from);
-
-        $$params{$i} =
-            MooseX::Copiable::DeepCopy->new($t, $v);
+        $$params{$i} = $t->deep_copy ? { copy_from => $v } : $v;
     }
 }
 
@@ -94,26 +92,6 @@ around _inline_params => sub {
         qq{Moose::Util::find_meta($class)} .
             qq{->_copiable_process_params($params);},
     );
-};
-
-around _inline_init_attr_from_constructor => sub {
-    my ($super, $self, $attr, $idx) = @_;
-
-    my @code = $self->$super($attr, $idx);
-
-    $attr->deep_copy            or return @code;
-    my $init = $attr->init_arg  or return @code;
-
-    my $param = qq{\$params->{"\Q$init\E"}};
-    my $bless = "Scalar::Util::blessed";
-    
-    return split(/\n/, <<PERL), @code;
-    {
-        my \$v = $param;
-        $bless(\$v) && $bless(\$v) eq "MooseX::Copiable::DeepCopy"
-            and $param = \$v->evaluate(\$instance);
-    }
-PERL
 };
 
 1;

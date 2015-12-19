@@ -14,21 +14,25 @@ sub copy_from {
     for (@atts) {
         my ($f, $t) = @$_;
 
-        $f->has_value($from)    or next;
+        my $n = $t->name;
+        unless ($f->has_value($from)) {
+            warn "COPY CLEAR FOR [$n]";
+            $t->clear_value($self);
+            next;
+        }
 
         my $v = $f->get_value($from);
         if (!$t->deep_copy) {
+            warn "SHALLOW COPY FOR [$n]";
             $t->set_value($self, $v);
         }
         elsif ($t->has_value($self)) {
+            warn "COPY TO EXISTING FOR [$n]";
             $t->get_value($self)->copy_from($v);
         }
         else {
-            $t->set_value($self,
-                MooseX::Copiable::DeepCopy
-                    ->new($t, $v)
-                    ->evaluate($self)
-            );
+            warn "DEEP COPY FOR [$n]";
+            $t->set_value($self, { copy_from => $v });
         }
     }
 }

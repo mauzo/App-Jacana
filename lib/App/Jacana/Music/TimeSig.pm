@@ -17,7 +17,10 @@ with qw/
     App::Jacana::Music::HasAmbient
 /;
 
-# XXX has "+partial" => coerce_to => "App::Jacana::Util::Length";
+has "+partial" => (
+    isa         => "App::Jacana::Util::Length",
+    coerce      => 1,
+);
 
 sub dialog { "TimeSig" }
 
@@ -30,12 +33,12 @@ sub lily_rx {
 sub from_lily {
     my ($self, %c) = @_;
     if ($c{plen}) {
-        $c{partial} = App::Jacana::Util::Length->new({
+        $c{partial} = {
             App::Jacana::Has::Length->_length_from_lily(
                 length  => delete $c{plen},
                 dots    => delete $c{pdots},
             ),
-        });
+        };
     }
     $self->new(\%c);
 }

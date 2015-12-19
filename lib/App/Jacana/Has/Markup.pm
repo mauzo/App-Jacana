@@ -1,6 +1,7 @@
 package App::Jacana::Has::Markup;
 
 use Moose::Role;
+use MooseX::Copiable;
 
 has text    => (
     is          => "rw",
