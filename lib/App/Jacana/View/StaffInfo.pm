@@ -25,16 +25,16 @@ has bottom  => is => "rw";#, isa => Int;
 has left    => is => "ro", required => 1;#, isa => Int;
 has right   => is => "rw";#, isa => Int;
 
-sub create {
+sub BUILDARGS {
     my ($class, $s, $c, $x, $y) = @_;
 
-    $class->new({
+    return {
         start   => $s->item,
         offset  => $y,
         top     => floor($c->u2d($s->top) + $y),
         bottom  => ceil($c->u2d($s->bottom) + $y),
         left    => floor($c->u2d($x)),
-    });
+    };
 }
 
 my @CtxAtts = qw/when y bar pos/;

@@ -116,9 +116,7 @@ sub render_upto {
             surface     => $l->surface,
         );
         my @staffs = 
-            map My("View::StaffInfo")->create(
-                $_, $c, 0, $top
-            ), 
+            map My("View::StaffInfo")->new($_, $c, 0, $top), 
             grep $_->has_item,
             @$start;
         $l->staffs(\@staffs);
