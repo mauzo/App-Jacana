@@ -25,7 +25,7 @@ has in_use      => is => "ro", default => sub { +[] };
 sub _build_settings {
     my $s = Audio::FluidSynth::Settings->new;
     $s->set("audio.driver", "oss");
-    $s->set("audio.oss.device", "/dev/dsp1");
+    $s->set("audio.oss.device", "/dev/dsp0");
     $s;
 }
 
