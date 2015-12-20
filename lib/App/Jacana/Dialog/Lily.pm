@@ -11,7 +11,7 @@ with    qw/ App::Jacana::Has::Lily /;
 
 has buffer => is => "lazy";
 has view   => is => "lazy";
-has "+lily" => trigger => 1;
+has "+lily" => traits => ["Shortcuts"], trigger => 1;
 
 sub title { "Edit Lilypond code" }
 
