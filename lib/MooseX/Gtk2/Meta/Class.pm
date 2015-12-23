@@ -27,7 +27,8 @@ sub _gtk_process_attribute {
         $method = $method->name;
 
         $val //= "";
-        my ($att, $name) = $val =~ /^(?:(.*)\.)?([\w:]*)$/ or next;
+        my ($att, $name) = $val =~ /^(?:(.*)\.)?([-\w:]*)$/
+            or Carp::croak("Bad Gtk2 attribute :$key($val)");
         $att //= $default;
 
         my $on = $obj->_resolve_object_path($att)
@@ -73,6 +74,7 @@ push @Data::Dump::FILTERS, sub {
 sub _gtk_extra_init {
     my ($self, $obj) = @_;
 
+    warn "PROCESSING SIGNALS FOR [$obj]";
     $self->_gtk_process_attribute($obj, "Signal", "widget");
     $self->_gtk_process_attribute($obj, "Action", "actions", sub {
         my ($att, $name) = @_;
