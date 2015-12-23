@@ -20,9 +20,10 @@ with qw/
 has doc         => is => "ro";
 has view        => is => "lazy", clearer => 1;
 
-has frame       => is => "lazy";
-has status_bar  => is => "lazy";
-has status_mode => is => "lazy";
+has frame           => is => "lazy";
+has status_bar      => is => "lazy";
+has status_mode     => is => "lazy";
+has status_flash_id => is => "rw", clearer => 1, predicate => 1;
 
 # we need to BUILD the actions and uimgr
 has "+actions"  => is => "rw", writer => "_set_actions", required => 0;
@@ -222,11 +223,24 @@ sub set_status {
     $b->push(0, $msg);
 }
 
+sub _status_flash_clear :Signal(actions.pre-activate) {
+    my ($self) = @_;
+
+    if ($self->has_status_flash_id) {
+        Glib::Source->remove($self->status_flash_id);
+        $self->clear_status_flash_id;
+    }
+    $self->status_bar->remove_all(1);
+}
+
 sub status_flash {
     my ($self, $msg) = @_;
-    my $b = $self->status_bar;
-    my $id = $b->push(1, $msg);
-    Glib::Timeout->add(4000, sub { $b->remove(1, $id) });
+    $self->status_bar->push(1, $msg);
+    $self->status_flash_id(
+        Glib::Timeout->add(4000, $self->weak_closure(sub {
+            $_[0]->_status_flash_clear;
+            return;
+        })));
 }
 
 sub silly {
