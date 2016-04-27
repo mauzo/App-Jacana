@@ -175,4 +175,4 @@ sub play_music {
     $id;
 }
 
-Moose::Util::find_meta(__PACKAGE__)->make_immutable;
+1;

@@ -119,4 +119,4 @@ sub find_time {
     ($self, -$dur);
 }
 
-Moose::Util::find_meta(__PACKAGE__)->make_immutable;
+1;

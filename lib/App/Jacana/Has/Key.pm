@@ -1,7 +1,6 @@
 package App::Jacana::Has::Key;
 
-use 5.012;
-use Moose::Role;
+use App::Jacana::Moose -role;
 use MooseX::Copiable;
 
 sub _mkfifths { map "$_$_[0]", qw/f c g d a e b/ }
@@ -12,19 +11,13 @@ my %Mode = qw/ major 8 minor 11 /;
 
 has key     => (
     is      => "rw",
-    traits      => [qw/Copiable/],
-#    isa     => sub {
-#        $_[0] =~ /^0|-?[1-7]$/
-#            or die "Bad key signature [$_[0]]";
-#    },
+    traits  => [qw/Copiable/],
+    isa     => Key,
 );
 has mode    => (
     is      => "rw",
-    traits      => [qw/Copiable/],
-#    isa     => sub {
-#        exists $Mode{$_[0]}
-#            or die "Bad key signature mode [$_[0]]";
-#    },
+    traits  => [qw/Copiable/],
+    isa     => Enum[keys %Mode],
 );
 
 sub staff_line { 0 }

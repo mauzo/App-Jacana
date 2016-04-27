@@ -40,4 +40,4 @@ sub draw {
     return 1;
 }
 
-Moose::Util::find_meta(__PACKAGE__)->make_immutable;
+1;

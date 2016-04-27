@@ -3,8 +3,6 @@ package App::Jacana::Cursor;
 use utf8;
 
 use App::Jacana::Moose;
-use MooseX::MethodAttributes;
-use MooseX::AttributeShortcuts;
 use MooseX::Gtk2;
 
 use Try::Tiny;
@@ -18,19 +16,19 @@ with qw/
 my @Mutable = qw/is rw lazy 1 builder 1 clearer 1 trigger 1/;
 
 has view        => is => "ro", weak_ref => 1;
-has movement    => @Mutable;#, isa => InstanceOf[My "Document::Movement"];
-has voice       => @Mutable;#, isa => Music "Voice";
-has position    => @Mutable;#, isa => Music;
+has movement    => @Mutable, isa => My "Document::Movement";
+has voice       => @Mutable, isa => Music "Voice";
+has position    => @Mutable, isa => Music;
 
 has mode        => (
     is          => "rw",
-    #isa         => Enum[qw/insert edit/],
+    isa         => Enum[qw/insert edit/],
     default     => "insert",
     gtk_prop    => "view.status_mode.label",
     trigger     => 1,
 );
 
-has midi_chan   => is => "lazy";
+has midi_chan   => is => "lazy", predicate => 1;
 
 has "+length"   => (
     traits      => [qw/Shortcuts Gtk2/],
@@ -61,9 +59,9 @@ sub _trigger_position {
     $self->mode eq "edit" and $note->is_music_start
         and return $self->position($note->next);
 
-    my %isa     = map +($_, $note->isa("App::Jacana::Music::$_")),
+    my %isa     = map +($_, Music($_)->check($note)),
         qw/ Note Note::Grace /;
-    my %does    = map +($_, $note->DOES("App::Jacana::Has::$_")),
+    my %does    = map +($_, Has($_)->check($note)),
         qw/Pitch Length Key Dialog/;
     my %act     = map +($_, $view->get_action($_)), qw/
         AddDot NoteChroma Sharpen Flatten OctaveUp OctaveDown
@@ -120,6 +118,7 @@ sub BUILD {
 
 sub DEMOLISH {
     my ($self) = @_;
+    $self->has_midi_chan or return;
     $self->view->midi->free_chan($self->midi_chan);
 }
 
@@ -169,7 +168,7 @@ sub _reset_chroma :Action(view.NoteChroma) {
 sub _change_octave {
     my ($self, $by) = @_;
     my $pos = $self->position;
-    $pos->DOES("App::Jacana::Has::Pitch") or return;
+    Has("Pitch")->check($pos)   or return;
     $pos->octave($pos->octave + $by);
     $self->_play_note;
     $self->view->refresh;
@@ -208,7 +207,7 @@ sub goto_position :Action(view.GotoPosition) {
         title   => "Goto…",
         label   => "Goto position (qhdsq):",
         value   => $self->position->get_time,
-    );
+    ) or return;
     my ($pos) = $self->voice->find_time($dlg->value);
     warn "GOTO POSITION [$pos]";
     $self->position($pos);
@@ -246,13 +245,13 @@ sub name_mvmt :Action(view.NameMovement) {
 sub insert_mvmt :Action(view.InsertMovement) {
     my ($self) = @_;
     
-    my $m = App::Jacana::Document::Movement->new(name => "");
+    my $m = My("Document::Movement")->new(name => "");
     my $v = $self->movement->next_voice;
     while (1) {
         warn "OLD VOICE [$v]";
-        my $n = App::Jacana::Music::Voice->new(name => $v->name);
+        my $n = Music("Voice")->new(name => $v->name);
         my $c = $v->find_next_with("Clef");
-        $n->insert(App::Jacana::Music::Clef->new(clef => $c->clef));
+        $n->insert(Music("Clef")->new(clef => $c->clef));
         $m->prev_voice->insert_voice($n);
         $v->is_voice_end and last;
         $v = $v->next_voice;
@@ -271,7 +270,7 @@ sub delete_movement :Action(view.DeleteMovement) {
     my $m = $self->movement->remove_movement;
     $m->is_movement_start and $m = $m->next_movement;
     $m->is_movement_start and $m = $m->insert_movement(
-        App::Jacana::Music::Movement->new(name => ""));
+        Music("Movement")->new(name => ""));
     
     $self->movement($m);
     my $v = $self->view;
@@ -295,7 +294,7 @@ sub down_staff :Action(view.Down) { $_[0]->up_down_staff("next_voice") }
 sub insert_staff :Action(view.InsertStaff) {
     my ($self) = @_;
     
-    my $v = App::Jacana::Music::Voice->new(name => "voice");
+    my $v = Music("Voice")->new(name => "voice");
     $self->voice($self->voice->insert_voice($v));
     $self->view->scroll_to_cursor;
     $self->view->refresh;
@@ -310,7 +309,7 @@ sub delete_staff :Action(view.DeleteStaff) {
     if ($v->is_voice_end) {
         $n = $n->next_voice;
         $n == $v and $n = $n->insert_voice(
-            App::Jacana::Music::Voice->new(name => "voice"));
+            Music("Voice")->new(name => "voice"));
     }
 
     $self->view->stop_playing;
@@ -358,7 +357,7 @@ sub _play_note {
     my ($self) = @_;
     
     my $pos = $self->position;
-    $pos->DOES("App::Jacana::Has::Pitch") or return;
+    Has("Pitch")->check($pos)   or return;
 
     my $midi    = $self->view->midi;
     my $prg     = $pos->ambient->find_role("MidiInstrument");
@@ -373,21 +372,19 @@ sub _adjust_chroma {
 
     my $pos     = $self->position;
     my $view    = $self->view;
-
-    if ($pos->isa("App::Jacana::Music::KeySig")) {
-        try     { $pos->key($pos->key + $by) }
-        catch   { $view->silly };
-        $view->refresh;
+    
+    my $meth    =
+        Has("Key")->check($pos)     ? "key"     :
+        Has("Pitch")->check($pos)   ? "chroma"  :
         return;
-    }
 
-    $pos->DOES("App::Jacana::Has::Pitch") or return;
-    my $new = $pos->chroma + $by;
-    abs($new) > 2 and return $view->silly;
-    $pos->chroma($new);
-    $self->_play_note;
+    try     { $pos->$meth($pos->$meth + $by); 1 }
+    catch   { $view->silly; 0 }
+        or return;
+
+    Has("Pitch")->check($pos) and $self->_play_note;
     $self->position($pos);
-    $self->view->refresh;
+    $view->refresh;
 }
 
 sub sharpen :Action(view.Sharpen) { $_[0]->_adjust_chroma(+1) }
@@ -397,8 +394,8 @@ sub change_pitch {
     my ($self, $action) = @_;
 
     my $pos = $self->position;
-    my $Dp  = $pos->DOES("App::Jacana::Has::Pitch");
-    my $Ik  = $pos->isa("App::Jacana::Music::KeySig");
+    my $Dp  = Has("Pitch")->check($pos);
+    my $Ik  = Has("Key")->check($pos);
 
     $Dp || $Ik || $self->mode eq "insert" or return;
 
@@ -421,7 +418,7 @@ sub change_pitch {
     $pitch->chroma($key->chroma($note));
 
     if ($self->mode eq "insert") {
-        my $new = App::Jacana::Music::Note->new(copy_from => $self);
+        my $new = Music("Note")->new(copy_from => $self);
         $pos->insert($new);
         $pos = $new;
     }
@@ -437,7 +434,7 @@ sub _add_dot :Action(view.AddDot) {
     my ($self) = @_;
 
     my $note = $self->position;
-    $note->DOES("App::Jacana::Has::Length") or return;
+    Has("Length")->check($note)     or return;
 
     my $view = $self->view;
 
@@ -454,7 +451,7 @@ sub _toggle_tie :Action(view.Tie) {
     my ($self, $act) = @_;
 
     my $note = $self->position;
-    $note->isa("App::Jacana::Music::Note") or return;
+    Music("Note")->check($note)     or return;
     $note->tie($act->get_active);
     $self->view->refresh;
 }
@@ -465,11 +462,11 @@ sub _toggle_grace :Action(view.Grace) {
     my $note = $self->position;
 
     if ($act->get_active) {
-        $note->isa("App::Jacana::Music::Note") or return;
+        Music("Note")->check($note)     or return;
         bless $note, "App::Jacana::Music::Note::Grace"; # XXX
     }
     else {
-        $note->isa("App::Jacana::Music::Note::Grace") or return;
+        Music("Note::Grace")->check($note)  or return;
         bless $note, "App::Jacana::Music::Note"; # XXX
     }
 
@@ -480,7 +477,7 @@ sub _insert_rest :Action(view.Rest) {
     my ($self) = @_;
     $self->mode eq "insert" or return;
     $self->position($self->position->insert(
-        App::Jacana::Music::Rest->new(copy_from => $self)));
+        Music("Rest")->new(copy_from => $self)));
     $self->view->refresh;
 }
 
@@ -488,12 +485,12 @@ sub _insert_multirest :Action(view.MultiRest) {
     my ($self) = @_;
     $self->mode eq "insert" or return;
     my $pos = $self->position;
-    if ($pos->isa("App::Jacana::Music::MultiRest")) {
+    if (Music("MultiRest")->check($pos)) {
         $pos->bars($pos->bars + 1);
     }
     else {
         $self->position($pos->insert(
-            App::Jacana::Music::MultiRest->new(bars => 1)));
+            Music("MultiRest")->new(bars => 1)));
     }
     $self->view->refresh;
 }
@@ -501,7 +498,7 @@ sub _insert_multirest :Action(view.MultiRest) {
 sub _do_marks {
     my ($self, $type, @args) = @_;
     my $pos = $self->position;
-    $pos->DOES("App::Jacana::Has::Marks") or return;
+    Has("Marks")->check($pos)       or return;
     @args ? $pos->add_mark($type, @args) : $pos->delete_marks($type);
     $self->view->refresh;
 }
@@ -557,11 +554,11 @@ sub _do_clef {
     my $pos = $self->position;
     if ($self->mode eq "insert") {
         $self->position($pos->insert(
-            App::Jacana::Music::Clef->new(clef => $type)));
+            Music("Clef")->new(clef => $type)));
         $pos->ambient->owner->clear_ambient;
     }
     else {
-        $pos->isa("App::Jacana::Music::Clef") or return;
+        Music("Clef")->check($pos)  or return;
         $pos->clef($type);
     }
     $self->view->refresh;
@@ -578,7 +575,7 @@ sub _insert_with_dialog {
     my ($self, $type, @args) = @_;
     $self->mode eq "insert" or return;
 
-    my $class = "App::Jacana::Music::$type";
+    my $class = Music($type)->class;
     $class->DOES("App::Jacana::Has::Dialog") or die "$class has no dialog";
     my $dlg = $self->view->run_dialog($class->dialog, $class, @args)
         or return;
@@ -604,10 +601,10 @@ sub _properties :Action(view.Properties) {
     my ($self) = @_;
 
     my $pos = $self->position;
-    $pos->DOES("App::Jacana::Has::Dialog") or return;
+    Has("Dialog")->check($pos)  or return;
 
     $pos->run_dialog($self->view);
     $self->view->refresh;
 }
 
-Moose::Util::find_meta(__PACKAGE__)->make_immutable;
+1;

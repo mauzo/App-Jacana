@@ -18,12 +18,10 @@ sub _gtk_prop_set_sub {
     sub {
         my ($obj, $targs, $path, $prop, $value) = @_;
 
-        my $targ = $$targs{$obj};
-        unless ($targ) {
-            $targ = $$targs{$obj} = $obj->_resolve_object_path($path)
-                or Carp::croak("Can't resolve '$path' from $obj");
-            Scalar::Util::weaken $$targs{$obj};
-        }
+        my $targ = $$targs{$obj} or do {
+            Carp::carp("Object '$path' from $obj has disappeared");
+            return;
+        };
 
         warn "M GTK2: SET [$obj] = [$value] -> [$targ][$prop]";
         $value eq $targ->get_property($prop) and return;

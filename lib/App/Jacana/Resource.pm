@@ -55,4 +55,4 @@ sub cairo_feta_font {
     Cairo::FtFontFace->create($font);
 }
 
-Moose::Util::find_meta(__PACKAGE__)->make_immutable;
+1;

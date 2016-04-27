@@ -1,19 +1,13 @@
 package App::Jacana::Has::Length;
 
-use Moose::Role;
+use App::Jacana::Moose -role;
 use MooseX::Copiable;
-use Moose::Util::TypeConstraints;
-
-subtype "NoteLength",
-    as "Int",
-    where { $_ >= 0 && $_ <= 8 },
-    message { "Valid note lengths are 0-8, not '$_'" };
 
 # length is a number, 0-8, 0=breve, 1=semibreve, 2=minim, &c.
 has length  => (
     is      => "rw", 
     traits  => [qw/Copiable/],
-    #isa         => "NoteLength",
+    isa     => NoteLength,
 );
 has dots    => (
     is      => "rw", 

@@ -28,4 +28,4 @@ around draw => sub {
     $self->$super($c, @args) * 0.5;
 };
 
-Moose::Util::find_meta(__PACKAGE__)->make_immutable;
+1;

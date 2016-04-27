@@ -4,7 +4,6 @@ use 5.012;
 use warnings;
 
 use App::Jacana::Moose;
-use MooseX::Types::Moose qw/:all/;
 
 use File::Slurp     qw/read_file write_file/;
 use List::Util      qw/first/;
@@ -19,7 +18,7 @@ with qw/App::Jacana::Has::Movements/;
 
 has filename => (
     is          => "rw",
-    isa         => Maybe[Str],
+    isa         => Str,
     predicate   => 1,
     clearer     => 1,
 );
@@ -101,4 +100,4 @@ sub parse_music {
     $text and die "Unparsable music [$text]";
 }
 
-Moose::Util::find_meta(__PACKAGE__)->make_immutable;
+1;

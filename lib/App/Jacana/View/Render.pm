@@ -333,4 +333,4 @@ sub _show_barline {
     return 3;
 }
 
-Moose::Util::find_meta(__PACKAGE__)->make_immutable;
+1;

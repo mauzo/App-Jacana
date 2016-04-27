@@ -81,4 +81,4 @@ sub find_next_with {
     $pos;
 }
 
-Moose::Util::find_meta(__PACKAGE__)->make_immutable;
+1;

@@ -33,7 +33,7 @@ package App::Jacana::Dialog::TimeSig::Partial {
         gtk_prop    => "dialog._pdots.current-value",
     );
 
-    Moose::Util::find_meta(__PACKAGE__)->make_immutable;
+    1;
 }
 
 has _beats      => is => "lazy";
@@ -143,4 +143,4 @@ sub _build_content_area {
     $vb->pack_start($par, 1, 0, 0);
 }
 
-Moose::Util::find_meta(__PACKAGE__)->make_immutable;
+1;

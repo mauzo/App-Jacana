@@ -33,12 +33,12 @@ sub lily_rx {
 sub from_lily {
     my ($self, %c) = @_;
     if ($c{plen}) {
-        $c{partial} = {
+        $c{partial} = App::Jacana::Util::Length->new({
             App::Jacana::Has::Length->_length_from_lily(
                 length  => delete $c{plen},
                 dots    => delete $c{pdots},
             ),
-        };
+        });
     }
     $self->new(\%c);
 }
@@ -70,4 +70,4 @@ sub draw {
     return max $nwd, $dwd;
 }
 
-Moose::Util::find_meta(__PACKAGE__)->make_immutable;
+1;

@@ -23,4 +23,4 @@ sub draw {
     $self->_draw_barline($c, $self->barline);
 }
 
-Moose::Util::find_meta(__PACKAGE__)->make_immutable;
+1;

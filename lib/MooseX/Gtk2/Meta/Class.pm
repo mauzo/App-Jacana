@@ -12,10 +12,10 @@ sub _gtk_signal_connect {
     debug "CONNECTING [$sig] ON [$on] TO [$obj]->[$method]";
     Scalar::Util::weaken $on;
 
-    my $id;
-    $id = $on->signal_connect($sig,
+    $on->signal_connect($sig,
         $obj->weak_method($method, sub { 
-            $on->signal_handler_disconnect($id);
+            warn "DISCONNECTING [$sig] ON [$on] FROM [$_[0]]";
+            $on->signal_handlers_disconnect_by_func($_[0]);
         }));
 }
 
@@ -118,24 +118,26 @@ sub _gtk_setup_prop {
     my ($targs, $path, $prop)   = $att->_gtk_prop_args;
 
     my $class = Scalar::Util::blessed $obj;
-    debug "GTK2: PROP BUILD CALLED FOR [$class][$name] -> [$path][$prop]";
+    my $sobj  = "$obj";
+    debug "GTK2: PROP BUILD CALLED FOR [$sobj][$name] -> [$path][$prop]";
 
     my $targ = $$targs{$obj} = $obj->_resolve_object_path($path);
     Scalar::Util::weaken $$targs{$obj};
 
-    my $id;
-    $id = $targ->signal_connect("notify::$prop", 
+    $targ->signal_connect("notify::$prop", 
         $obj->weak_closure(sub {
             my ($self) = @_;
-            debug "GTK2 GET PROP [$prop] FOR [$name]";
+            debug "GTK2 GET PROP [$prop] FOR [$sobj][$name]";
             my $value = $targ->get_property($prop);
             $value eq $self->$reader and return;
             $self->$writer($value);
-        }, sub {
-           $targ->signal_handler_disconnect($id);
+        }, my $dtor = sub {
+            warn "DISCONNECT PROP [$prop] FOR [$sobj][$name]";
+            $targ->signal_handlers_disconnect_by_func($_[0]);
         }));
-    debug "GTK2 SET PROP [$prop] FOR [$name]";
+    debug "GTK2 SET PROP [$prop] FOR [$sobj][$name]";
     $targ->set_property($prop, $obj->$reader);
+    Scalar::Util::weaken($targ);
 }
 
 1;

@@ -67,4 +67,4 @@ sub move_voice_down {
     @$vs[$n, $n + 1] = @$vs[$n + 1, $n];
 }
 
-Moose::Util::find_meta(__PACKAGE__)->make_immutable;
+1;

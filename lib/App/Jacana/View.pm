@@ -55,7 +55,7 @@ with qw/App::Jacana::View::Region/;
 sub _build_cursor { 
     App::Jacana::Cursor->new(
         view        => $_[0],
-        position    => $_[0]->doc->next_movement->next_voice,
+        #position    => $_[0]->doc->next_movement->next_voice,
         note        => "c", 
         octave      => 1
     );
@@ -494,4 +494,4 @@ sub run_dialog {
     $dlg;
 }
 
-Moose::Util::find_meta(__PACKAGE__)->make_immutable;
+1;

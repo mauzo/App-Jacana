@@ -36,4 +36,4 @@ sub stop_note {
     $self->on_stop->($self->item);
 }
 
-Moose::Util::find_meta(__PACKAGE__)->make_immutable;
+1;

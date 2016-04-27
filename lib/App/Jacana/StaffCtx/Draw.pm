@@ -70,4 +70,4 @@ sub start_tie {
     $self->tie_from($self->item);
 }
 
-Moose::Util::find_meta(__PACKAGE__)->make_immutable;
+1;

@@ -94,4 +94,10 @@ around _inline_params => sub {
     );
 };
 
+before make_immutable => sub {
+    my ($self) = @_;
+    my $name = $self->name;
+    warn "MAKE IMMUTABLE FOR [$name]";
+};
+
 1;
