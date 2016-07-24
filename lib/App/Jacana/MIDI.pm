@@ -17,7 +17,7 @@ with qw/ MooseX::Role::WeakClosure /;
 
 has settings    => is => "lazy";
 has synth       => is => "lazy";
-has driver      => is => "lazy";
+has driver      => is => "ro", builder => 1;
 has sfont       => is => "lazy";
 has active      => is => "ro", default => sub { +{} };
 has in_use      => is => "ro", default => sub { +[] };
@@ -60,6 +60,7 @@ sub alloc_chan {
     my ($s) = @_;
     my $used = $s->in_use;
     my $c = first { !$$used[$_] } 0..16;
+    defined $c or return;
     $$used[$c] = 1;
     $c;
 }
@@ -73,14 +74,6 @@ sub free_chan {
 sub set_program {
     my ($s, $c, $v) = @_;
     $s->synth->program_select($c, $s->sfont, 0, $v);
-}
-
-sub BUILD {
-    my ($self) = @_;
-
-    $self->settings;
-    $self->synth;
-    $self->driver;
 }
 
 sub DEMOLISH {
@@ -110,7 +103,7 @@ sub note_on {
     my $pitch;
     if ($note->DOES("App::Jacana::Has::Pitch")) {
         $pitch = $note->pitch;
-        eval { $self->synth->noteon($chan, $pitch, 85) };
+        eval { $self->synth->noteon($chan, $pitch, 100) };
     }
     return $pitch;
 }
