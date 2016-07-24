@@ -18,7 +18,7 @@ with qw/
 /;
 
 has "+partial" => (
-    isa         => "App::Jacana::Util::Length",
+    isa         => My "Util::Length",
     coerce      => 1,
 );
 
