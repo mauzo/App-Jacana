@@ -10,7 +10,7 @@ use MooseX::Gtk2;
 use App::Jacana::Gtk2::RadioGroup;
 use App::Jacana::View;
 
-use XML::LibXML;
+use Hash::Util::FieldHash ();
 
 with qw/
     App::Jacana::Has::App
@@ -18,39 +18,125 @@ with qw/
 /;
 
 has doc         => is => "ro";
-has view        => is => "lazy", clearer => 1;
+has views       => is => "lazy";
 
 has frame           => is => "lazy";
+has notebook        => is => "lazy";
 has status_bar      => is => "lazy";
 has status_mode     => is => "lazy";
 has status_flash_id => is => "rw", clearer => 1, predicate => 1;
 
-# we need to BUILD the actions and uimgr
-has "+actions"  => is => "rw", writer => "_set_actions", required => 0;
-has uimgr       => is => "rwp";
-
-sub BUILD {
-    my ($self, @args) = @_;
-
-    my ($xml, $actions, $radios) = $self->_parse_actions_xml();
-    $self->_set_actions($self->_build_actions($actions, $radios));
-    $self->_set_uimgr($self->_build_uimgr($xml));
-}
+has "+uimgr"        => builder => 1;
 
 sub DEMOLISH {
     my ($self) = @_;
-    $self->clear_view;
+    %{$self->views} = ();
 }
 
-# view
+sub actions_name { "app" }
 
-sub _build_view {
-    my ($self) = @_;
-    App::Jacana::View->new(
+push @Data::Dump::FILTERS, sub {
+    my ($ctx, $obj) = @_;
+    $ctx->object_isa(__PACKAGE__) and
+        return { dump => __PACKAGE__ };
+    return;
+};
+
+# notebook
+
+sub _build_notebook { 
+    my $nb = Gtk2::Notebook->new;
+    $nb->set_scrollable(1);
+    $nb;
+}
+
+# views
+
+sub _build_views { 
+    Hash::Util::FieldHash::fieldhash my %h;
+    \%h;
+}
+
+sub add_tab {
+    my ($self, $doc) = @_;
+
+    my $nb = $self->notebook;
+    my $vw = App::Jacana::View->new(
         copy_from   => $self,
         window      => $self,
-        doc         => $self->doc,
+        doc         => $doc,
     );
+    my $kd = $vw->scrolled;
+    my $nm = $doc->filename;
+    my $lb = Gtk2::Label->new;
+
+    if ($nm) {
+        $lb->set_text(File::Basename::basename $nm);
+    }
+    else {
+        $lb->set_markup("<i>???</i>");
+    }
+
+    $self->views->{$kd} = $vw;
+    $kd->show_all;
+    my $ix = $nb->append_page($kd, $lb);
+    $nb->set_current_page($ix);
+
+    return $vw;
+}
+
+sub remove_tab {
+    my ($self, $tab) = @_;
+    my $kid = $tab->scrolled;
+    my $nb  = $self->notebook;
+    my $ix  = $nb->page_num($kid);
+    $ix < 0 and return;
+    $nb->remove_page($ix);
+}
+
+sub current_tab {
+    my ($self) = @_;
+
+    my $nb = $self->notebook;
+    my $ix = $nb->get_current_page;
+    $ix < 0 and return;
+    my $kd = $nb->get_nth_page($ix);
+
+    return $self->views->{$kd};
+}
+
+sub _switch_tab :Signal(notebook.switch-page) {
+    my ($self, $nb, $ptr, $ix) = @_;
+
+    if (my $old = $self->current_tab) {
+        warn "SWITCH AWAY FROM [$old]";
+        $old->remove_ui;
+    }
+
+    my $kid = $nb->get_nth_page($ix);
+    my $tab = $self->views->{$kid};
+    warn "SWITCH TAB TO [$tab] [$ix] [$kid]";
+    $tab->insert_ui;
+}
+
+sub _add_tab :Signal(notebook.page-added) {
+    my ($self, $nb, $kid, $ix) = @_;
+    warn "TAB ADDED [$kid] [$ix]";
+    $nb->set_tab_reorderable($kid, 1);
+}
+
+sub _remove_tab :Signal(notebook.page-removed) {
+    my ($self, $nb, $kid, $ix) = @_;
+    my $tab = $self->views->{$kid};
+    $tab->remove_ui;
+    warn "TAB REMOVED [$ix] [$kid] [$tab]";
+    delete $self->views->{$kid};
+}
+
+sub _reorder_tab :Signal(notebook.page-reordered) {
+    my ($self, $nb, $kid, $ix) = @_;
+    my $cur = $nb->get_current_page;
+    warn "TAB REORDERED [$kid] [$cur]->[$ix]";
 }
 
 # frame
@@ -64,10 +150,11 @@ sub _build_frame {
     $w->set_default_size(800, 600);
 
     my $ui = $self->uimgr;
+    $self->insert_ui;
     $ui->ensure_update;
     $w->add_accel_group($ui->get_accel_group);
 
-    my $vb = Gtk2::VBox->new;
+    my $vb = Gtk2::VBox->new(0, 0);
     $vb->pack_start($_, 0, 0, 0) for $ui->get_toplevels("menubar");
     for my $tb ($ui->get_toplevels("toolbar")) {
         $tb->set_style("icons");
@@ -75,7 +162,7 @@ sub _build_frame {
         $vb->pack_start($tb, 0, 0, 0);
     }
 
-    $vb->pack_start($self->view->scrolled, 1, 1, 0);
+    $vb->pack_start($self->notebook, 1, 1, 0);
 
     $vb->pack_start($self->status_bar, 0, 0, 0);
 
@@ -85,10 +172,13 @@ sub _build_frame {
 
 sub reset_title {
     my ($self) = @_;
+
+    my $vw = $self->current_tab or return;
+
     $self->frame->set_title(
         sprintf "%s: %s: Jacana",
-            $self->view->cursor->movement->name,
-            $self->doc->filename,
+            $vw->cursor->movement->name,
+            $vw->doc->filename,
     );
 }
 
@@ -102,96 +192,38 @@ sub _destroy :Signal(frame.destroy) {
     Gtk2->main_quit;
 }
 
-# actions
+sub _open_doc {
+    my ($self, $title) = @_;
 
-sub _parse_actions_xml {
+    my $dlg = Gtk2::FileChooserDialog->new(
+        "$title…", $self->frame, "open",
+        Cancel => "cancel", OK => "ok",
+    );
+    $dlg->run eq "ok" or $dlg->destroy, return;
+    my $doc = App::Jacana::Document->open($dlg->get_filename);
+    $dlg->destroy;
+
+    $doc;
+}
+
+sub open :Action(Open) {
     my ($self) = @_;
 
-    my $xml = $self->app->resource->find("actions.xml");
-    my $XML = XML::LibXML->load_xml(location => $xml);
-
-    my (%radios, %hasr);
-    for my $r ($XML->getElementsByTagName('radiogroup')) {
-        my $grp = $$r{action};
-        $hasr{$grp} = 1;
-        my $p = $r->parentNode;
-        foreach my $i ($r->childNodes) {
-            if ($i->isa('XML::LibXML::Element') &&
-                $i->nodeName ne "separator"
-            ) {
-                push @{$radios{$grp}}, {%$i};
-                $hasr{$$i{action}} = 1;
-            }
-            $r->removeChild($i);
-            $p->insertBefore($i, $r);
-        }
-        $p->removeChild($r);
-    }
-
-    my %actions;
-    for my $e ($XML->findnodes(q!//*[@action]!)) {
-        my $act = $$e{action};
-        $hasr{$act} and next;
-        my $h = $actions{$act} ||= {};
-        for (qw/label toggle stock_id icon_name/) {
-            exists $$e{$_} and $$h{$_} = $$e{$_};
-        }
-    }
-
-    return ($XML, \%actions, \%radios);
+    my $doc = $self->_open_doc("Open") or return;
+    $self->add_tab($doc);
 }
 
-sub _build_actions {
-    my ($self, $actions, $radios) = @_;
-    
-    my $grp = Gtk2::ActionGroup->new("edit");
-    for my $nm (keys %$actions) {
-        my $def     = $$actions{$nm};
-        my $class   = delete $$def{toggle} 
-            ? "Gtk2::ToggleAction" : "Gtk2::Action";
-        my $label = $$def{label} // 
-            $nm =~ s/([a-z])([A-Z])/$1 \L$2/gr;
-        my $act     = $class->new(
-            name        => $nm,
-            label       => $label,
-        );
-        $$def{icon_name} and $act->set_icon_name($$def{icon_name});
-        $$def{stock_id} and $act->set_stock_id($$def{stock_id});
-        $grp->add_action_with_accel($act, "");
-    }
+sub file_new :Action(New) {
+    my ($self) = @_;
 
-    for my $gnm (keys %$radios) {
-        my $gact = App::Jacana::Gtk2::RadioGroup->new(
-            name => $gnm,
-        );
-        $grp->add_action_with_accel($gact, "");
-        for my $def (@{$$radios{$gnm}}) {
-            my $label = $$def{label} // 
-                $$def{action} =~ s/([a-z])([A-Z])/$1 \L$2/gr;
-            my $act = App::Jacana::Gtk2::RadioMember->new(
-                name        => $$def{action},
-                label       => $label,
-                value       => $$def{value},
-            );
-            $gact->add_member($act);
-            $$def{icon_name} and $act->set_icon_name($$def{icon_name});
-            $grp->add_action_with_accel($act, "");
-        }
-    }
-
-    $grp;
+    my $doc = App::Jacana::Document->new;
+    $doc->empty_document;
+    $self->add_tab($doc);
 }
 
-sub _build_uimgr {
-    my ($self, $xml) = @_;
+# actions
 
-    my $ui = Gtk2::UIManager->new;
-    # stringify the docElem rather than the whole doc because otherwise
-    # Gtk chokes on the <?xml?>. <sigh>
-    $ui->add_ui_from_string($xml->documentElement->toString);
-    $ui->insert_action_group($self->actions, 0);
-    $ui;
-}
+sub _build_uimgr { Gtk2::UIManager->new }
 
 # status bar
 

@@ -28,7 +28,11 @@ has mode        => (
     trigger     => 1,
 );
 
-has midi_chan   => is => "lazy", predicate => 1;
+has midi_chan   => (
+    is          => "lazy", 
+    predicate   => 1,
+    traits      => ["IgnoreUndef"],
+);
 
 has "+length"   => (
     traits      => [qw/Shortcuts Gtk2/],
@@ -359,12 +363,16 @@ sub _play_note {
     my $pos = $self->position;
     Has("Pitch")->check($pos)   or return;
 
-    my $midi    = $self->view->midi;
-    my $prg     = $pos->ambient->find_role("MidiInstrument");
-    my $chan    = $self->midi_chan;
+    try {
+        my $chan    = $self->midi_chan;
 
-    $midi->set_program($chan, $prg->program);
-    $midi->play_note($chan, $pos->pitch, 8);
+        my $midi    = $self->view->midi;
+        my $prg     = $pos->ambient->find_role("MidiInstrument");
+
+        $midi->set_program($chan, $prg->program);
+        $midi->play_note($chan, $pos->pitch, 8);
+    }
+    catch { $self->view->status_flash($_) };
 }
 
 sub _adjust_chroma {

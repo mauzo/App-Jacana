@@ -51,17 +51,17 @@ sub show_lines {
         $_[0] && $_[0]->bottom > $to;
     });
     $to = min $to, $bottom;
-    warn "SHOWING LINES FROM [$from] TO [$to]";
+    #warn "SHOWING LINES FROM [$from] TO [$to]";
 
     my $lines   = $self->lines;
     @$lines or return;
-    warn "CURRENT LINES: [" . join(", ", map $_->top, @$lines) . "]";
+    #warn "CURRENT LINES: [" . join(", ", map $_->top, @$lines) . "]";
 
     my ($s, $e) = binsearch_range 
         { $a <=> (ref $b ? $b->top : $b) } 
         $from, $to, @$lines;
     $s and $s -= 1;
-    warn "SHOWING LINES [$s]-[$e]";
+    #warn "SHOWING LINES [$s]-[$e]";
 
     for my $l (@$lines[$s..$e]) {
         $c->set_source_surface($l->surface, 0, $l->top);
@@ -74,7 +74,7 @@ sub show_lines {
 sub render_upto {
     my ($self, $upto) = @_;
 
-    warn "RENDERING UP TO [$upto]";
+    #warn "RENDERING UP TO [$upto]";
     my $lines   = $self->lines;
     my $scale   = $self->view->zoom;
 
@@ -103,9 +103,9 @@ sub render_upto {
     }
 
     until (!@$start || @$lines && $upto->($$lines[-1])) {
-        warn "RENDERING LINE AT [$top]:\n" .
-            join "\n", map "  $_",
-            map $_->item, @$start;
+        #warn "RENDERING LINE AT [$top]:\n" .
+        #    join "\n", map "  $_",
+        #    map $_->item, @$start;
         my $l = My("View::System")->new(
             top     => $top,
             width   => $self->width,

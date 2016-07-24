@@ -30,6 +30,8 @@ has dirty => (
 
 sub BUILD { }
 
+sub DEMOLISH { warn "DEMOLISH DOCUMENT [$_[0]]" }
+
 sub empty_document {
     my ($self) = @_;
     my $m = $self->find_movement("");

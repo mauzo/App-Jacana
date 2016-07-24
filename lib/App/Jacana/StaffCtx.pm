@@ -45,7 +45,7 @@ sub skip {
 sub next {
     my ($self) = @_;
 
-    my $note = $self->item;
+    my $note = $self->item or return;
     if ($note->is_music_end) {
         $self->clear_item;
         $self->when(-1);

@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui>
   <menubar>
-    <menu action="FileMenu" label="File">
-      <menuitem action="New"/>
-      <menuitem action="Open" label="Open…" stock_id="gtk-open"/>
-      <menuitem action="Import" label="Import…"/>
-      <menuitem action="Save" stock_id="gtk-save"/>
-      <menuitem action="SaveAs" label="Save as…" stock_id="gtk-save-as"/>
-      <menuitem action="ToLily" label="Show Lilypond source" 
-        icon_name="icon-lily"/>
-      <menuitem action="Quit"/>
+    <menu name="File" action="FileMenu" label="File">
+      <placeholder name="DocFileItems">
+        <menuitem action="Import" label="Import…"/>
+        <menuitem action="Save" stock_id="gtk-save"/>
+        <menuitem action="SaveAs" label="Save as…" stock_id="gtk-save-as"/>
+        <menuitem action="Close" stock_id="gtk-close"/>
+        <menuitem action="ToLily" label="Show Lilypond source" 
+          icon_name="icon-lily"/>
+        <menuitem action="Close" stock_id="gtk-close"/>
+      </placeholder>
     </menu>
     <menu action="EditMenu" label="Edit">
       <menuitem action="InsertMode"/>

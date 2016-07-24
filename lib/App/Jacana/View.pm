@@ -15,6 +15,7 @@ use List::Util              qw/min max first/;
 use Module::Runtime         qw/use_module/;
 use POSIX                   qw/ceil/;
 use Scalar::Util            qw/blessed/;
+use Try::Tiny;
 
 use namespace::autoclean;
 
@@ -52,6 +53,8 @@ has _playing    => (
 # Must come after 'cursor' attribute
 with qw/App::Jacana::View::Region/;
 
+sub actions_name { "doc" }
+
 sub _build_cursor { 
     App::Jacana::Cursor->new(
         view        => $_[0],
@@ -80,7 +83,6 @@ sub clear_playing {
     my ($self) = @_;
     @{$self->_playing} = ();
     $self->set_status("");
-    $self->redraw;
 }
 
 sub BUILD {
@@ -90,7 +92,11 @@ sub BUILD {
 
 sub DEMOLISH {
     my ($self) = @_;
+    warn "DEMOLISH VIEW [$self]: STOP MIDI";
+    $self->_stop_playing;
+    warn "DEMOLISH VIEW [$self]: REMOVE CURSOR";
     $self->clear_cursor;
+    warn "FINISHED DEMOLISHING [$self]";
 }
 
 sub save_as :Action(SaveAs) {
@@ -120,41 +126,6 @@ sub save :Action(Save) {
     $self->status_flash("Saved '$file'.");
 }
 
-sub _open_doc {
-    my ($self, $title) = @_;
-
-    my $dlg = Gtk2::FileChooserDialog->new(
-        "$title…", $self->_window->frame, "open",
-        Cancel => "cancel", OK => "ok",
-    );
-    $dlg->run eq "ok" or $dlg->destroy, return;
-    my $doc = App::Jacana::Document->open($dlg->get_filename);
-    $dlg->destroy;
-
-    $doc;
-}
-
-sub open :Action(Open) {
-    my ($self) = @_;
-
-    my $doc = $self->_open_doc("Open") or return;
-
-    $self->doc($doc);
-    $self->reset_title;
-    $self->clear_mark;
-    $self->clear_cursor;
-}
-
-sub file_new :Action(New) {
-    my ($self) = @_;
-
-    my $doc = App::Jacana::Document->new;
-    $self->doc($doc);
-    $self->clear_mark;
-    $self->cursor->position($doc->music->[0]);
-    $self->reset_title;
-}
-
 sub file_import :Action(Import) {
     my ($self) = @_;
 
@@ -168,6 +139,12 @@ sub file_import :Action(Import) {
     $doc->prev_movement->insert_movement($mvmt);
 }
 
+sub file_close :Action(Close) {
+    my ($self) = @_;
+
+    $self->_window->remove_tab($self);
+}
+
 sub midi {
     my ($self) = @_;
 
@@ -179,21 +156,23 @@ sub midi {
 sub _play_music {
     my ($self, $time) = @_;
 
-    $self->get_action("MidiPlay")->set_sensitive(0);
-    $self->get_action("MidiPlayHere")->set_sensitive(0);
-    my $midi = $self->midi;
-
-    $self->set_status("Playing");
-    my $id = $midi->play_music(
-        music   => $self->cursor->movement,
-        speed   => $self->_speed,
-        time    => $time,
-        start   => $self->weak_method("playing_on"),
-        stop    => $self->weak_method("playing_off"),
-        finish  => $self->weak_method("stop_playing"),
-    );
-    $self->_midi_id($id);
-    $self->get_action("MidiStop")->set_sensitive(1);
+    try {
+        my $midi = $self->midi;
+        my $id = $midi->play_music(
+            music   => $self->cursor->movement,
+            speed   => $self->_speed,
+            time    => $time,
+            start   => $self->weak_method("playing_on"),
+            stop    => $self->weak_method("playing_off"),
+            finish  => $self->weak_method("stop_playing"),
+        );
+        $self->_midi_id($id);
+        $self->get_action("MidiPlay")->set_sensitive(0);
+        $self->get_action("MidiPlayHere")->set_sensitive(0);
+        $self->get_action("MidiStop")->set_sensitive(1);
+        $self->set_status("Playing");
+    }
+    catch { $self->status_flash($_) };
 }
 
 sub _play_all :Action(MidiPlay) { $_[0]->_play_music(0) }
@@ -204,18 +183,23 @@ sub _play_here :Action(MidiPlayHere) {
     $self->_play_music($pos->get_time - $dur + 1);
 }
 
-sub stop_playing :Action(MidiStop) {
-    # don't rely on getting passed the action
+sub _stop_playing {
     my ($self) = @_;
-
     my $id = $self->_midi_id;
     $id and $self->midi->remove_active($id);
     $self->_midi_id(undef);
     $self->clear_playing;
+}
 
+sub stop_playing :Action(MidiStop) {
+    # don't rely on getting passed the action
+    my ($self) = @_;
+
+    $self->_stop_playing;
     $self->get_action("MidiStop")->set_sensitive(0);
     $self->get_action("MidiPlay")->set_sensitive(1);
     $self->get_action("MidiPlayHere")->set_sensitive(1);
+    $self->redraw;
 }
 
 sub _set_speed :Action(MidiSpeed) {
@@ -325,7 +309,13 @@ sub refresh {
 }
 
 sub redraw {
-    $_[0]->widget->get_window->invalidate_rect(undef, 0);
+    my ($self) = @_;
+    try {
+        $self->widget->get_window->invalidate_rect(undef, 0);
+    }
+    catch {
+        Carp::cluck("INVALIDATE RECT FAILED [$_]");
+    };
 }
 
 sub _build_renderer {
@@ -385,8 +375,8 @@ sub _show_highlights {
     }
 
     if (my $l = $curs->position->system) {
-        warn sprintf "HIGHLIGHTING SYSTEM [%d][%d]-[%d][%d]",
-            0, $l->top, $l->width, $l->height;
+        #warn sprintf "HIGHLIGHTING SYSTEM [%d][%d]-[%d][%d]",
+        #    0, $l->top, $l->width, $l->height;
         $c->save;
         $c->set_source_rgba(1, 1, 0, 0.04);
         $c->rectangle(0, $l->top, $l->width, $l->height);

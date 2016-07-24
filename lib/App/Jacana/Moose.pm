@@ -18,21 +18,20 @@ use App::Jacana::Types;
 use Types::Standard;
 
 use B::Hooks::AtRuntime qw/after_runtime/;
+use Try::Tiny;
 
 Moose::Util::meta_attribute_alias "Shortcuts",
     "MooseX::AttributeShortcuts::Trait::Attribute";
 
+my @also = qw/
+    MooseX::AttributeShortcuts
+/;
+
 my ($import_class) = Moose::Exporter->build_import_methods(
-    also => [
-        "Moose",
-        "MooseX::AttributeShortcuts",
-    ],
+    also => ["Moose", @also],
 );
 my ($import_role) = Moose::Exporter->build_import_methods(
-    also => [
-        "Moose::Role",
-        "MooseX::AttributeShortcuts",
-    ],
+    also => ["Moose::Role", @also],
 );
 
 sub import {
@@ -55,7 +54,6 @@ sub import {
     }
     else {
         after_runtime { 
-            Carp::cluck("Making [$$opts{into}] immutable");
             find_meta($$opts{into})->make_immutable;
         };
         goto &$import_class;

@@ -45,39 +45,42 @@ sub _build_sfont {
 }
 
 sub add_active {
-    my ($s, $id, @chan) = @_;
-    $s->active->{$id} = \@chan;
+    my ($s, $id) = @_;
+    $s->active->{$id} = 1;
 }
 
 sub remove_active {
     my ($s, $id) = @_;
     my $ch = delete $s->active->{$id};
     Glib::Source->remove($id);
-    $s->free_chan($_) for @$ch;
 }
 
 sub alloc_chan {
     my ($s) = @_;
     my $used = $s->in_use;
-    my $c = first { !$$used[$_] } 0..16;
-    defined $c or return;
+    my $c = first { !$$used[$_] } 0..15;
+    defined $c or die "Out of MIDI channels!";
+    warn "ALLOC MIDI CHANNEL [$c]";
     $$used[$c] = 1;
     $c;
 }
 
 sub free_chan {
     my ($s, $c) = @_;
+    warn "FREE MIDI CHANNEL [$c]";
     $s->_all_notes_off($c);
     $s->in_use->[$c] = 0;
 }
 
 sub set_program {
     my ($s, $c, $v) = @_;
+    warn "MIDI PROGRAM SELECT [$c] [$v]";
     $s->synth->program_select($c, $s->sfont, 0, $v);
 }
 
 sub DEMOLISH {
     my ($self) = @_;
+    warn "DEMOLISH MIDI [$self]";
     $self->remove_active($_) for keys %{$self->active};
 }
 
@@ -119,53 +122,66 @@ sub _all_notes_off {
     eval { $self->synth->cc($chan, 123, 0) };
 }
 
-sub play_music {
-    my ($self, %arg) = @_;
+sub _prepare_music {
+    my ($self, $arg) = @_;
 
-    my $m = $arg{music}; my @music;
+    my @music; my $m = $$arg{music};
     while (1) {
         $m->is_voice_end and last;
         $m = $m->next_voice;
         $m->muted and next;
         
-        my ($note, $when) = $m->find_time($arg{time});
+        my ($note, $when) = $m->find_time($$arg{time});
         my $c   = $self->alloc_chan;
         my $prg = $note->ambient->find_role("MidiInstrument");
-
         $self->set_program($c, $prg->program);
 
         push @music, App::Jacana::StaffCtx::MIDI->new(
             midi => $self, chan => $c,
-            on_start => $arg{start}, on_stop => $arg{stop},
+            on_start => $$arg{start}, on_stop => $$arg{stop},
             item => $note, when => $when,
         );
     }
     $_->start_note for @music;
+    \@music;
+}
 
-    my $finish = $arg{finish};
-    my $id;
-    $id = Glib::Timeout->add($arg{speed}, $self->weak_closure(sub {
-        my ($self) = @_;
-        
-        for (grep !$_->when, @music) {
-            while (!$_->when) {
-                $_->stop_note;
-                $_->next and $_->start_note;
-            }
-        }
+sub play_music {
+    my ($self, %arg) = @_;
 
-        @music = grep $_->has_item, @music;
-        unless (@music) {
-            $finish->();
-            $self and $self->remove_active($id);
-            return 0;
-        }
+    my $music = $self->_prepare_music(\%arg)
+        or return;
 
-        $_->skip(1) for @music;
-        return 1;
-    }, sub { Glib::Source->remove($id) }));
-    $self->add_active($id, map $_->chan, @music);
+    my $id; my @args = ($music, $arg{finish});
+    $id = Glib::Timeout->add($arg{speed}, $self->weak_method(
+        "_play_step", 
+        sub { Glib::Source->remove($id) },
+        \@args,
+    ));
+    push @args, $id;
+    $self->add_active($id, map $_->chan, @$music);
     $id;
+}
+
+sub _play_step {
+    my ($self, $music, $finish, $id) = @_;
+    
+    for (grep !$_->when, @$music) {
+        while (!$_->when) {
+            $_->stop_note;
+            $_->next and $_->start_note;
+        }
+    }
+
+    @$music = grep $_->has_item, @$music;
+    unless (@$music) {
+        $finish->();
+        $self and $self->remove_active($id);
+        return 0;
+    }
+
+    $_->skip(1) for @$music;
+    return 1;
 }
 
 1;

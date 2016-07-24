@@ -13,6 +13,11 @@ has pitch   => is => "rw";
 has on_start    => is => "ro";#, isa => CodeRef;
 has on_stop     => is => "ro";#, isa => CodeRef;
 
+sub DEMOLISH {
+    my ($self) = @_;
+    $self->midi->free_chan($self->chan);
+}
+
 sub start_note {
     my ($self) = @_;
 

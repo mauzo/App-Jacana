@@ -5,8 +5,6 @@ use Moose::Role;
 use Moose::Util     qw/does_role find_meta/;
 use Scalar::Util    qw/blessed/;
 
-use MooseX::Copiable::DeepCopy;
-
 use namespace::autoclean;
 
 has copiable_roles => (
@@ -97,7 +95,6 @@ around _inline_params => sub {
 before make_immutable => sub {
     my ($self) = @_;
     my $name = $self->name;
-    warn "MAKE IMMUTABLE FOR [$name]";
 };
 
 1;
