@@ -37,10 +37,10 @@ sub _length_to_lily {
 
 sub duration { 
     my ($self) = @_;
-    my $base = my $bit = 128;
+    my $base = my $bit = 256;
     $base += $bit >>= 1 for 1..$self->dots;
     my $len = $self->length;
-    $len > 0 ? $base >> ($len - 1) : $base * 2;
+    $base >> $len;
 }
 
 sub _draw_dots {
