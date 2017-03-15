@@ -282,12 +282,13 @@ sub clip_paste :Action(Paste) {
         $self->status_flash("Nothing on the clipboard.");
         return;
     };
-    $self->clear_clip;
+    #$self->clear_clip;
+    my $start = $clip->clone_music($clip->prev_music);
     my $curs = $self->cursor;
-    my $new = $curs->position->insert($clip);
-    $new->break_ambient;
-    $self->mark($clip);
-    $curs->position($new);
+    my $end = $curs->position->insert($start);
+    $start->break_ambient;
+    $self->mark($start);
+    $curs->position($end);
     $self->refresh;
 }
 
