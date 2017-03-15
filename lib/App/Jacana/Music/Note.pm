@@ -198,6 +198,7 @@ sub draw {
     $_->draw($c, $pos, $up) for @{$self->marks};
 
     $wd += $self->_draw_dots($c, $wd, $pos);
+    $wd += $self->_draw_tie($c, $wd);
 
     return $wd;
 }
