@@ -72,7 +72,7 @@
       <menuitem action="NameStaff" label="Name staff…"/>
       <separator/>
       <menuitem action="MuteStaff"/>
-      <menuitem action="MidiInstrument" label="MIDI voice…"/>
+      <menuitem action="MIDIInstrument" label="MIDI voice…"/>
     </menu>
     <menu action="NoteMenu" label="Note">
       <menu action="NotePitchMenu" label="Pitch">

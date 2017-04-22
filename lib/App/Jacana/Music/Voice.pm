@@ -42,8 +42,9 @@ has "+divisor" => default => 4;
 has "+program" => default => 68;
 
 my @MTypes = map "App::Jacana::Music::$_",
-    qw/ Barline Clef KeySig MidiInstrument MultiRest Note Note::Grace
+    qw/ Barline Clef KeySig MultiRest Note Note::Grace
         RehearsalMark Rest Text::Mark TimeSig 
+        MIDI::Instrument MIDI::Transpose
     /;
 for (@MTypes) {
     warn "LOADING [$_]";

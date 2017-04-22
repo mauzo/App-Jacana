@@ -597,7 +597,8 @@ sub _insert_with_dialog {
 
 BEGIN {
     for my $t (qw/ 
-        Barline KeySig RehearsalMark Text::Mark TimeSig MidiInstrument
+        Barline KeySig RehearsalMark Text::Mark TimeSig 
+        MIDI::Instrument
     /) {
         my $a = $t =~ s/:://gr;
         _action_method "_insert_\L$a", $a, 

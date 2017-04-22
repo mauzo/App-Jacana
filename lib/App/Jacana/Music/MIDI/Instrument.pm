@@ -1,4 +1,4 @@
-package App::Jacana::Music::MidiInstrument;
+package App::Jacana::Music::MIDI::Instrument;
 
 use App::Jacana::Moose;
 
@@ -27,7 +27,7 @@ sub to_lily {
     qq/\\set Staff.midiInstrument = #"$ins"/;
 }
 
-sub dialog { "MidiInstrument" }
+sub dialog { "MIDI::Instrument" }
 
 sub draw {
     my ($self, $c) = @_;

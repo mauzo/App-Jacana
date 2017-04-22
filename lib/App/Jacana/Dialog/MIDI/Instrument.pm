@@ -1,4 +1,4 @@
-package App::Jacana::Dialog::MidiInstrument;
+package App::Jacana::Dialog::MIDI::Instrument;
 
 use utf8;
 use App::Jacana::Moose;
