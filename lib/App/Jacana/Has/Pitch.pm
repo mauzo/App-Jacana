@@ -24,17 +24,28 @@ has chroma  => (
 my %Chr2Ly  = (0, "", qw/1 is -1 es 2 isis -2 eses/);
 my %Ly2Chr  = reverse %Chr2Ly;
 
-sub pitch_rx { qr{ (?<note>[a-g]) (?<chroma>[eis]*) }x }
+sub pitch_rx { qr{ (?<note>[a-g]) (?<chroma>[eis]*) (?<octave>,+|'*) }x }
 
 sub pitch_from_lily {
     my ($self, %n) = @_;
+
+    my $oct = $n{octave};
+
     return (
         note    => $n{note},
         chroma  => $Ly2Chr{$n{chroma}},
+        octave  => ($oct =~ /,/ ? -length($oct) : length($oct)),
     );
 }
 
-sub pitch_to_lily { $_[0]->note . $Chr2Ly{$_[0]->chroma} }
+sub pitch_to_lily { 
+    my ($self)  = @_;
+
+    my $oct = $self->octave;
+    $oct = ($oct < 0 ? "," x -$oct : "'" x $oct);
+
+    $self->note . $Chr2Ly{$self->chroma} . $oct;
+}
 
 my %Staff = qw/c 0 d 1 e 2 f 3 g 4 a 5 b 6/;
 

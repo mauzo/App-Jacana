@@ -24,37 +24,28 @@ sub lily_rx {
     my $marks   = $self->marks_rx;
     my $length  = $self->length_rx;
 
-    qr{ $pitch (?<octave>[',]*) $length (?<tie>~)? $marks }x;
+    qr{ $pitch $length (?<tie>~)? $marks }x;
 }
 
 sub from_lily {
     my ($self, %n) = @_;
 
-    my $octave  = $n{octave}
-        ? length($n{octave}) * ($n{octave} =~ /'/ ? 1 : -1)
-        : 0;
-
     $self->new({
         $self->pitch_from_lily(%n),
         $self->_length_from_lily(%n),
         $self->marks_from_lily(%n),
-        octave          => $octave,
         tie             => !!$n{tie},
     });
 }
 
 sub to_lily {
     my ($self) = @_;
-    my ($pitch, $oct, $len, $marks) = 
+    my ($pitch, $len, $marks) = 
         map $self->$_, 
-            qw/pitch_to_lily octave _length_to_lily marks_to_lily/;
-    $oct = (
-        $oct > 0 ? "'" x $oct   :
-        $oct < 0 ? "," x -$oct  :
-        "");
+            qw/pitch_to_lily _length_to_lily marks_to_lily/;
     my $tie = $self->tie ? "~" : "";
 
-    "$pitch$oct$len$tie$marks";
+    "$pitch$len$tie$marks";
 }
 
 my %Heads   = qw/0 sM1 1 s0 2 s1/;
