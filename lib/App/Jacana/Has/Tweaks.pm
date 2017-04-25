@@ -15,11 +15,13 @@ my %Known = (
         desc    => "Vertical direction",
         type    => "Enum",
         values  => [qw/ UP Up DOWN Down NORMAL Normal /],
+        default => "NORMAL",
     },
     "self-alignment-X"  => {
         desc    => "Horizontal alignment",
         type    => "Enum",
         values  => [qw/ LEFT Left CENTER Centre RIGHT Right /],
+        default => "LEFT",
     },
 );
 $Known{$_}{name} = $_ for keys %Known;
@@ -54,8 +56,14 @@ sub tweaks_to_lily {
 
 sub tweak {
     my ($self, @tw) = @_;
-    my $tw = $self->tweaks;
-    wantarray ? @$tw{@tw} : $$tw{$tw[0]};
+    if (ref $self) {
+        my $tw = $self->tweaks;
+        wantarray ? @$tw{@tw} : $$tw{$tw[0]};
+    }
+    else {
+        map $$_{default},
+            wantarray ? @Known{@tw} : $Known{$tw[0]};
+    }
 }
 
 1;
