@@ -591,14 +591,15 @@ sub _insert_with_dialog {
     my $pos = $self->position;
     $class->DOES("App::Jacana::Music::HasAmbient")
         and $pos->ambient->owner->clear_ambient;
-    $self->position($pos->insert($class->new(copy_from => $dlg)));
+    my $new = $class->new(copy_from => $dlg);
+    $self->position($pos->insert($new));
     $self->view->refresh;
 }
 
 BEGIN {
     for my $t (qw/ 
         Barline KeySig RehearsalMark Text::Mark TimeSig 
-        MIDI::Instrument
+        MIDI::Instrument MIDI::Transpose
     /) {
         my $a = $t =~ s/:://gr;
         _action_method "_insert_\L$a", $a, 

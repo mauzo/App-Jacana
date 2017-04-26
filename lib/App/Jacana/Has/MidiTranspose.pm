@@ -13,6 +13,7 @@ has into => (
     isa         => Has "Pitch",
     traits      => [qw/Copiable/],
     deep_copy   => 1,
+    required    => 1,
 );
 
 1;
