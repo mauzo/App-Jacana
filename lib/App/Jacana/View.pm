@@ -407,33 +407,6 @@ sub _show_cursor {
     $c->restore;
 }
 
-sub _build_rendered {
-    my ($self) = @_;
-
-    my $widget = $self->widget;
-    my $surf;
-
-    RENDER: {
-        my ($ox, $oy)   = $widget->get_size_request;
-        $surf           = Cairo::ImageSurface->create("argb32", $ox, $oy);
-
-        my $c = App::Jacana::DrawCtx->new(
-            copy_from   => $self,
-            surface     => $surf,
-            widget      => $widget,
-        );
-
-        my ($wd, $ht) = $self->_show_music($c);
-        $ht =           $self->_show_scale($c, $wd, $ht);
-        my ($nx, $ny) = map ceil($_), $c->c->user_to_device($wd, $ht);
-
-        $widget->set_size_request($nx, $ny);
-        $nx == $ox && $ny == $oy or redo RENDER;
-    }
-
-    $surf;
-}
-
 sub _button_release_event :Signal {
     my ($self, $widget, $event) = @_;
 
