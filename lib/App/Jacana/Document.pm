@@ -50,12 +50,9 @@ sub open {
     $new;
 }
 
-sub save {
+sub to_lily {
     my ($self) = @_;
-
-    $self->has_filename or die "No filename";
     my ($lily, $m) = ("", $self->next_movement);
-    warn sprintf "SAVING TO [%s]: %s", $self->filename, $m->dump_movement;
     while (1) {
         warn sprintf "SAVING MOVEMENT [%s] [%s]",
             $m, $m->name;
@@ -63,6 +60,15 @@ sub save {
         $m->is_movement_end and last;
         $m = $m->next_movement;
     }
+    $lily;
+}
+
+sub save {
+    my ($self) = @_;
+
+    $self->has_filename or die "No filename";
+    warn sprintf "SAVING TO [%s]", $self->filename;
+    my $lily = $self->to_lily;
     write_file $self->filename, $lily;
 }
 
