@@ -105,9 +105,12 @@ sub transpose {
         $pos->DOES("App::Jacana::Has::Pitch")   or next;
 
         my $old = $pos->pitch_to_lily;
+        $old =~ s/[',]*$//;
         my $new = $Trans{$old} + $by;
         $new < 0        and $new += 12;
         $new > $#Trans  and $new -= 12;
+
+        warn "TRANSPOSE [$old]->[$new][$Trans[$new]] ($by)";
 
         my ($note, $chrm) = $Trans[$new] =~ /(.)(.*)/;
         my $near = $pos->nearest($note, $Chroma{$chrm});
