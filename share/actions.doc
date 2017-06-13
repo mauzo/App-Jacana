@@ -172,6 +172,8 @@
       <menuitem action="ZoomIn" stock_id="gtk-zoom-in"/>
       <menuitem action="ZoomOut" stock_id="gtk-zoom-out"/>
       <menuitem action="ZoomOff" stock_id="gtk-zoom-100" label="Reset zoom"/>
+      <separator/>
+      <menuitem action="Refresh" stock_id="gtk-refresh"/>
     </menu>
   </menubar>
 
@@ -202,7 +204,9 @@
     <toolitem action="MidiPlay"/>
     <toolitem action="MidiPlayHere"/>
     <toolitem action="MidiStop"/>
+    <separator/>
     <toolitem action="ToLily"/>
+    <toolitem action="Refresh"/>
   </toolbar>
 
   <accelerator action="Backspace"/>

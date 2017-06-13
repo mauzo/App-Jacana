@@ -303,7 +303,7 @@ sub _realize :Signal {
     $widget->set_size_request(100, 100);
 }
 
-sub refresh {
+sub refresh :Action(Refresh) {
     my ($self) = @_;
     $self->renderer->clear_lines;
     $self->redraw;
