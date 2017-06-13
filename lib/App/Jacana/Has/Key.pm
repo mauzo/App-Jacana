@@ -3,11 +3,9 @@ package App::Jacana::Has::Key;
 use App::Jacana::Moose -role;
 use MooseX::Copiable;
 
-sub _mkfifths { map "$_$_[0]", qw/f c g d a e b/ }
-
-my @Fifths = map _mkfifths($_), "es", "", "is";
-my %Fifths = map +($Fifths[$_], $_), 0..$#Fifths;
-my %Mode = qw/ major 8 minor 11 /;
+use App::Jacana::Tables qw/
+    %Fifths @Fifths %Mode %Trans @Trans %Chroma
+/;
 
 has key     => (
     is      => "rw",
@@ -91,11 +89,6 @@ sub add {
     my ($self, $inc) = @_;
     $self->key(_clamp 7, $self->key + $inc);
 }
-
-my @Trans = map _mkfifths($_), "eses", "es", "", "is", "isis";
-my %Trans = map +($Trans[$_], $_), 0..$#Trans;
-
-my %Chroma = (qw/eses -2 es -1 is 1 isis 2/, "", 0);
 
 sub transpose {
     my ($self, $by, $pos, $end) = @_;
