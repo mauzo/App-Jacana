@@ -367,10 +367,13 @@ sub _play_note {
         my $chan    = $self->midi_chan;
 
         my $midi    = $self->view->midi;
-        my $prg     = $pos->ambient->find_role("MidiInstrument");
+        my $amb     = $pos->ambient;
+        my $prg     = $amb->find_role("MidiInstrument");
+        my $trans   = $amb->find_role("MidiTranspose");
+        my $note    = $trans ? $trans->transpose($pos) : $pos;
 
         $midi->set_program($chan, $prg->program);
-        $midi->play_note($chan, $pos->pitch, 8);
+        $midi->play_note($chan, $note->pitch, 8);
     }
     catch { $self->view->status_flash($_) };
 }

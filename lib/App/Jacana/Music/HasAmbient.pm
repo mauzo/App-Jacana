@@ -20,7 +20,7 @@ sub _build_ambient {
     my ($self) = @_;
 
     my $amb = App::Jacana::Music::Ambient->new(owner => $self);
-    warn "BUILD AMBIENT FOR [$self] [$amb]";
+    #warn "BUILD AMBIENT FOR [$self] [$amb]";
     $amb;
 }
 

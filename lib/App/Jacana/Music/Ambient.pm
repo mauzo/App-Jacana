@@ -43,7 +43,7 @@ sub find_role {
     my $owner = $self->owner;
     $owner->DOES("App::Jacana::Has::$role") and return $owner;
 
-    my $prev = $self->prev or croak "No intial value for $role";
+    my $prev = $self->prev or return;#croak "No intial value for $role";
     $prev->find_role($role);
 }
 

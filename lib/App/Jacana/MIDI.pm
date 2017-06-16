@@ -98,17 +98,10 @@ sub play_note {
 }
 
 sub note_on {
-    my ($self, $chan, $note) = @_;
-
-    $note->DOES("App::Jacana::Has::MidiInstrument")
-        and $self->set_program($chan, $note->program);
-
-    my $pitch;
-    if ($note->DOES("App::Jacana::Has::Pitch")) {
-        $pitch = $note->pitch;
-        eval { $self->synth->noteon($chan, $pitch, 100) };
-    }
-    return $pitch;
+    my ($self, $chan, $pitch) = @_;
+    warn "MIDI NOTE ON [$chan][$pitch]";
+    defined $pitch
+        and eval { $self->synth->noteon($chan, $pitch, 100) };
 }
 
 sub note_off {

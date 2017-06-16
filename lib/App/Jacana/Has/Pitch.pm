@@ -39,10 +39,13 @@ sub pitch_from_lily {
 }
 
 sub pitch_to_lily { 
-    my ($self)  = @_;
+    my ($self, $nooct)  = @_;
 
-    my $oct = $self->octave;
-    $oct = ($oct < 0 ? "," x -$oct : "'" x $oct);
+    my $oct = "";
+    unless ($nooct) {
+        $oct = $self->octave;
+        $oct = ($oct < 0 ? "," x -$oct : "'" x $oct);
+    }
 
     $self->note . $Chr2Ly{$self->chroma} . $oct;
 }
