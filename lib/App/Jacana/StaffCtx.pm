@@ -1,22 +1,23 @@
 package App::Jacana::StaffCtx;
 
 use App::Jacana::Moose;
+use App::Jacana::Types;
+
 use Scalar::Util                qw/blessed/;
 use namespace::autoclean;
 
 has item => (
     is          => "rw", 
-    #isa         => InstanceOf["App::Jacana::Music"],
+    isa         => My "Music",
     weak_ref    => 1,
-    required    => 1,
     clearer     => 1,
     predicate   => 1,
 );
-has when => is => "rw", default => 0;
+has when => is => "rw", default => 0, isa => Int;
 
 has tie_from => (
     is          => "rw",
-    #isa         => ConsumerOf["App::Jacana::Has::Pitch"],
+    isa         => Has "Pitch",
     weak_ref    => 1,
     clearer     => "clear_tie",
     predicate   => "has_tie",
@@ -26,8 +27,9 @@ sub clone {
     my ($self, @args) = @_;
     my $class = blessed $self;
     $class->new(
-        map(+($_, $self->$_), qw/item when/),
-        ($self->has_tie ? $self->tie_from : ()),
+        when    => $self->when,
+        ($self->has_item ? (item => $self->item) : ()),
+        ($self->has_tie ? (tie_from => $self->tie_from) : ()),
         @args,
     );
 }

@@ -405,6 +405,7 @@ sub change_pitch {
     my ($self, $action) = @_;
 
     my $pos = $self->position;
+    my $sys = $pos->system;
     my $Dp  = Has("Pitch")->check($pos);
     my $Ik  = Has("Key")->check($pos);
 
@@ -436,7 +437,7 @@ sub change_pitch {
     $pos->copy_from($pitch);
     $self->position($pos);
     $self->_play_note;
-    $self->view->refresh;
+    $self->view->refresh($sys);
 }
 
 BEGIN { _action_method change_pitch => map "Pitch$_", "A".."G" }

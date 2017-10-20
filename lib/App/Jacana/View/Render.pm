@@ -9,6 +9,7 @@ use App::Jacana::View::System;
 
 use List::BinarySearch      qw/binsearch_pos binsearch_range/;
 use List::Util              qw/first max min/;
+use List::MoreUtils         qw/firstidx/;
 use POSIX                   qw/ceil/;
 
 use namespace::autoclean;
@@ -31,9 +32,13 @@ has lines => (
 has width   => is => "rw", required => 1, trigger => 1;# isa => Int;
 has height  => is => "rw", default => 0;#, isa => Int;
 
-sub _trigger_width {
-    my ($self) = @_;
-    @{$self->lines} = ();
+sub _trigger_width { $_[0]->clear_lines }
+
+sub clear_lines_from {
+    my ($self, $from) = @_;
+    my $l   = $self->lines;
+    my $ix  = firstidx { $_ == $from } @$l;
+    splice @$l, $ix;
 }
 
 sub find_line_at {

@@ -1,32 +1,38 @@
 package App::Jacana::View::StaffInfo;
 
 use App::Jacana::Moose;
+use App::Jacana::Types;
+
 use POSIX       qw/ceil floor/;
 use namespace::autoclean;
 
 has start => (
     is          => "ro",
     required    => 1,
-    #isa         => Music,
+    isa         => Music,
     weak_ref    => 1,
 );
 has end => (
     is          => "rw",
-    #isa         => Maybe[Music],
+    isa         => Maybe[Music],
     weak_ref    => 1,
 );
 
-has ctxinfo => is => "rw";#, isa => ArrayRef;
+has continue => is => "rw", isa => My "StaffCtx::Draw";
 
 # device coordinates
-has offset  => is => "ro", required => 1;#, isa => Int;
-has top     => is => "ro", required => 1;#, isa => Int;
-has bottom  => is => "rw";#, isa => Int;
-has left    => is => "ro", required => 1;#, isa => Int;
-has right   => is => "rw";#, isa => Int;
+has offset  => is => "ro", required => 1, isa => Int;
+has top     => is => "ro", required => 1, isa => Int;
+has bottom  => is => "rw", isa => Int;
+has left    => is => "ro", required => 1, isa => Int;
+has right   => is => "rw", isa => Int;
 
 sub BUILDARGS {
     my ($class, $s, $c, $x, $y) = @_;
+
+    my $hi = $s->has_item;
+    my $i = $s->item;
+    warn "BUILD STAFFINFO s [$s] hi [$hi] item [$i]";
 
     return {
         start   => $s->item,
@@ -43,17 +49,7 @@ sub update {
     my ($self, $s, $c, $x) = @_;
     $self->end($s->item);
     $self->right(ceil($c->u2d($x)));
-    $self->ctxinfo([map +($_, $s->$_), @CtxAtts]);
-}
-
-sub continue {
-    my ($self) = @_;
-    
-    my $item = $self->end or return;
-    My("StaffCtx::Draw")->new({
-        item    => $item,
-        @{$self->ctxinfo},
-    });
+    $self->continue($s->clone);
 }
 
 1;

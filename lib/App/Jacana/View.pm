@@ -304,8 +304,14 @@ sub _realize :Signal {
 }
 
 sub refresh :Action(Refresh) {
-    my ($self) = @_;
-    $self->renderer->clear_lines;
+    my ($self, $from) = @_;
+    Carp::carp("VIEW REFRESH [$from]");
+    if ($from) {
+       $self->renderer->clear_lines_from($from);
+    }
+    else {
+        $self->renderer->clear_lines;
+    }
     $self->redraw;
 }
 
