@@ -420,6 +420,7 @@ sub change_pitch {
         return;
     }
 
+    warn "PITCH CHANGE FOR [$pos] sys [$sys]";
     # find the pitch we want
     my $ref     = $Dp ? $pos 
         : $pos->ambient->find_role("Clef")->centre_pitch;

@@ -38,6 +38,7 @@ sub clear_lines_from {
     my ($self, $from) = @_;
     my $l   = $self->lines;
     my $ix  = firstidx { $_ == $from } @$l;
+    warn "CLEAR LINES FROM sys [$from] ix [$ix]";
     splice @$l, $ix;
 }
 
@@ -53,6 +54,9 @@ sub show_lines {
     my ($self, $c, $from, $to) = @_;
 
     my $bottom = $self->render_upto(sub { 
+        warn "SHOW LINES TO [$_[0]]; "
+            . ($_[0] ? "[" . $_[0]->bottom . "]" : "<none>")
+            . " > [$to]";
         $_[0] && $_[0]->bottom > $to;
     });
     $to = min $to, $bottom;
@@ -107,7 +111,17 @@ sub render_upto {
         ];
     }
 
-    until (!@$start || @$lines && $upto->($$lines[-1])) {
+    while (1) {
+        warn "RENDER_UPTO lines ["
+            . join("", map "[$_]", @$lines)
+            . "] start ["
+            . join("", map "[$_]", @$start)
+            . "]";
+        @$lines && $upto->($$lines[-1]) 
+            and warn("RENDER_UPTO returning, UPTO"), last;
+        !@$start
+            and warn("RENDER_UPTO returning, START"), last;
+
         #warn "RENDERING LINE AT [$top]:\n" .
         #    join "\n", map "  $_",
         #    map $_->item, @$start;
@@ -130,6 +144,7 @@ sub render_upto {
         $top += $l->height;
         $staffs[$_]->update($$start[$_], $c, $wd) for 0..$#staffs;
         push @$lines, $l;
+        warn "RENDER_UPTO more [$more]";
         $more or last;
     }
 
@@ -188,10 +203,17 @@ sub _show_music {
     my @voices  = grep $_->has_item, @$start;
     my $voices  = @voices;
 
+    @voices or return (0, "");
+
     $c->set_source_rgb(0, 0, 0);
     $self->_show_stave($c, $_) for map $_->y, @voices;
 
-    my $x = 4 + max map $self->_show_item($c, 4, $_), @voices;
+    warn "SHOW MUSIC VOICES: " . 
+        join " ", map "[$_]", map $_->item, @voices;
+    my @x = map $self->_show_item($c, 4, $_), @voices;
+    warn "SHOW MUSIC \@x: " . join " ", map "[$_]", @x;
+
+    my $x = 4 + max @x;
     for (@voices) {
         @{$_->item->bbox}[0,1] = 
             ($c->u2d(4), $c->u2d($_->y - 12) + $top);
@@ -238,6 +260,7 @@ sub _show_music {
         $c->fill;
     $c->restore;
 
+    warn "SHOW MUSIC RETURNING " . (!!@voices ? "true" : "false");
     return ($x, !!@voices);
 }
 
