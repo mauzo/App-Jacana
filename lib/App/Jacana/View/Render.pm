@@ -53,15 +53,6 @@ sub find_line_at {
 sub show_lines {
     my ($self, $c, $from, $to) = @_;
 
-    my $bottom = $self->render_upto(sub { 
-        warn "SHOW LINES TO [$_[0]]; "
-            . ($_[0] ? "[" . $_[0]->bottom . "]" : "<none>")
-            . " > [$to]";
-        $_[0] && $_[0]->bottom > $to;
-    });
-    $to = min $to, $bottom;
-    #warn "SHOWING LINES FROM [$from] TO [$to]";
-
     my $lines   = $self->lines;
     warn "CURRENT LINES: [" . 
         join(", ", map {
