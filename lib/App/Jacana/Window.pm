@@ -17,7 +17,6 @@ with qw/
     App::Jacana::Has::Actions
 /;
 
-has doc         => is => "ro";
 has views       => is => "lazy";
 
 has frame           => is => "lazy";

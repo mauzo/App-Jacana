@@ -26,13 +26,11 @@ with qw/
     App::Jacana::Has::Window
 /;
 
-# XXX This is wrong: in the SDI model I should be creating a new View
-# when we open a new document.
-has doc         => is => "rw";
+has doc         => is => "ro", required => 1;
 has cursor      => is => "lazy", predicate => 1, clearer => 1;
 
 has clip => (
-    is          => "rw",
+    is          => "ro",
     predicate   => 1,
     clearer     => 1,
     #isa         => Music,
