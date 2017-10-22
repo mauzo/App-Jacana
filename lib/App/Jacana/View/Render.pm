@@ -102,7 +102,7 @@ sub render_upto {
     my (@voices, $top);
     if (@$lines) {
         my $l   = $$lines[-1];
-        @voices = map $_->continue, @{$l->staffs};
+        @voices = map $_->clone, map $_->continue, @{$l->staffs};
         $top    = $l->bottom;
     }
     else {
@@ -114,7 +114,10 @@ sub render_upto {
         warn "RENDER_UPTO lines ["
             . join("", map "[$_]", @$lines)
             . "] voices ["
-            . join("", map { "[$_|" . $_->has_item . "]" } @voices)
+            . join("", map { 
+                    "[$_|" . $_->has_item
+                    . "|" . $_->item . "]" 
+                } @voices)
             . "]";
         @$lines && $upto->($$lines[-1]) 
             and warn("RENDER_UPTO returning, UPTO"), last;
