@@ -20,8 +20,9 @@ has end => (
 
 has continue => is => "rw", isa => My "StaffCtx::Draw";
 
-# device coordinates
+# user coordinates
 has offset  => is => "ro", required => 1, isa => Int;
+# device coordinates
 has top     => is => "ro", required => 1, isa => Int;
 has bottom  => is => "rw", isa => Int;
 has left    => is => "ro", required => 1, isa => Int;

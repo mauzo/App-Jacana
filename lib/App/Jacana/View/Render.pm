@@ -63,21 +63,42 @@ sub show_lines {
     #warn "SHOWING LINES FROM [$from] TO [$to]";
 
     my $lines   = $self->lines;
+    warn "CURRENT LINES: [" . 
+        join(", ", map {
+            my $s = $_->staffs->[0];
+            my $i = $s ? $s->start : "<none>";
+            $_->top . "-" . $_->bottom 
+            . "($i)"
+        } @$lines) . "]";
     @$lines or return;
-    #warn "CURRENT LINES: [" . join(", ", map $_->top, @$lines) . "]";
 
     my ($s, $e) = binsearch_range 
         { $a <=> (ref $b ? $b->top : $b) } 
         $from, $to, @$lines;
     $s and $s -= 1;
-    #warn "SHOWING LINES [$s]-[$e]";
+    warn "SHOWING LINES [$s]-[$e]";
 
     for my $l (@$lines[$s..$e]) {
         $c->set_source_surface($l->surface, 0, $l->top);
         $c->paint;
     }
+}
 
-    return $bottom;
+sub _initial_staffctx {
+    my ($self) = @_;
+
+    my $v   = $self->view->cursor->movement;
+    my @vs;
+    while (1) {
+        $v->is_voice_end and last;
+        $v = $v->next_voice;
+        push @vs, $v;
+    }
+    return map My("StaffCtx::Draw")->new(
+            item    => $vs[$_],
+            y       => 24*($_ + 1),
+        ),
+        0..$#vs,
 }
 
 sub render_upto {
@@ -87,40 +108,28 @@ sub render_upto {
     my $lines   = $self->lines;
     my $scale   = $self->view->zoom;
 
-    my ($start, $top);
+    my (@voices, $top);
     if (@$lines) {
         my $l   = $$lines[-1];
-        $start  = [ map $_->continue, @{$l->staffs} ];
+        @voices = map $_->continue, @{$l->staffs};
         $top    = $l->bottom;
     }
     else {
         $top    = 0;
-        my $v   = $self->view->cursor->movement;
-        my @vs;
-        while (1) {
-            $v->is_voice_end and last;
-            $v = $v->next_voice;
-            push @vs, $v;
-        }
-        $start  = [
-            map My("StaffCtx::Draw")->new(
-                item    => $vs[$_],
-                y       => 24*($_ + 1),
-            ),
-            0..$#vs,
-        ];
+        @voices = $self->_initial_staffctx;
     }
 
     while (1) {
         warn "RENDER_UPTO lines ["
             . join("", map "[$_]", @$lines)
-            . "] start ["
-            . join("", map "[$_]", @$start)
+            . "] voices ["
+            . join("", map { "[$_|" . $_->has_item . "]" } @voices)
             . "]";
         @$lines && $upto->($$lines[-1]) 
             and warn("RENDER_UPTO returning, UPTO"), last;
-        !@$start
-            and warn("RENDER_UPTO returning, START"), last;
+
+        @voices = grep $_->has_item, @voices;
+        @voices or warn("RENDER_UPTO returning, VOICES"), last;
 
         #warn "RENDERING LINE AT [$top]:\n" .
         #    join "\n", map "  $_",
@@ -128,7 +137,7 @@ sub render_upto {
         my $l = My("View::System")->new(
             top     => $top,
             width   => $self->width,
-            height  => ceil((@$start + 1)*24*$scale),
+            height  => ceil((@voices + 1)*24*$scale),
         );
         my $c = My("DrawCtx")->new(
             copy_from   => $self->view,
@@ -136,19 +145,16 @@ sub render_upto {
         );
         my @staffs = 
             map My("View::StaffInfo")->new($_, $c, 0, $top), 
-            grep $_->has_item,
-            @$start;
+            @voices;
         $l->staffs(\@staffs);
 
-        my ($wd, $more) = $self->_show_music($c, $start, $top, $l);
+        my ($wd) = $self->_show_music($c, \@voices, $top, $l);
         $top += $l->height;
-        $staffs[$_]->update($$start[$_], $c, $wd) for 0..$#staffs;
+        $staffs[$_]->update($voices[$_], $c, $wd) for 0..$#staffs;
         push @$lines, $l;
-        warn "RENDER_UPTO more [$more]";
-        $more or last;
     }
 
-    return @$start ? $top + 24*$scale : $top;
+    return @voices ? $top + 24*$scale : $top;
 }
 
 sub _show_scale {
@@ -200,7 +206,7 @@ sub _show_music {
     my ($self, $c, $start, $top, $l) = @_;
 
     my $width   = $c->width;
-    my @voices  = grep $_->has_item, @$start;
+    my @voices  = @$start;
     my $voices  = @voices;
 
     @voices or return (0, "");
@@ -260,8 +266,7 @@ sub _show_music {
         $c->fill;
     $c->restore;
 
-    warn "SHOW MUSIC RETURNING " . (!!@voices ? "true" : "false");
-    return ($x, !!@voices);
+    return $x;
 }
 
 sub _show_stave {

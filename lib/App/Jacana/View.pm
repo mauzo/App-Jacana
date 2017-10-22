@@ -351,12 +351,17 @@ sub _expose_event :Signal {
     my $c   = Gtk2::Gdk::Cairo::Context->create($widget->get_window);
     my $rnd = $self->renderer;
 
-    $rnd->render_upto(sub { $_[0]->bottom >= $bot });
+    my $to = $rnd->render_upto(sub {
+        my ($l) = @_;
+        warn "RENDER UP TO CB [$l]["
+            . $l->bottom . "] > [$bot]";
+        $l && $l->bottom > $bot;
+    });
     $self->_show_highlights($c);
-    my $ht = $rnd->show_lines($c, $top, $bot);
+    $rnd->show_lines($c, $top, min($to, $bot));
     $self->_show_cursor($c);
 
-    $widget->set_size_request(100, $ht);
+    $widget->set_size_request(100, $to);
 }
 
 sub _show_highlights {
