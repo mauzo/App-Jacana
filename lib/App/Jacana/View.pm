@@ -41,7 +41,7 @@ has "+zoom" => default => 3, trigger => 1;
 has renderer => is => "lazy";#, isa => InstanceOf[My "View::Render"];
 
 has _midi_id    => is => "rw";
-has _speed      => is => "rw", default => 12;
+has _speed      => is => "rw", default => 15.625;
 has _playing    => (
     is      => "ro",
     lazy    => 1,
@@ -204,12 +204,20 @@ sub stop_playing :Action(MidiStop) {
 sub _set_speed :Action(MidiSpeed) {
     my ($self) = @_;
 
+    my $minute  = 60_000 / 32;
+
+    my $speed   = $self->_speed;
+    my $bpm     = $minute / $speed;
+
     my $dlg = $self->run_dialog("Simple", undef, 
         title   => "Playback speed",
-        label   => "Playback speed",
-        value   => $self->_speed,
+        label   => "Crotchets per minute",
+        value   => $bpm,
     ) or return;
-    $self->_speed($dlg->value);
+
+    $bpm     = $dlg->value;
+    $speed   = $minute / $bpm;
+    $self->_speed($speed);
 }
 
 has widget      => is => "lazy";
