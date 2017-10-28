@@ -30,7 +30,7 @@ has doc         => is => "ro", required => 1;
 has cursor      => is => "lazy", predicate => 1, clearer => 1;
 
 has clip => (
-    is          => "ro",
+    is          => "rw",
     predicate   => 1,
     clearer     => 1,
     #isa         => Music,
@@ -72,6 +72,7 @@ sub playing_on {
 
 sub playing_off {
     my ($self, $note) = @_;
+    $note or return;
     my $pl = $self->_playing;
     @$pl = grep $_ != $note, @$pl;
     $self->redraw;
