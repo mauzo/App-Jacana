@@ -74,6 +74,8 @@
       <menuitem action="MuteStaff"/>
       <menuitem action="MIDIInstrument" label="MIDI voice…"/>
       <menuitem action="MIDITranspose" label="Transposing instrument…"/>
+      <separator/>
+      <menuitem action="Lily" label="Explicit lily…"/>
     </menu>
     <menu action="NoteMenu" label="Note">
       <menu action="NotePitchMenu" label="Pitch">
