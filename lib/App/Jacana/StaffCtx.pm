@@ -13,7 +13,8 @@ has item => (
     clearer     => 1,
     predicate   => 1,
 );
-has when => is => "rw", default => 0, isa => Int;
+# This is a float; see Has::Length
+has when => is => "rw", default => 0, isa => StrictNum;
 
 has tie_from => (
     is          => "rw",

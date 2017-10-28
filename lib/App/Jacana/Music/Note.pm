@@ -188,6 +188,7 @@ sub draw {
     abs($pos) > 5   and $self->_draw_ledgers($c, $pos, $wd);
     $_->draw($c, $pos, $up) for @{$self->marks};
 
+    $self->_draw_tuplet($c, $pos);
     $wd += $self->_draw_dots($c, $wd, $pos);
     $wd += $self->_draw_tie($c, $wd);
 
