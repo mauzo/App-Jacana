@@ -40,7 +40,7 @@ has "+zoom" => default => 3, trigger => 1;
 
 has renderer => is => "lazy";#, isa => InstanceOf[My "View::Render"];
 
-has _midi_id    => is => "rw";
+has _midi_id    => is => "rw", weak_ref => 1;
 has _speed      => is => "rw", default => 12;
 has _playing    => (
     is      => "ro",
@@ -184,7 +184,7 @@ sub _play_here :Action(MidiPlayHere) {
 sub _stop_playing {
     my ($self) = @_;
     my $id = $self->_midi_id;
-    $id and $self->midi->remove_active($id);
+    $id and $id->destroy;
     $self->_midi_id(undef);
     $self->clear_playing;
 }

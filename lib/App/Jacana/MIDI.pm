@@ -3,6 +3,7 @@ package App::Jacana::MIDI;
 use 5.012;
 use App::Jacana::Moose;
 
+use App::Jacana::MIDI::Timer;
 use App::Jacana::StaffCtx::MIDI;
 
 use Audio::FluidSynth;
@@ -145,19 +146,15 @@ sub play_music {
     my $music = $self->_prepare_music(\%arg)
         or return;
 
-    my $id; my @args = ($music, $arg{finish});
-    $id = Glib::Timeout->add($arg{speed}, $self->weak_method(
-        "_play_step", 
-        sub { Glib::Source->remove($id) },
-        \@args,
-    ));
-    push @args, $id;
-    $self->add_active($id, map $_->chan, @$music);
-    $id;
+    App::Jacana::MIDI::Timer->new(
+        speed       => $arg{speed},
+        callback    => $self->weak_method("_play_step", undef, 
+            [$music, $arg{finish}]),
+    );
 }
 
 sub _play_step {
-    my ($self, $music, $finish, $id) = @_;
+    my ($self, $music, $finish) = @_;
     
     for (grep !$_->when, @$music) {
         while (!$_->when) {
@@ -169,7 +166,6 @@ sub _play_step {
     @$music = grep $_->has_item, @$music;
     unless (@$music) {
         $finish->();
-        $self and $self->remove_active($id);
         return 0;
     }
 
