@@ -7,6 +7,7 @@ use App::Jacana::Moose;
 use MooseX::Gtk2;
 
 use App::Jacana::Cursor;
+use App::Jacana::MIDI::Player;
 use App::Jacana::View::Render;
 
 use Data::Dump              qw/pp/;
@@ -40,8 +41,11 @@ has "+zoom" => default => 3, trigger => 1;
 
 has renderer => is => "lazy";#, isa => InstanceOf[My "View::Render"];
 
-has _midi_id    => is => "rw", weak_ref => 1;
 has _speed      => is => "rw", default => 12;
+has _player     => (
+    is      => "rw",
+    clearer => 1,
+);
 has _playing    => (
     is      => "ro",
     lazy    => 1,
@@ -155,20 +159,22 @@ sub _play_music {
     my ($self, $time) = @_;
 
     try {
-        my $midi = $self->midi;
-        my $id = $midi->play_music(
+        my $midi    = $self->midi;
+        my $player  = App::Jacana::MIDI::Player->new(
+            midi    => $midi,
             music   => $self->cursor->movement,
             speed   => $self->_speed,
             time    => $time,
-            start   => $self->weak_method("playing_on"),
-            stop    => $self->weak_method("playing_off"),
-            finish  => $self->weak_method("stop_playing"),
+            on_start    => $self->weak_method("playing_on"),
+            on_stop     => $self->weak_method("playing_off"),
+            on_finish   => $self->weak_method("stop_playing"),
         );
-        $self->_midi_id($id);
+        $self->_player($player);
         $self->get_action("MidiPlay")->set_sensitive(0);
         $self->get_action("MidiPlayHere")->set_sensitive(0);
         $self->get_action("MidiStop")->set_sensitive(1);
         $self->set_status("Playing");
+        $player->start;
     }
     catch { $self->status_flash($_) };
 }
@@ -183,9 +189,7 @@ sub _play_here :Action(MidiPlayHere) {
 
 sub _stop_playing {
     my ($self) = @_;
-    my $id = $self->_midi_id;
-    $id and $id->destroy;
-    $self->_midi_id(undef);
+    $self->_clear_player;
     $self->clear_playing;
 }
 
