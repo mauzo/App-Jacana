@@ -13,6 +13,7 @@ with    qw/
     App::Jacana::Has::Clef 
     App::Jacana::Has::Key
     App::Jacana::Has::MidiInstrument
+    App::Jacana::Has::Tempo
     App::Jacana::Has::Time
     App::Jacana::Has::Voices
     App::Jacana::Music::HasAmbient
@@ -34,6 +35,13 @@ has muted => (
 has "+clef" => default => "treble";
 has "+key" => default => 0;
 has "+mode" => default => "major";
+
+has "+beat" => (
+    default => sub { 
+        App::Jacana::Util::Length->new(length => 3);
+    },
+);
+has "+bpm" => default => 120;
 
 has "+beats" => default => 4;
 has "+divisor" => default => 4;
