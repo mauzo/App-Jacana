@@ -69,17 +69,18 @@ sub _trigger_position {
         qw/Pitch Length Key Dialog/;
     my %act     = map +($_, $view->get_action($_)), qw/
         AddDot NoteChroma Sharpen Flatten OctaveUp OctaveDown
-        Tie Grace Properties
+        Tie Triplet Grace Properties
     /;
 
     $act{AddDot}->set_sensitive($does{Length});
     if ($isa{Note}) {
-        $act{$_}->set_sensitive(1) for qw/Tie Grace/;
+        $act{$_}->set_sensitive(1) for qw/Tie Grace Triplet/;
         $act{Tie}->set_active($note->tie);
         $act{Grace}->set_active($isa{"Note::Grace"});
+        $act{Triplet}->set_active($note->tuplet != 1);
     }
     else {
-        for (qw/Tie Grace/) {
+        for (qw/Tie Grace Triplet/) {
             $act{$_}->set_sensitive(0);
             $act{$_}->set_active(0);
         }
@@ -466,6 +467,16 @@ sub _toggle_tie :Action(view.Tie) {
     my $note = $self->position;
     Music("Note")->check($note)     or return;
     $note->tie($act->get_active);
+    $self->view->refresh;
+}
+
+sub _tuplet :Action(view.Triplet) {
+    my ($self, $act) = @_;
+
+    my $note = $self->position;
+    Music("Note")->check($note)     or return;
+    my $tuplet = $note->tuplet;
+    $note->tuplet($tuplet == 1 ? (2/3) : 1);
     $self->view->refresh;
 }
 

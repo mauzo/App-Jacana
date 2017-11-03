@@ -14,6 +14,14 @@ has dots    => (
     traits  => [qw/Copiable/],
     default => 0,
 );
+# A scale factor for ->duration. This is a float because it's easier,
+# and the accuracy seems to be sufficient.
+has tuplet  => (
+    is      => "rw",
+    isa     => StrictNum,
+    traits  => [qw/Copiable/],
+    default => 1,
+);
 
 my @Length = qw/ \breve 1 2 4 8 16 32 64 128 /;
 my %Length = map +($Length[$_], $_), 0..$#Length;
@@ -37,10 +45,12 @@ sub _length_to_lily {
 
 sub duration { 
     my ($self) = @_;
+    # 256 qhdsq in a breve
     my $base = my $bit = 256;
     $base += $bit >>= 1 for 1..$self->dots;
     my $len = $self->length;
-    $base >> $len;
+    my $dur = $base >> $len;
+    $dur * $self->tuplet;
 }
 
 sub _draw_dots {
@@ -60,6 +70,19 @@ sub _draw_dots {
     $c->restore;
 
     return $dots * 1.6;
+}
+
+sub _draw_tuplet {
+    my ($self, $c, $pos) = @_;
+
+    my $tuplet  = $self->tuplet;
+    $tuplet == 1 and return;
+
+    $c->save;
+        $c->move_to(0, -$pos - 0.5);
+        $c->text_font("italic", 0.5);
+        $c->show_text(sprintf "%.2f", $tuplet);
+    $c->restore;
 }
 
 1;

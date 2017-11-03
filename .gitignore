@@ -1,7 +1,11 @@
 *.c
 *.o
+*.sf2
 blib
 Build
 _build
+log*
+ly
 otherblibs
 parts
+try*

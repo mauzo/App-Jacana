@@ -3,8 +3,6 @@ package App::Jacana::MIDI;
 use 5.012;
 use App::Jacana::Moose;
 
-use App::Jacana::StaffCtx::MIDI;
-
 use Audio::FluidSynth;
 use Glib;
 use Time::HiRes     qw/usleep/;
@@ -12,8 +10,6 @@ use List::Util      qw/min first/;
 use Scalar::Util    qw/refaddr/;
 
 use namespace::autoclean;
-
-with qw/ MooseX::Role::WeakClosure /;
 
 has settings    => is => "lazy";
 has synth       => is => "lazy";
@@ -106,6 +102,7 @@ sub note_on {
 
 sub note_off {
     my ($self, $chan, $pitch) = @_;
+    warn "MIDI NOTE OFF [$chan][$pitch]";
     defined $pitch 
         and eval { $self->synth->noteoff($chan, $pitch) };
 }
@@ -113,68 +110,6 @@ sub note_off {
 sub _all_notes_off {
     my ($self, $chan) = @_;
     eval { $self->synth->cc($chan, 123, 0) };
-}
-
-sub _prepare_music {
-    my ($self, $arg) = @_;
-
-    my @music; my $m = $$arg{music};
-    while (1) {
-        $m->is_voice_end and last;
-        $m = $m->next_voice;
-        $m->muted and next;
-        
-        my ($note, $when) = $m->find_time($$arg{time});
-        my $c   = $self->alloc_chan;
-        my $prg = $note->ambient->find_role("MidiInstrument");
-        $self->set_program($c, $prg->program);
-
-        push @music, App::Jacana::StaffCtx::MIDI->new(
-            midi => $self, chan => $c,
-            on_start => $$arg{start}, on_stop => $$arg{stop},
-            item => $note, when => $when,
-        );
-    }
-    $_->start_note for @music;
-    \@music;
-}
-
-sub play_music {
-    my ($self, %arg) = @_;
-
-    my $music = $self->_prepare_music(\%arg)
-        or return;
-
-    my $id; my @args = ($music, $arg{finish});
-    $id = Glib::Timeout->add($arg{speed}, $self->weak_method(
-        "_play_step", 
-        sub { Glib::Source->remove($id) },
-        \@args,
-    ));
-    push @args, $id;
-    $self->add_active($id, map $_->chan, @$music);
-    $id;
-}
-
-sub _play_step {
-    my ($self, $music, $finish, $id) = @_;
-    
-    for (grep !$_->when, @$music) {
-        while (!$_->when) {
-            $_->stop_note;
-            $_->next and $_->start_note;
-        }
-    }
-
-    @$music = grep $_->has_item, @$music;
-    unless (@$music) {
-        $finish->();
-        $self and $self->remove_active($id);
-        return 0;
-    }
-
-    $_->skip(1) for @$music;
-    return 1;
 }
 
 1;
