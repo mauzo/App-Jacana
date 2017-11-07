@@ -5,14 +5,34 @@ use namespace::autoclean;
 
 extends "App::Jacana::StaffCtx";
 
-has midi => is => "ro", required => 1, weak_ref => 1;
-has chan => is => "ro", required => 1;
+has midi => (
+    is          => "ro", 
+    required    => 1,
+    isa         => My "MIDI",
+    weak_ref    => 1,
+);
+has chan => (
+    is          => "lazy", 
+    isa         => Int,
+);
 
-has pitch           => is => "rw";
-has transposition   => is => "rw";
+has pitch           => is => "rw", isa => Maybe[Int];
+has transposition   => is => "rw", isa => Has "MidiTranspose";
 
-has on_start    => is => "ro";#, isa => CodeRef;
-has on_stop     => is => "ro";#, isa => CodeRef;
+has on_start    => is => "ro", isa => CodeRef;
+has on_stop     => is => "ro", isa => CodeRef;
+
+sub _build_chan { 
+    my ($self) = @_;
+
+    my $midi    = $self->midi;
+    my $c       = $midi->alloc_chan;
+
+    my $prg     = $self->item->ambient->find_role("MidiInstrument");
+    $midi->set_program($c, $prg->program);
+
+    $c;
+}
 
 sub BUILD {
     my ($self) = @_;
@@ -23,7 +43,8 @@ sub BUILD {
 
 sub DEMOLISH {
     my ($self) = @_;
-    $self->midi->free_chan($self->chan);
+    my $midi = $self->midi or return;
+    $midi->free_chan($self->chan);
 }
 
 sub start_note {
@@ -38,13 +59,13 @@ sub start_note {
         my $midi = $self->midi;
         my $chan = $self->chan;
 
-        if ($note->DOES("App::Jacana::Has::MidiInstrument")) {
+        if (Has("MidiInstrument")->check($note)) {
             $midi->set_program($chan, $note->program);
         }
-        elsif ($note->DOES("App::Jacana::Has::MidiTranspose")) {
+        elsif (Has("MidiTranspose")->check($note)) {
             $self->transposition($note);
         }
-        elsif ($note->DOES("App::Jacana::Has::Pitch")) {
+        elsif (Has("Pitch")->check($note)) {
             my $trans = $self->transposition;
             my $sound = $trans ? $trans->transpose($note) : $note;
             my $pitch = $sound->pitch;

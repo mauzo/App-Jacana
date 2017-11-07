@@ -68,12 +68,8 @@ sub _build_staffs {
         $m->muted and next;
         
         my ($note, $when) = $m->find_time($time);
-        my $c   = $midi->alloc_chan;
-        my $prg = $note->ambient->find_role("MidiInstrument");
-        $midi->set_program($c, $prg->program);
-
         push @music, App::Jacana::StaffCtx::MIDI->new(
-            midi => $midi, chan => $c,
+            midi => $midi,
             on_start => $start, on_stop => $stop,
             item => $note, when => $when,
         );
