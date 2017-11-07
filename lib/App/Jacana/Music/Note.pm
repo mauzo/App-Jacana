@@ -1,8 +1,8 @@
 package App::Jacana::Music::Note;
 
-use 5.012;
-
 use App::Jacana::Moose;
+
+use App::Jacana::Tables qw/%Heads %Tails %Acci/;
 
 use Module::Runtime qw/use_module/;
 
@@ -47,10 +47,6 @@ sub to_lily {
 
     "$pitch$len$tie$marks";
 }
-
-my %Heads   = qw/0 sM1 1 s0 2 s1/;
-my %Tails   = qw/4 3 5 4 6 5 7 6 8 7/;
-my %Acci    = qw/0 natural 1 sharp -1 flat 2 doublesharp -2 flatflat/;
 
 sub _tail_dir {
     my ($self, $pos) = @_;

@@ -6,6 +6,7 @@ our @EXPORT_OK = qw/
     _mkfifths
     %Pitch %Chroma %Mode
     %Staff %Chr2Ly %Ly2Chr
+    %Heads %Tails %Acci
     @Fifths %Fifths
     @Trans %Trans
     %Nearest
@@ -13,13 +14,17 @@ our @EXPORT_OK = qw/
 
 sub _mkfifths { map "$_$_[0]", qw/f c g d a e b/ }
 
-our %Pitch = qw/c 0 d 2 e 4 f 5 g 7 a 9 b 11/;
+our %Pitch  = qw/c 0 d 2 e 4 f 5 g 7 a 9 b 11/;
 our %Chroma = (qw/eses -2 es -1 is 1 isis 2/, "", 0);
-our %Mode = qw/ major 8 minor 11 /;
+our %Mode   = qw/ major 8 minor 11 /;
 
-our %Staff = qw/c 0 d 1 e 2 f 3 g 4 a 5 b 6/;
-our %Chr2Ly  = (0, "", qw/1 is -1 es 2 isis -2 eses/);
-our %Ly2Chr  = reverse %Chr2Ly;
+our %Staff  = qw/c 0 d 1 e 2 f 3 g 4 a 5 b 6/;
+our %Chr2Ly = (0, "", qw/1 is -1 es 2 isis -2 eses/);
+our %Ly2Chr = reverse %Chr2Ly;
+
+our %Heads  = qw/0 sM1 1 s0 2 s1/;
+our %Tails  = qw/4 3 5 4 6 5 7 6 8 7/;
+our %Acci   = qw/0 natural 1 sharp -1 flat 2 doublesharp -2 flatflat/;
 
 our @Fifths = map _mkfifths($_), "es", "", "is";
 our %Fifths = map +($Fifths[$_], $_), 0..$#Fifths;

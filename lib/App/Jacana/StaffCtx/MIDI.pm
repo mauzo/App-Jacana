@@ -14,6 +14,13 @@ has transposition   => is => "rw";
 has on_start    => is => "ro";#, isa => CodeRef;
 has on_stop     => is => "ro";#, isa => CodeRef;
 
+sub BUILD {
+    my ($self) = @_;
+
+    my $trans = $self->item->ambient->find_role("MidiTranspose");
+    $trans and $self->transposition($trans);
+}
+
 sub DEMOLISH {
     my ($self) = @_;
     $self->midi->free_chan($self->chan);
