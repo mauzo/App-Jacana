@@ -11,6 +11,12 @@ has midi => (
     isa         => My "MIDI",
     weak_ref    => 1,
 );
+has player => (
+    is          => "ro", 
+    required    => 1, 
+    isa         => My "MIDI::Player",
+    weak_ref    => 1,
+);
 has chan => (
     is          => "lazy", 
     isa         => Int,
@@ -37,8 +43,13 @@ sub _build_chan {
 sub BUILD {
     my ($self) = @_;
 
-    my $trans = $self->item->ambient->find_role("MidiTranspose");
+    my $amb     = $self->item->ambient;
+
+    my $trans   = $amb->find_role("MidiTranspose");
     $trans and $self->transposition($trans);
+
+    my $tempo   = $amb->find_role("Tempo");
+    $self->player->set_tempo($tempo);
 }
 
 sub DEMOLISH {
@@ -64,6 +75,9 @@ sub start_note {
         }
         elsif (Has("MidiTranspose")->check($note)) {
             $self->transposition($note);
+        }
+        elsif (Has("Tempo")->check($note)) {
+            $self->player->set_tempo($note);
         }
         elsif (Has("Pitch")->check($note)) {
             my $trans = $self->transposition;

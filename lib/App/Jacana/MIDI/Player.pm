@@ -25,9 +25,9 @@ has time => (
     isa         => Int,
 );
 has speed => (
-    is          => "ro",
-    required    => 1,
+    is          => "rw",
     isa         => Num,
+    default     => 16,
 );
 
 for (qw/start stop finish/) {
@@ -69,7 +69,7 @@ sub _build_staffs {
         
         my ($note, $when) = $m->find_time($time);
         push @music, App::Jacana::StaffCtx::MIDI->new(
-            midi => $midi,
+            player => $self, midi => $midi,
             on_start => $start, on_stop => $stop,
             item => $note, when => $when,
         );
@@ -126,6 +126,15 @@ sub _stop_timer {
     warn "TIMER [$self] STOPPING [$id]";
     Glib::Source->remove($id);
     $self->_clear_timer;
+}
+
+sub set_tempo {
+    my ($self, $tempo) = @_;
+
+    my $speed = $tempo->ms_per_tick;
+    $self->speed($speed);
+    $self->_stop_timer;
+    $self->_start_timer($speed);
 }
 
 1;

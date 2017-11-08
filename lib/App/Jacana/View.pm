@@ -161,14 +161,12 @@ sub _play_music {
 
     my $curs    = $self->cursor;
     my $tempo   = $curs->position->ambient->find_role("Tempo");
-    my $speed   = $tempo ? $tempo->ms_per_tick : 15;
 
     try {
         my $midi    = $self->midi;
         my $player  = App::Jacana::MIDI::Player->new(
             midi    => $midi,
             music   => $self->cursor->movement,
-            speed   => $speed,
             time    => $time,
             on_start    => $self->weak_method("playing_on"),
             on_stop     => $self->weak_method("playing_off"),
