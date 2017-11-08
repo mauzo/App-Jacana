@@ -60,6 +60,7 @@
         icon_name="icon-keysig"/>
       <menuitem action="TimeSig" label="Time signature…"
         icon_name="icon-timesig"/>
+      <menuitem action="Tempo"/>
       <menuitem action="Barline" icon_name="icon-barline"/>
       <separator/>
       <menuitem action="Barline"/>

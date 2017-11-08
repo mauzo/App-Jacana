@@ -51,7 +51,7 @@ has "+program" => default => 68;
 
 my @MTypes = map "App::Jacana::Music::$_",
     qw/ Barline Clef KeySig MultiRest Note Note::Grace
-        RehearsalMark Rest Text::Mark TimeSig 
+        RehearsalMark Rest Tempo Text::Mark TimeSig
         MIDI::Instrument MIDI::Transpose
     /;
 for (@MTypes) {

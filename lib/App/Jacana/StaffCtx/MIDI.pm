@@ -49,6 +49,7 @@ sub BUILD {
     $trans and $self->transposition($trans);
 
     my $tempo   = $amb->find_role("Tempo");
+    warn "STAFFCTX FOUND TEMPO [$tempo]: " . $tempo->to_lily;
     $self->player->set_tempo($tempo);
 }
 
