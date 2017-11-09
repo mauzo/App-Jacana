@@ -12,13 +12,13 @@ with    qw/
 sub dialog { "Lily" }
 
 sub lily_rx {
-    qr( \% (?<lily>[^\n]*) \n )x
+    qr( (?<indent>\h*) \% \h* (?<lily>[^\n]*) \n )x
 }
 
 sub to_lily { 
     my ($self) = @_;
     my $lily = $self->lily;
-    "\n%$lily\n";
+    "% $lily";
 }
 
 sub staff_line { -3 }

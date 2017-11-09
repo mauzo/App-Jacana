@@ -13,9 +13,7 @@ sub dialog { "Lily" }
 
 sub to_lily { 
     my ($self) = @_;
-    my $lily = $self->lily;
-    s/^\s+//, s/\s+$// for $lily;
-    "\n$lily\n";
+    $self->lily;
 }
 
 sub staff_line { -3 }

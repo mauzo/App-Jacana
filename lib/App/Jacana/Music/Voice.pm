@@ -104,14 +104,24 @@ sub to_lily {
 
     until ($item->is_music_end) {
         $item = $item->next;
-        my $new = $item->to_lily;
 
-        if (length($line) + length($new) > 71) {
-            $lily .= "$line\n";
+        if (Has("Lily")->check($item) and $item->has_indent) {
+            my $ind = $item->indent;
+            my $new = $item->to_lily;
+
+            $lily .= "$line\n$ind$new\n";
             $line = " ";
         }
+        else {
+            my $new = $item->to_lily;
 
-        $line .= " $new"
+            if (length($line) + length($new) > 71) {
+                $lily .= "$line\n";
+                $line = " ";
+            }
+
+            $line .= " $new"
+        }
     }
 
     "$name = {\n$lily$line\n}\n";
