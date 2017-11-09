@@ -50,7 +50,7 @@ has "+divisor" => default => 4;
 has "+program" => default => 68;
 
 my @MTypes = map "App::Jacana::Music::$_",
-    qw/ Barline Clef KeySig MultiRest Note Note::Grace
+    qw/ Barline Clef Comment KeySig MultiRest Note Note::Grace
         RehearsalMark Rest Tempo Text::Mark TimeSig
         MIDI::Instrument MIDI::Transpose
     /;
