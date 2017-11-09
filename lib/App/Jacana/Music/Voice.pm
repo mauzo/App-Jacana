@@ -98,18 +98,23 @@ sub to_lily {
     my ($self) = @_;
     
     my $name = $self->name;
+    my $item = $self;
 
-    my $lily;
-    until ($self->is_music_end) {
-        $self = $self->next;
-        $lily .= $self->to_lily . " ";
+    my ($lily, $line) = ("", " ");
+
+    until ($item->is_music_end) {
+        $item = $item->next;
+        my $new = $item->to_lily;
+
+        if (length($line) + length($new) > 71) {
+            $lily .= "$line\n";
+            $line = " ";
+        }
+
+        $line .= " $new"
     }
 
-    local $Text::Wrap::huge     = "overflow";
-    local $Text::Wrap::unexpand = 0;
-    $lily = wrap "  ", "  ", $lily;
-
-    "$name = {\n$lily\n}\n";
+    "$name = {\n$lily$line\n}\n";
 }
 
 
