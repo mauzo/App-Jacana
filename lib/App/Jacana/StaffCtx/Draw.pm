@@ -6,27 +6,32 @@ use namespace::autoclean;
 
 extends "App::Jacana::StaffCtx";
 
-has y   => is => "ro", required => 1;#, isa => Num
+has y => (
+    is          => "ro", 
+    required    => 1,
+    #isa         => Num,
+    traits      => [qw/Copiable/],
+);
 
-has bar => is => "rw", default => 0;
-has pos => is => "rw", default => 0;
+has bar => (
+    is          => "rw",
+    default     => 0,
+    traits      => [qw/Copiable/],
+);
+has pos => (
+    is          => "rw", 
+    default     => 0,
+    traits      => [qw/Copiable/],
+);
 
 has tie_x => (
     is          => "rw",
     #isa         => Num,
+    traits      => [qw/Copiable/],
 );
 
 sub top     { $_[0]->y - 12 }
 sub bottom  { $_[0]->y + 12 }
-
-around clone => sub {
-    my ($orig, $self, @args) = @_;
-    my $new = $self->$orig(
-        map(+($_, $self->$_), qw/y bar pos/),
-        tie_x   => 0,
-        @args,
-    );
-};
 
 before next => sub {
     my ($self) = @_;

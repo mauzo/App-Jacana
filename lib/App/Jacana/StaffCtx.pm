@@ -2,6 +2,7 @@ package App::Jacana::StaffCtx;
 
 use App::Jacana::Moose;
 use App::Jacana::Types;
+use MooseX::Copiable;
 
 use Scalar::Util                qw/blessed/;
 use namespace::autoclean;
@@ -12,27 +13,28 @@ has item => (
     weak_ref    => 1,
     clearer     => 1,
     predicate   => 1,
+    traits      => [qw/Copiable/],
 );
 # This is a float; see Has::Length
-has when => is => "rw", default => 0, isa => StrictNum;
-
+has when => (
+    is          => "rw", 
+    default     => 0, 
+    isa         => StrictNum,
+    traits      => [qw/Copiable/],
+);
 has tie_from => (
     is          => "rw",
     isa         => Has "Pitch",
     weak_ref    => 1,
     clearer     => "clear_tie",
     predicate   => "has_tie",
+    traits      => [qw/Copiable/],
 );
 
 sub clone {
     my ($self, @args) = @_;
     my $class = blessed $self;
-    $class->new(
-        when    => $self->when,
-        ($self->has_item ? (item => $self->item) : ()),
-        ($self->has_tie ? (tie_from => $self->tie_from) : ()),
-        @args,
-    );
+    $class->new(copy_from => $self, @args);
 }
 
 sub skip {
