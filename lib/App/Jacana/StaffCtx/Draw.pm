@@ -5,6 +5,8 @@ use Carp;
 use namespace::autoclean;
 
 extends "App::Jacana::StaffCtx";
+with    map "App::Jacana::StaffCtx::Has::$_", 
+        qw/ Tie When /;
 
 has y => (
     is          => "ro", 
