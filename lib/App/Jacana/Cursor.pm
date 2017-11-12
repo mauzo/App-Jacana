@@ -59,9 +59,15 @@ sub _trigger_position {
     my ($self, $note) = @_;
 
     my $view = $self->view or return;
+    my $edit = ($self->mode eq "edit");
 
-    $self->mode eq "edit" and $note->is_music_start
-        and return $self->position($note->next);
+    if ($edit
+        && $note->is_music_start
+        && (my $next = $note->next)
+    ) {
+        $self->position($next);
+        return;
+    }
 
     my %isa     = map +($_, Music($_)->check($note)),
         qw/ Note Note::Grace /;
@@ -70,7 +76,7 @@ sub _trigger_position {
     my %act     = map +($_, $view->get_action($_)), qw/
         AddDot NoteChroma Sharpen Flatten OctaveUp OctaveDown
         Tie Triplet Grace Properties
-    /;
+    /,  "PitchA".."PitchG";
 
     $act{AddDot}->set_sensitive($does{Length});
     if ($isa{Note}) {
@@ -85,17 +91,13 @@ sub _trigger_position {
             $act{$_}->set_active(0);
         }
     }
-    if ($does{Pitch}) {
-        $act{NoteChroma}->set_current_value($note->chroma);
-        $act{NoteChroma}->set_sensitive(1);
-    }
-    else {
-        $act{NoteChroma}->set_sensitive(0);
-    }
     $_->set_sensitive($does{Pitch} || $does{Key}) 
         for @act{qw/Sharpen Flatten/};
-    $_->set_sensitive($does{Pitch})
-        for @act{qw/OctaveUp OctaveDown/};
+    $_->set_sensitive(!$edit || $does{Pitch} || $does{Key})
+        for @act{"PitchA".."PitchG"};
+    $does{Pitch} and $act{NoteChroma}->set_current_value($note->chroma);
+    $_->set_sensitive($does{Pitch}) 
+        for @act{qw/ NoteChroma OctaveUp OctaveDown /};
     $act{Properties}->set_sensitive($does{Dialog});
 
     $self->copy_from($note, "App::Jacana::Has::Length");
@@ -129,12 +131,13 @@ sub DEMOLISH {
 
 sub _trigger_mode { 
     my ($self, $mode) = @_;
-    for (qw/ Rest KeySig TimeSig Barline MidiInstrument /) {
+    for (qw/ Rest KeySig TimeSig Barline MIDIInstrument /) {
         $self->view->get_action($_)
             ->set_sensitive($mode eq "insert");
     }
     my $pos = $self->position;
     $self->position($pos);
+    $self->view->refresh;
 }
 sub insert_mode :Action(view.InsertMode)   { $_[0]->mode("insert") }
 sub edit_mode :Action(view.EditMode)       { $_[0]->mode("edit") }
@@ -410,7 +413,7 @@ sub change_pitch {
     my $Dp  = Has("Pitch")->check($pos);
     my $Ik  = Has("Key")->check($pos);
 
-    $Dp || $Ik || $self->mode eq "insert" or return;
+    $Dp || $Ik || $self->mode eq "insert" or warn("BAD PITCH"), return;
 
     my ($note) = $action->get_name =~ /^Pitch([A-Z])$/ or return;
     $note = lc $note;
