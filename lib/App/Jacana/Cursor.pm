@@ -5,6 +5,8 @@ use utf8;
 use App::Jacana::Moose;
 use MooseX::Gtk2;
 
+use App::Jacana::StaffCtx::Cursor;
+
 use Try::Tiny;
 
 use namespace::autoclean;
@@ -18,7 +20,12 @@ my @Mutable = qw/is rw lazy 1 builder 1 clearer 1 trigger 1/;
 has view        => is => "ro", weak_ref => 1;
 has movement    => @Mutable, isa => My "Document::Movement";
 has voice       => @Mutable, isa => Music "Voice";
-has position    => @Mutable, isa => Music;
+
+has _iter => (
+    is      => "lazy", 
+    clearer => 1,
+    isa     => My "StaffCtx::Cursor",
+);
 
 gtk_default_target action => "view";
 
@@ -45,9 +52,8 @@ has "+length"   => (
 
 sub _build_movement     { $_[0]->view->doc->next_movement }
 sub _build_voice        { $_[0]->movement->next_voice }
-sub _build_position     { $_[0]->voice }
 
-sub _trigger_movement   { $_[0]->clear_voice; $_[0]->clear_position }
+sub _trigger_movement   { $_[0]->clear_voice; $_[0]->_clear_iter; }
 
 sub _trigger_voice      { 
     my ($self, $new) = @_;
@@ -56,7 +62,22 @@ sub _trigger_voice      {
     $self->position($new->find_time($time));
 }
 
-sub _trigger_position {
+sub _build__iter {
+    my ($self) = @_;
+    App::Jacana::StaffCtx::Cursor->new(
+        item        => $self->voice,
+        on_change   => $self->weak_method("_change_position"),    
+    );
+}
+
+sub position {
+    my ($self, $note) = @_;
+
+    @_ > 1 or return $self->_iter->item;
+    $self->_iter->item($note);
+}
+
+sub _change_position {
     my ($self, $note) = @_;
 
     my $view = $self->view or return;

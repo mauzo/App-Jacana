@@ -34,4 +34,25 @@ sub at_end {
     return;
 }
 
+sub foreach {
+    my ($self, %arg) = @_;
+
+    my $type    = $arg{filter} // Any;
+    my $do      = $arg{do};
+    my $upto    = $arg{upto};
+
+    My("StaffCtx")->check($upto) 
+        and $upto = $upto->item;
+
+    while (1) {
+        my $item = $self->item;
+    
+        if ($type->check($item)) {
+            $do->($item) or last;
+        }
+
+        $upto && $item == $upto and last;
+    }
+}
+
 1;
