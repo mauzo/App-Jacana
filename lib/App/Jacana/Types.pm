@@ -1,26 +1,27 @@
 package App::Jacana::Types;
 
-use Type::Library
-    -base,
-    -declare => qw/Chroma Key Name Pitch/;
+use 5.012;
+use warnings;
+
+use Type::Library -base;
 use Type::Utils -all;
 use Types::Standard -types;
 
 our @EXPORT_OK = qw/Has My Music/;
 
-declare Chroma,
+declare Chroma =>
     as Int, where { $_ > -3 && $_ < 3 };
 
-declare Key,
+declare Key =>
     as Int, where { $_ > -8 && $_ < 8 };
 
-declare NoteLength,
+declare NoteLength =>
     as Int, where { $_ >= 0 && $_ <= 8 };
 
-declare Name,
+declare Name =>
     as Str, where { /^[a-zA-Z]+$/ };
 
-declare Pitch,
+declare Pitch =>
     as Str, where { /^[a-g]$/ };
 
 sub My ($) {
