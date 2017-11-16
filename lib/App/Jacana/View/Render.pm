@@ -54,20 +54,20 @@ sub show_lines {
     my ($self, $c, $from, $to) = @_;
 
     my $lines   = $self->lines;
-    warn "CURRENT LINES: [" . 
-        join(", ", map {
-            my $s = $_->staffs->[0];
-            my $i = $s ? $s->start : "<none>";
-            $_->top . "-" . $_->bottom 
-            . "($i)"
-        } @$lines) . "]";
+#    warn "CURRENT LINES: [" . 
+#        join(", ", map {
+#            my $s = $_->staffs->[0];
+#            my $i = $s ? $s->start : "<none>";
+#            $_->top . "-" . $_->bottom 
+#            . "($i)"
+#        } @$lines) . "]";
     @$lines or return;
 
     my ($s, $e) = binsearch_range 
         { $a <=> (ref $b ? $b->top : $b) } 
         $from, $to, @$lines;
     $s and $s -= 1;
-    warn "SHOWING LINES [$s]-[$e]";
+    #warn "SHOWING LINES [$s]-[$e]";
 
     for my $l (@$lines[$s..$e]) {
         $c->set_source_surface($l->surface, 0, $l->top);
@@ -111,19 +111,19 @@ sub render_upto {
     }
 
     while (1) {
-        warn "RENDER_UPTO lines ["
-            . join("", map "[$_]", @$lines)
-            . "] voices ["
-            . join("", map { 
-                    "[$_|" . $_->has_item
-                    . "|" . $_->item . "]" 
-                } @voices)
-            . "]";
+#        warn "RENDER_UPTO lines ["
+#            . join("", map "[$_]", @$lines)
+#            . "] voices ["
+#            . join("", map { 
+#                    "[$_|" . $_->has_item
+#                    . "|" . $_->item . "]" 
+#                } @voices)
+#            . "]";
         @$lines && $upto->($$lines[-1]) 
-            and warn("RENDER_UPTO returning, UPTO"), last;
+            and last;#warn("RENDER_UPTO returning, UPTO"), last;
 
         @voices = grep $_->has_item, @voices;
-        @voices or warn("RENDER_UPTO returning, VOICES"), last;
+        @voices or last;#warn("RENDER_UPTO returning, VOICES"), last;
 
         #warn "RENDERING LINE AT [$top]:\n" .
         #    join "\n", map "  $_",

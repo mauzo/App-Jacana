@@ -368,8 +368,8 @@ sub _expose_event :Signal {
 
     my $to = $rnd->render_upto(sub {
         my ($l) = @_;
-        warn "RENDER UP TO CB [$l]["
-            . $l->bottom . "] > [$bot]";
+#        warn "RENDER UP TO CB [$l]["
+#            . $l->bottom . "] > [$bot]";
         $l && $l->bottom > $bot;
     });
     $self->_show_highlights($c);
