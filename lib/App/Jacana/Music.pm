@@ -2,7 +2,9 @@ package App::Jacana::Music;
 
 use App::Jacana::Moose;
 
+use App::Jacana::StaffCtx::FindTime;
 use App::Jacana::Util::LinkList;
+
 use List::Util      qw/first/;
 
 use namespace::autoclean;
@@ -59,14 +61,10 @@ sub rsb { 2 }
 sub get_time {
     my ($self) = @_;
 
-    my $dur = 0;
-    while (!$self->is_music_start) {
-        $self->DOES("App::Jacana::Has::Length")
-            and $dur += $self->duration;
-        $self = $self->prev;
-    }
+    my $voice   = $self->ambient->find_voice;
+    my $ctx     = StaffCtx("FindTime")->new(item => $voice);
 
-    $dur;
+    $ctx->get_time_for($self);
 }
 
 sub break_ambient {

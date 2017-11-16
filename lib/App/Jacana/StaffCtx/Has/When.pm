@@ -3,6 +3,7 @@ package App::Jacana::StaffCtx::Has::When;
 use App::Jacana::Moose -role;
 use MooseX::Copiable;
 
+
 # This is a float; see Has::Length
 has when => (
     is          => "rw", 
@@ -25,8 +26,8 @@ after next => sub {
     my ($self) = @_;
     $self->has_item or return;
     my $note = $self->item;
-    $note->DOES("App::Jacana::Has::Length")
-        and $self->when($note->duration);
+    my $when = Has("Length")->check($note) ? $note->duration : 0;
+    $self->when($when);
 };
 
 sub at_end {

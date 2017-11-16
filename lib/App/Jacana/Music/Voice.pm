@@ -2,6 +2,8 @@ package App::Jacana::Music::Voice;
 
 use App::Jacana::Moose;
 
+use App::Jacana::StaffCtx::FindTime;
+
 use Data::Dump      qw/pp/;
 use Module::Runtime     qw/use_module/;
 use Text::Wrap          qw/wrap/;
@@ -124,6 +126,15 @@ sub draw { 0 }
 
 # Returns a Music item and the length of time left in that item
 sub find_time {
+    my ($self, $time) = @_;
+
+    my $ft = StaffCtx("FindTime")->new(item => $self)->skip_time($time)
+        or return;
+
+    return $ft->item, $ft->when;
+}
+
+sub old_find_time {
     my ($self, $dur) = @_;
 
     while ($dur > 0 && !$self->is_music_end) {

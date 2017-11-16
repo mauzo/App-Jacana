@@ -69,11 +69,14 @@ sub _build_staffs {
         $m = $m->next_voice;
         $m->muted and next;
         
-        my ($note, $when) = $m->find_time($time);
-        push @music, App::Jacana::StaffCtx::MIDI->new(
+        my $where = StaffCtx("FindTime")->new(item => $m)
+            ->skip_time($time)
+            or next;
+
+        push @music, StaffCtx("MIDI")->new(
             player => $self, midi => $midi,
             on_start => $start, on_stop => $stop,
-            item => $note, when => $when,
+            copy_from => $where,
         );
     }
     $_->start_note for @music;

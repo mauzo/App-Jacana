@@ -7,7 +7,9 @@ use Type::Library -base;
 use Type::Utils -all;
 use Types::Standard -types;
 
-our @EXPORT_OK = qw/Has My Music/;
+use Memoize;
+
+our @EXPORT_OK = qw/Has My Music StaffCtx/;
 
 declare Chroma =>
     as Int, where { $_ > -3 && $_ < 3 };
@@ -36,9 +38,17 @@ sub My ($) {
     };
 }
 
+memoize "My";
+
 sub Music (;$) {
     my ($which) = @_;
     my $name    = @_ ? "Music::$which" : "Music";
+    My $name;
+}
+
+sub StaffCtx (;$) {
+    my ($which) = @_;
+    my $name    = @_ ? "StaffCtx::$which" : "StaffCtx";
     My $name;
 }
 
@@ -47,5 +57,7 @@ sub Has ($) {
     my $role    = "App::Jacana::Has::$which";
     role_type { role => $role };
 }
+
+memoize "Has";
 
 __PACKAGE__->meta->make_immutable;

@@ -55,11 +55,16 @@ sub _build_voice        { $_[0]->movement->next_voice }
 
 sub _trigger_movement   { $_[0]->clear_voice; $_[0]->_clear_iter; }
 
-sub _trigger_voice      { 
+sub _trigger_voice { 
     my ($self, $new) = @_;
 
     my $time = $self->position->get_time;
-    $self->position($new->find_time($time));
+
+    my $pos = StaffCtx("FindTime")->new(item => $new);
+    $pos->skip_time($time);
+    $self->_iter->copy_from($pos);
+
+    $self->view->redraw;
 }
 
 sub _build__iter {
@@ -74,6 +79,8 @@ sub position {
     my ($self, $note) = @_;
 
     @_ > 1 or return $self->_iter->item;
+
+    Carp::carp("SET CURSOR POSITION");
     $self->_iter->item($note);
 }
 
@@ -238,9 +245,11 @@ sub goto_position :Action {
         label   => "Goto position (qhdsq):",
         value   => $self->position->get_time,
     ) or return;
-    my ($pos) = $self->voice->find_time($dlg->value);
-    warn "GOTO POSITION [$pos]";
-    $self->position($pos);
+    
+    my $pos = StaffCtx("FindTime")->new(item => $self->voice)
+        ->skip_time($dlg->value)
+        or return;
+    $self->_iter->copy_from($pos);
 }
 
 sub np_mvmt {

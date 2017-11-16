@@ -26,6 +26,7 @@ sub next {
 
     my $note = $self->item  or return;
     $note->is_music_end     and return $self->at_end;
+
     $self->item($note->next);
     return 1;
 }
