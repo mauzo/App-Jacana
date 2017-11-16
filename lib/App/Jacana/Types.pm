@@ -6,6 +6,7 @@ use warnings;
 use Type::Library -base;
 use Type::Utils -all;
 use Types::Standard -types;
+use Types::Common::Numeric qw/PositiveOrZeroInt/;
 
 use Memoize;
 
@@ -25,6 +26,8 @@ declare Name =>
 
 declare Pitch =>
     as Str, where { /^[a-g]$/ };
+
+declare Tick => as PositiveOrZeroInt;
 
 sub My ($) {
     my ($which) = @_;

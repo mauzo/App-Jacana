@@ -48,8 +48,9 @@ my @CtxAtts = qw/when y bar pos/;
 
 sub update {
     my ($self, $s, $c, $x) = @_;
-    $self->end($s->item);
     $self->right(ceil($c->u2d($x)));
+    $s->has_item or return;
+    $self->end($s->item);
     $self->continue($s->clone);
 }
 

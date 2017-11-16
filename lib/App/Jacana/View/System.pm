@@ -7,6 +7,8 @@ use List::Util      qw/first/;
 
 use namespace::autoclean;
 
+with qw/App::Jacana::Has::Tick/;
+
 has surface => (
     is      => "lazy",
     isa     => InstanceOf["Cairo::ImageSurface"],
@@ -39,6 +41,7 @@ sub find_item_at {
     } @{$self->staffs};
     my ($i, $e) = ($staff->start, $staff->end);
     while (1) {
+        no warnings "uninitialized";
         $i->bbox->[2] > $x  and return $i;
         $i = $i->next   or return;
         $i == $e        and return;

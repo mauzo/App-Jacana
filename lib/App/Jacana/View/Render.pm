@@ -102,7 +102,7 @@ sub render_upto {
     my (@voices, $top);
     if (@$lines) {
         my $l   = $$lines[-1];
-        @voices = map $_->clone, map $_->continue, @{$l->staffs};
+        @voices = map $_->clone, grep $_, map $_->continue, @{$l->staffs};
         $top    = $l->bottom;
     }
     else {
@@ -128,10 +128,13 @@ sub render_upto {
         #warn "RENDERING LINE AT [$top]:\n" .
         #    join "\n", map "  $_",
         #    map $_->item, @$start;
+        my $tick = $voices[0]->tick;
+        warn "STARTING A NEW SYSTEM AT [$tick]";
         my $l = My("View::System")->new(
             top     => $top,
             width   => $self->width,
             height  => ceil((@voices + 1)*24*$scale),
+            tick    => $tick,
         );
         my $c = My("DrawCtx")->new(
             copy_from   => $self->view,
