@@ -2,7 +2,7 @@ package App::Jacana::Music;
 
 use App::Jacana::Moose;
 
-use App::Jacana::MUtil::LinkList;
+use App::Jacana::Util::LinkList;
 use List::Util      qw/first/;
 
 use namespace::autoclean;

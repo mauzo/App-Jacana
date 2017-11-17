@@ -1,9 +1,10 @@
 *.c
 *.o
 *.sf2
-blib
 Build
 _build
+blib
+bm*
 log*
 ly
 otherblibs
