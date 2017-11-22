@@ -102,6 +102,17 @@ sub DEMOLISH {
     warn "FINISHED DEMOLISHING [$self]";
 }
 
+sub system_for {
+    my ($self, $item) = @_;
+    $item->system;
+}
+
+sub _doc_changed :Signal(doc.changed) {
+    my ($self, $item) = @_;
+    warn "DOC CHANGED [$item]";
+    $self->refresh($self->system_for($item));
+}
+
 sub save_as :Action(SaveAs) {
     my ($self)  = @_;
     my $doc     = $self->doc;
@@ -145,6 +156,9 @@ sub file_import :Action(Import) {
 sub file_close :Action(Close) {
     my ($self) = @_;
 
+    if ($self->doc->dirty) {
+        warn "CLOSING DIRTY DOCUMENT";
+    }
     $self->_window->remove_tab($self);
 }
 
@@ -286,7 +300,7 @@ sub clip_cut :Action(Cut) {
     $pos->break_ambient;
     $self->clear_mark;
     $self->clip($start);
-    $self->refresh;
+    $self->doc->signal_emit(changed => $pos);
 }
 
 sub clip_copy :Action(Copy) {
@@ -309,7 +323,7 @@ sub clip_paste :Action(Paste) {
     $start->break_ambient;
     $self->mark($start);
     $curs->position($end);
-    $self->refresh;
+    $self->doc->signal_emit(changed => $end);
 }
 
 sub _realize :Signal {

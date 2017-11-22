@@ -3,7 +3,7 @@ package App::Jacana::View::Region;
 use App::Jacana::Moose -role;
 use MooseX::Gtk2;
 
-requires qw/ cursor redraw refresh /;
+requires qw/ cursor redraw doc /;
 
 has mark => (
     is          => "rw", 
@@ -63,7 +63,7 @@ sub _rgn_change_octave {
         $pos = $pos->next;
     }
 
-    $self->refresh;
+    $self->doc->signal_emit(changed => $pos);
 }
 
 sub rgn_octave_up :Action(RegionOctaveUp) { 
@@ -104,7 +104,7 @@ sub rgn_transpose :Action(RegionTranspose) {
     $end->find_next_with("Pitch") and $end->insert($reset);
     $end->break_ambient;
 
-    $self->refresh;
+    $self->doc->signal_emit(changed => $end);
 }
 
 sub _rgn_length {
@@ -124,7 +124,7 @@ sub _rgn_length {
         $pos = $pos->next
             or die "Length change ran off the end of the list!";
     }
-    $self->refresh;
+    $self->doc->signal_emit(changed => $pos);
 }
 
 sub rgn_halve :Action(RegionHalve) { $_[0]->_rgn_length(+1) }

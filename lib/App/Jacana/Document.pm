@@ -4,6 +4,7 @@ use 5.012;
 use warnings;
 
 use App::Jacana::Moose;
+use MooseX::Gtk2;
 
 use File::Slurp     qw/read_file write_file/;
 use List::Util      qw/first/;
@@ -14,7 +15,10 @@ use App::Jacana::Document::Movement;
 
 use namespace::autoclean;
 
-with qw/App::Jacana::Has::Movements/;
+with qw/
+    MooseX::Role::Signal
+    App::Jacana::Has::Movements
+/;
 
 has filename => (
     is          => "rw",
@@ -32,11 +36,17 @@ sub BUILD { }
 
 sub DEMOLISH { warn "DEMOLISH DOCUMENT [$_[0]]" }
 
+sub _changed :Signal {
+    my ($self) = @_;
+    $self->dirty(1);
+}
+
 sub empty_document {
     my ($self) = @_;
     my $m = $self->find_movement("");
     $m->prev_voice->insert_voice(
         App::Jacana::Music::Voice->new(name => "voice"));
+    $self->dirty(1);
     $self;
 }
 
@@ -47,6 +57,7 @@ sub open {
     my $new     = $self->new(filename => $file);
 
     $new->parse_music($lily);
+    $new->dirty(0);
     $new;
 }
 
@@ -70,6 +81,7 @@ sub save {
     warn sprintf "SAVING TO [%s]", $self->filename;
     my $lily = $self->to_lily;
     write_file $self->filename, $lily;
+    $self->dirty(0);
 }
 
 sub find_movement {

@@ -18,6 +18,7 @@ with qw/
 my @Mutable = qw/is rw lazy 1 builder 1 clearer 1 trigger 1/;
 
 has view        => is => "ro", weak_ref => 1;
+has doc         => is => "lazy", weak_ref => 1;
 has movement    => @Mutable, isa => My "Document::Movement";
 has voice       => @Mutable, isa => Music "Voice";
 
@@ -50,6 +51,7 @@ has "+length"   => (
     trigger     => 1,
 );
 
+sub _build_doc          { $_[0]->view->doc }
 sub _build_movement     { $_[0]->view->doc->next_movement }
 sub _build_voice        { $_[0]->movement->next_voice }
 
@@ -86,6 +88,8 @@ sub position {
 
 sub _change_position {
     my ($self, $note) = @_;
+
+    $note //= $self->position;
 
     my $view = $self->view or return;
     my $edit = ($self->mode eq "edit");
@@ -135,6 +139,12 @@ sub _change_position {
     $view->redraw;
 }
 
+sub _emit_doc_changed {
+    my ($self, $item) = @_;
+    $item //= $self->position;
+    $self->doc->signal_emit(changed => $item);
+}
+
 sub _trigger_length {
     my ($self, $new) = @_;
     $self->view->get_action("Rest")->set_icon_name("icon-rest-$new");
@@ -148,8 +158,7 @@ sub _build_midi_chan {
 sub BUILD {
     my ($self) = @_;
     $self->length(3);
-    $self->position($self->position);
-    $self->view->refresh;
+    $self->_change_position;
 }
 
 sub DEMOLISH {
@@ -164,20 +173,20 @@ sub _trigger_mode {
         $self->view->get_action($_)
             ->set_sensitive($mode eq "insert");
     }
-    my $pos = $self->position;
-    $self->position($pos);
-    $self->view->refresh;
+    $self->_change_position;
+    $self->view->redraw;
 }
 sub insert_mode :Action   { $_[0]->mode("insert") }
 sub edit_mode :Action     { $_[0]->mode("edit") }
 
 sub _note_length :Action {
     my ($self, $action) = @_;
-    my $view = $self->view;
 
     $self->dots(0);
-    $self->position->copy_from($self, "App::Jacana::Has::Length");
-    $view->refresh;
+
+    my $pos = $self->position;
+    $pos->copy_from($self, "App::Jacana::Has::Length");
+    $self->_emit_doc_changed;
 }
 
 sub _action_method {
@@ -197,9 +206,10 @@ sub _action_method {
 
 sub _note_chroma :Action {
     my ($self, $action) = @_;
-    $self->position->chroma($action->get_current_value);
+    my $pos = $self->position;
+    $pos->chroma($action->get_current_value);
     $self->_play_note;
-    $self->view->refresh;
+    $self->_emit_doc_changed;
 }
 
 sub _change_octave {
@@ -208,7 +218,7 @@ sub _change_octave {
     Has("Pitch")->check($pos)   or return;
     $pos->octave($pos->octave + $by);
     $self->_play_note;
-    $self->view->refresh;
+    $self->_emit_doc_changed;
 }
 
 sub _octave_up   :Action   { $_[0]->_change_octave(+1) }
@@ -277,6 +287,7 @@ sub name_movement :Action {
         value   => $m->name,
     ) or return;
     $m->name($dlg->value);
+    $self->_emit_doc_changed($m);
 }
 
 sub insert_movement :Action {
@@ -297,8 +308,6 @@ sub insert_movement :Action {
     $self->movement->insert_movement($m);
     $self->movement($m);
     $self->name_mvmt;
-
-    $self->view->refresh;
 }
 
 sub delete_movement :Action {
@@ -310,9 +319,9 @@ sub delete_movement :Action {
         Music("Movement")->new(name => ""));
     
     $self->movement($m);
+    $self->_emit_doc_changed($m);
     my $v = $self->view;
     $v->stop_playing;
-    $v->refresh;
     $v->scroll_to_cursor;
 }
 
@@ -333,7 +342,7 @@ sub insert_staff :Action {
     my $v = Music("Voice")->new(name => "voice");
     $self->voice($self->voice->insert_voice($v));
     $self->view->scroll_to_cursor;
-    $self->view->refresh;
+    $self->_emit_doc_changed;
 }
 
 sub delete_staff :Action {
@@ -352,7 +361,7 @@ sub delete_staff :Action {
     $self->voice($n);
     $v->remove_voice;
 
-    $self->view->refresh;
+    $self->_emit_doc_changed;
     $self->view->scroll_to_cursor;
 }
 
@@ -366,7 +375,7 @@ sub move_staff :Action {
     $v->remove_voice;
     $n->insert_voice($v);
 
-    $self->view->refresh;
+    $self->_emit_doc_changed;
     $self->view->scroll_to_cursor;
 }
 
@@ -426,8 +435,8 @@ sub _adjust_chroma {
         or return;
 
     Has("Pitch")->check($pos) and $self->_play_note;
-    $self->position($pos);
-    $view->refresh;
+    $self->_change_position;
+    $self->_emit_doc_changed;
 }
 
 sub sharpen :Action { $_[0]->_adjust_chroma(+1) }
@@ -448,7 +457,7 @@ sub change_pitch {
 
     if ($Ik && $self->mode eq "edit") {
         $pos->set_from_note($note);
-        $self->view->refresh;
+        $self->_emit_doc_changed;
         return;
     }
 
@@ -470,7 +479,7 @@ sub change_pitch {
     $pos->copy_from($pitch);
     $self->position($pos);
     $self->_play_note;
-    $self->view->refresh($sys);
+    $self->_emit_doc_changed;
 }
 
 BEGIN { _action_method change_pitch => map "Pitch$_", "A".."G" }
@@ -489,7 +498,7 @@ sub _add_dot :Action {
 
     $note->duration != int($note->duration) and
         $view->status_flash("Divisions this small will not play correctly.");
-    $view->refresh;
+    $self->_emit_doc_changed;
 }
 
 sub _toggle_tie :Action(Tie) {
@@ -498,7 +507,7 @@ sub _toggle_tie :Action(Tie) {
     my $note = $self->position;
     Music("Note")->check($note)     or return;
     $note->tie($act->get_active);
-    $self->view->refresh;
+    $self->_emit_doc_changed;
 }
 
 sub _triplet :Action {
@@ -508,7 +517,7 @@ sub _triplet :Action {
     Music("Note")->check($note)     or return;
     my $tuplet = $note->tuplet;
     $note->tuplet($tuplet == 1 ? (2/3) : 1);
-    $self->view->refresh;
+    $self->_emit_doc_changed;
 }
 
 sub _toggle_grace :Action(Grace) {
@@ -525,7 +534,7 @@ sub _toggle_grace :Action(Grace) {
         bless $note, "App::Jacana::Music::Note"; # XXX
     }
 
-    $self->view->refresh;
+    $self->_emit_doc_changed;
 }
 
 sub _insert_rest :Action(Rest) {
@@ -533,7 +542,7 @@ sub _insert_rest :Action(Rest) {
     $self->mode eq "insert" or return;
     $self->position($self->position->insert(
         Music("Rest")->new(copy_from => $self)));
-    $self->view->refresh;
+    $self->_emit_doc_changed;
 }
 
 sub _multi_rest :Action {
@@ -547,7 +556,7 @@ sub _multi_rest :Action {
         $self->position($pos->insert(
             Music("MultiRest")->new(bars => 1)));
     }
-    $self->view->refresh;
+    $self->_emit_doc_changed;
 }
 
 sub _do_marks {
@@ -555,7 +564,7 @@ sub _do_marks {
     my $pos = $self->position;
     Has("Marks")->check($pos)       or return;
     @args ? $pos->add_mark($type, @args) : $pos->delete_marks($type);
-    $self->view->refresh;
+    $self->_emit_doc_changed;
 }
 
 sub _clear_articulation :Action {
@@ -601,7 +610,7 @@ BEGIN {
 sub _backspace :Action {
     my ($self) = @_;
     $self->position($self->position->remove);
-    $self->view->refresh;
+    $self->_emit_doc_changed;
 }
 
 sub _do_clef {
@@ -616,7 +625,7 @@ sub _do_clef {
         Music("Clef")->check($pos)  or return;
         $pos->clef($type);
     }
-    $self->view->refresh;
+    $self->_emit_doc_changed;
 }
 
 BEGIN {
@@ -640,7 +649,7 @@ sub _insert_with_dialog {
         and $pos->ambient->owner->clear_ambient;
     my $new = $class->new(copy_from => $dlg);
     $self->position($pos->insert($new));
-    $self->view->refresh;
+    $self->_emit_doc_changed;
 }
 
 BEGIN {
@@ -661,7 +670,7 @@ sub _properties :Action {
     Has("Dialog")->check($pos)  or return;
 
     $pos->run_dialog($self->view);
-    $self->view->refresh;
+    $self->_emit_doc_changed;
 }
 
 1;
