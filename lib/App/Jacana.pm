@@ -16,12 +16,15 @@ use App::Jacana::Window;
 use Gtk2;
 use Gtk2::Ex::WidgetCursor;
 
-use File::ShareDir ();
+use File::ShareDir  ();
+use Hash::Merge     ();
+use YAML::XS        ();
 
 with qw/ App::Jacana::Has::App /;
 
 has args    => (
     is          => "ro",
+    isa         => ArrayRef[Str],
     required    => 1,
 );
 
@@ -29,6 +32,23 @@ has "+app" => (
     required    => 0, 
     default     => sub { $_[0] },
 );
+
+has _config => (
+    is          => "ro",
+    isa         => HashRef,
+    default     => sub { +{} },
+);
+
+sub config {
+    my ($self, $key) = @_;
+    
+    my $h = $self->_config;
+    for (split /\./, $key) {
+        $h = $h->{$_};
+    }
+
+    $h;
+}
 
 has resource => (
     is      => "ro",
@@ -69,6 +89,19 @@ sub DEMOLISH {
     $self->clear_window;
 }
 
+sub load_config {
+    my ($self, $file) = @_;
+
+    my $c = $self->_config;
+    my $n = YAML::XS::LoadFile $file;
+
+    HashRef->check($n) or die "Invalid config file '$file'\n";
+    %$c = %{ Hash::Merge::merge $n, $c };
+
+    warn "NEW CONFIG [$file]: " . Data::Dump::pp $c;
+}
+
+
 sub start {
     my ($self) = @_;
 
@@ -76,12 +109,18 @@ sub start {
 
     my $res = $self->resource;
     Gtk2::AccelMap->load($res->find_user_file("accelmap"));
+    $self->load_config($_) for $res->find_all("config");
     
     $self->window->show;
     Gtk2->main;
 
-    my $tmp = $res->write_user_file("accelmap");
-    Gtk2::AccelMap->save_fd(fileno $tmp->fh);
+    $res->write_user_file("accelmap", sub {
+        Gtk2::AccelMap->save_fd(fileno $_);
+    });
+    $res->write_user_file("config", sub {
+        my $yaml = YAML::XS::Dump $self->_config;
+        print { $_ } $yaml;
+    });
 }
 
 1;

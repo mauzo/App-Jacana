@@ -11,6 +11,8 @@ use Scalar::Util    qw/refaddr/;
 
 use namespace::autoclean;
 
+with    qw/App::Jacana::Has::App/;
+
 has settings    => is => "lazy";
 has synth       => is => "lazy";
 has driver      => is => "ro", builder => 1;
@@ -19,9 +21,13 @@ has active      => is => "ro", default => sub { +{} };
 has in_use      => is => "ro", default => sub { +[] };
 
 sub _build_settings {
+    my ($self) = @_;
+
     my $s = Audio::FluidSynth::Settings->new;
+    my $c = $self->app;
+
     $s->set("audio.driver", "oss");
-    $s->set("audio.oss.device", "/dev/dsp0");
+    $s->set("audio.oss.device", $c->config("midi.device"));
     $s;
 }
 
@@ -37,7 +43,10 @@ sub _build_driver {
 
 sub _build_sfont {
     my ($s) = @_;
-    $s->synth->sfload("fluidr3gm.sf2", 0);
+    my $sf = $s->app->config("midi.soundfont");
+    length $sf  or die "You must set 'midi.soundfont'!\n";
+    -r $sf      or die "Can't read soundfont '$sf'\n";
+    $s->synth->sfload($sf, 0);
 }
 
 sub add_active {

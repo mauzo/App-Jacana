@@ -23,16 +23,24 @@ sub find {
     File::ShareDir::dist_file($self->dist, $res);
 }
 
+sub find_all {
+    my ($self, $file) = @_;
+    ($self->find($file), $self->userdir . "/$file");
+}
+
 sub find_user_file {
     my ($self, $file) = @_;
-    -r and return $_
-        for $self->userdir . "/$file", $self->find($file);
+    -r and return $_ for reverse $self->find_all($file);
 }
 
 sub write_user_file {
-    my ($self, $file) = @_;
+    my ($self, $file, $cb) = @_;
     my $dir = $self->userdir;
-    File::Temp::AutoRename->new("$dir/$file");
+    my $fh  = File::Temp::AutoRename->new("$dir/$file");
+
+    $cb or return $fh;
+    local *_; local $_ = $fh->fh;
+    $cb->($fh);
 }
 
 has _freetype   => (
