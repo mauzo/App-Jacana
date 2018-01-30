@@ -1,5 +1,7 @@
 package App::Jacana::Dialog::Widget::Length;
 
+use utf8;
+
 use App::Jacana::Moose;
 use MooseX::Gtk2;
 
@@ -35,7 +37,7 @@ sub _build__length {
 
 sub _build__dots {
     my $cb = App::Jacana::Gtk2::ComboBox->new;
-    $cb->add_pairs(qw/0 0 1 1 2 2/);
+    $cb->add_pairs("0", " ", qw/1 · 2 ··/);
     $cb;
 }
 
