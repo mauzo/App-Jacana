@@ -228,6 +228,8 @@ sub _set_speed :Action(MidiSpeed) {
 
 has widget      => is => "lazy";
 
+gtk_default_target signal => "widget";
+
 sub _build_widget {
     my $d = Gtk2::DrawingArea->new;
     $d->modify_bg("normal", Gtk2::Gdk::Color->new(65535, 65535, 65535));

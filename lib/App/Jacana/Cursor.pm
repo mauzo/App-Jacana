@@ -20,6 +20,8 @@ has movement    => @Mutable, isa => My "Document::Movement";
 has voice       => @Mutable, isa => Music "Voice";
 has position    => @Mutable, isa => Music;
 
+gtk_default_target action => "view";
+
 has mode        => (
     is          => "rw",
     isa         => Enum[qw/insert edit/],
@@ -139,10 +141,10 @@ sub _trigger_mode {
     $self->position($pos);
     $self->view->refresh;
 }
-sub insert_mode :Action(view.InsertMode)   { $_[0]->mode("insert") }
-sub edit_mode :Action(view.EditMode)       { $_[0]->mode("edit") }
+sub insert_mode :Action   { $_[0]->mode("insert") }
+sub edit_mode :Action     { $_[0]->mode("edit") }
 
-sub _reset_length :Action(view.NoteLength) {
+sub _note_length :Action {
     my ($self, $action) = @_;
     my $view = $self->view;
 
@@ -163,10 +165,10 @@ sub _action_method {
         $cv = __PACKAGE__->can($meth);
     }
 
-    attributes->import(__PACKAGE__, $cv, map "Action(view.$_)", @actions);
+    attributes->import(__PACKAGE__, $cv, map "Action($_)", @actions);
 }
 
-sub _reset_chroma :Action(view.NoteChroma) {
+sub _note_chroma :Action {
     my ($self, $action) = @_;
     $self->position->chroma($action->get_current_value);
     $self->_play_note;
@@ -182,32 +184,32 @@ sub _change_octave {
     $self->view->refresh;
 }
 
-sub _octave_up   :Action(view.OctaveUp)   { $_[0]->_change_octave(+1) }
-sub _octave_down :Action(view.OctaveDown) { $_[0]->_change_octave(-1) }
+sub _octave_up   :Action   { $_[0]->_change_octave(+1) }
+sub _octave_down :Action { $_[0]->_change_octave(-1) }
 
-sub move_left :Action(view.Left) {
+sub move_left :Action(Left) {
     my ($self) = @_;
     my $pos = $self->position->prev or return;
     $self->position($pos);
 }
 
-sub move_right :Action(view.Right)  {
+sub move_right :Action(Right)  {
     my ($self) = @_;
     my $pos = $self->position->next or return;
     $self->position($pos);
 }
 
-sub move_to_end :Action(view.End) {
+sub move_to_end :Action(End) {
     my ($self) = @_;
     $self->position($self->voice->prev_music);
 }
 
-sub move_to_start :Action(view.Home) {
+sub move_to_start :Action(Home) {
     my ($self) = @_;
     $self->position($self->voice);
 }
 
-sub goto_position :Action(view.GotoPosition) {
+sub goto_position :Action {
     my ($self) = @_;
 
     my $dlg = $self->view->run_dialog(
@@ -232,12 +234,12 @@ sub np_mvmt {
     $vw->reset_title;
 }
 
-sub prev_mvmt :Action(view.PreviousMovement) 
+sub previous_movement :Action 
     { $_[0]->np_mvmt("prev_movement") }
-sub next_mvmt :Action(view.NextMovement) 
+sub next_movement :Action 
     { $_[0]->np_mvmt("next_movement") }
 
-sub name_mvmt :Action(view.NameMovement) {
+sub name_movement :Action {
     my ($self) = @_;
     my $m   = $self->movement;
     my $dlg = $self->view->run_dialog(
@@ -250,7 +252,7 @@ sub name_mvmt :Action(view.NameMovement) {
     $self->view->reset_title;
 }
 
-sub insert_mvmt :Action(view.InsertMovement) {
+sub insert_movement :Action {
     my ($self) = @_;
     
     my $m = My("Document::Movement")->new(name => "");
@@ -272,7 +274,7 @@ sub insert_mvmt :Action(view.InsertMovement) {
     $self->view->refresh;
 }
 
-sub delete_movement :Action(view.DeleteMovement) {
+sub delete_movement :Action {
     my ($self) = @_;
 
     my $m = $self->movement->remove_movement;
@@ -296,10 +298,10 @@ sub up_down_staff {
     $self->view->scroll_to_cursor;
 }
 
-sub up_staff :Action(view.Up) { $_[0]->up_down_staff("prev_voice") }
-sub down_staff :Action(view.Down) { $_[0]->up_down_staff("next_voice") }
+sub up_staff :Action(Up) { $_[0]->up_down_staff("prev_voice") }
+sub down_staff :Action(Down) { $_[0]->up_down_staff("next_voice") }
 
-sub insert_staff :Action(view.InsertStaff) {
+sub insert_staff :Action {
     my ($self) = @_;
     
     my $v = Music("Voice")->new(name => "voice");
@@ -308,7 +310,7 @@ sub insert_staff :Action(view.InsertStaff) {
     $self->view->refresh;
 }
 
-sub delete_staff :Action(view.DeleteStaff) {
+sub delete_staff :Action {
     my ($self) = @_;
 
     my $v = $self->voice;
@@ -328,7 +330,7 @@ sub delete_staff :Action(view.DeleteStaff) {
     $self->view->scroll_to_cursor;
 }
 
-sub move_staff :Action(view.MoveStaff) {
+sub move_staff :Action {
     my ($self) = @_;
 
     my $v = $self->voice;
@@ -342,13 +344,13 @@ sub move_staff :Action(view.MoveStaff) {
     $self->view->scroll_to_cursor;
 }
 
-sub mute_staff :Action(view.MuteStaff) {
+sub mute_staff :Action {
     my ($self) = @_;
     my $v = $self->voice;
     $v->muted(!$v->muted);
 }
 
-sub name_staff :Action(view.NameStaff) {
+sub name_staff :Action {
     my ($self) = @_;
 
     my $voice   = $self->voice;
@@ -402,8 +404,8 @@ sub _adjust_chroma {
     $view->refresh;
 }
 
-sub sharpen :Action(view.Sharpen) { $_[0]->_adjust_chroma(+1) }
-sub flatten :Action(view.Flatten) { $_[0]->_adjust_chroma(-1) }
+sub sharpen :Action { $_[0]->_adjust_chroma(+1) }
+sub flatten :Action { $_[0]->_adjust_chroma(-1) }
 
 sub change_pitch {
     my ($self, $action) = @_;
@@ -447,7 +449,7 @@ sub change_pitch {
 
 BEGIN { _action_method change_pitch => map "Pitch$_", "A".."G" }
 
-sub _add_dot :Action(view.AddDot) {
+sub _add_dot :Action {
     my ($self) = @_;
 
     my $note = $self->position;
@@ -464,7 +466,7 @@ sub _add_dot :Action(view.AddDot) {
     $view->refresh;
 }
 
-sub _toggle_tie :Action(view.Tie) {
+sub _toggle_tie :Action(Tie) {
     my ($self, $act) = @_;
 
     my $note = $self->position;
@@ -473,7 +475,7 @@ sub _toggle_tie :Action(view.Tie) {
     $self->view->refresh;
 }
 
-sub _tuplet :Action(view.Triplet) {
+sub _triplet :Action {
     my ($self, $act) = @_;
 
     my $note = $self->position;
@@ -483,7 +485,7 @@ sub _tuplet :Action(view.Triplet) {
     $self->view->refresh;
 }
 
-sub _toggle_grace :Action(view.Grace) {
+sub _toggle_grace :Action(Grace) {
     my ($self, $act) = @_;
     
     my $note = $self->position;
@@ -500,7 +502,7 @@ sub _toggle_grace :Action(view.Grace) {
     $self->view->refresh;
 }
 
-sub _insert_rest :Action(view.Rest) {
+sub _insert_rest :Action(Rest) {
     my ($self) = @_;
     $self->mode eq "insert" or return;
     $self->position($self->position->insert(
@@ -508,7 +510,7 @@ sub _insert_rest :Action(view.Rest) {
     $self->view->refresh;
 }
 
-sub _insert_multirest :Action(view.MultiRest) {
+sub _multirest :Action {
     my ($self) = @_;
     $self->mode eq "insert" or return;
     my $pos = $self->position;
@@ -530,7 +532,7 @@ sub _do_marks {
     $self->view->refresh;
 }
 
-sub _clear_artic :Action(view.ClearArticulation) {
+sub _clear_articulation :Action {
     $_[0]->_do_marks("Articulation");
 }
 
@@ -546,19 +548,19 @@ BEGIN {
     }
 }
 
-sub _slur_start :Action(view.SlurStart) {
+sub _slur_start :Action {
     $_[0]->_do_marks(Slur => is_start => 1);
 }
 
-sub _slur_end :Action(view.SlurEnd) {
+sub _slur_end :Action {
     $_[0]->_do_marks(Slur => is_start => 0);
 }
 
-sub _slur_clear :Action(view.ClearSlur) {
+sub _slur_clear :Action {
     $_[0]->_do_marks("Slur");
 }
 
-sub _dynamic_clear :Action(view.ClearDynamic) {
+sub _dynamic_clear :Action {
     $_[0]->_do_marks("Dynamic");
 }
 
@@ -570,7 +572,7 @@ BEGIN {
     }
 }
 
-sub _backspace :Action(view.Backspace) {
+sub _backspace :Action {
     my ($self) = @_;
     $self->position($self->position->remove);
     $self->view->refresh;
@@ -626,7 +628,7 @@ BEGIN {
     }
 }
 
-sub _properties :Action(view.Properties) {
+sub _properties :Action {
     my ($self) = @_;
 
     my $pos = $self->position;

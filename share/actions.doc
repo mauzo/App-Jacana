@@ -146,12 +146,12 @@
         <menuitem action="Coda"/>
       </menu>
       <menu action="MarksSlurMenu" label="Slurs">
-        <menuitem action="ClearSlur"/>
+        <menuitem action="SlurClear"/>
         <menuitem action="SlurStart"/>
         <menuitem action="SlurEnd"/>
       </menu>
       <menu action="MarksDynamicMenu" label="Dynamics">
-        <menuitem action="ClearDynamic"/>
+        <menuitem action="DynamicClear"/>
         <separator/>
         <menuitem action="DynamicPP" label="Pianissimo"/>
         <menuitem action="DynamicP" label="Piano"/>
