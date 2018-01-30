@@ -32,12 +32,9 @@ after next => sub {
     $self->when($when);
 };
 
-sub at_end {
+after at_end => sub {
     my ($self) = @_;
-
-    $self->clear_item;
     $self->when(0);
-    return;
-}
+};
 
 1;
