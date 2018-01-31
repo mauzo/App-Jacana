@@ -3,7 +3,7 @@ package MooseX::Copiable::Meta::Class;
 use Moose::Role;
 
 use Moose::Util     qw/does_role find_meta/;
-use Scalar::Util    qw/blessed/;
+use Scalar::Util    qw/blessed reftype/;
 
 use namespace::autoclean;
 
@@ -57,20 +57,25 @@ sub find_copiable_atts_for {
 sub _copiable_process_params {
     my ($self, $params) = @_;
 
-    my $from    = delete $$params{copy_from}            or return;
-    my @atts    = $self->find_copiable_atts_for($from)  or return;
+    my $all     = delete $$params{copy_from}            or return;
+    ref $all && !blessed $all && reftype($all) eq "ARRAY"
+        or $all = [$all];
 
-    for (@atts) {
-        my ($f, $t) = @$_;
-        
-        my $n = $t->name;
-        my $i = $t->init_arg;
+    for my $from (@$all) {
+        my @atts    = $self->find_copiable_atts_for($from)  or return;
 
-        exists $$params{$i}     and next;
-        $f->has_value($from)    or next;
+        for (@atts) {
+            my ($f, $t) = @$_;
+            
+            my $n = $t->name;
+            my $i = $t->init_arg;
 
-        my $v = $f->get_value($from);
-        $$params{$i} = $t->deep_copy ? { copy_from => $v } : $v;
+            exists $$params{$i}     and next;
+            $f->has_value($from)    or next;
+
+            my $v = $f->get_value($from);
+            $$params{$i} = $t->deep_copy ? { copy_from => $v } : $v;
+        }
     }
 }
 

@@ -94,14 +94,6 @@ sub _change_position {
     my $view = $self->view or return;
     my $edit = ($self->mode eq "edit");
 
-    if ($edit
-        && $note->is_music_start
-        && (my $next = $note->next)
-    ) {
-        $self->position($next);
-        return;
-    }
-
     my %isa     = map +($_, Music($_)->check($note)),
         qw/ Note Note::Grace /;
     my %does    = map +($_, Has($_)->check($note)),
@@ -226,14 +218,12 @@ sub _octave_down :Action { $_[0]->_change_octave(-1) }
 
 sub move_left :Action(Left) {
     my ($self) = @_;
-    my $pos = $self->position->prev or return;
-    $self->position($pos);
+    $self->_iter->prev;
 }
 
 sub move_right :Action(Right)  {
     my ($self) = @_;
-    my $pos = $self->position->next or return;
-    $self->position($pos);
+    $self->_iter->next;
 }
 
 sub move_to_end :Action(End) {
@@ -445,26 +435,28 @@ sub flatten :Action { $_[0]->_adjust_chroma(-1) }
 sub change_pitch {
     my ($self, $action) = @_;
 
-    my $pos = $self->position;
-    my $sys = $pos->system;
-    my $Dp  = Has("Pitch")->check($pos);
-    my $Ik  = Has("Key")->check($pos);
+    my $pos     = $self->position;
+    my $mode    = $self->mode;
 
-    $Dp || $Ik || $self->mode eq "insert" or warn("BAD PITCH"), return;
-
-    my ($note) = $action->get_name =~ /^Pitch([A-Z])$/ or return;
+    my ($note)  = $action->get_name =~ /^Pitch([A-Z])$/ or return;
     $note = lc $note;
 
-    if ($Ik && $self->mode eq "edit") {
+    if ($mode eq "edit" && Has("Key")->check($pos)) {
         $pos->set_from_note($note);
         $self->_emit_doc_changed;
         return;
     }
 
-    warn "PITCH CHANGE FOR [$pos] sys [$sys]";
+    my $ref;
+    if (Has("Pitch")->check($pos)) {
+        $ref    = $pos;
+    }
+    else {
+        $mode eq "insert" or return;
+        $ref    = $pos->ambient->find_role("Clef")->centre_pitch;
+    }
+
     # find the pitch we want
-    my $ref     = $Dp ? $pos 
-        : $pos->ambient->find_role("Clef")->centre_pitch;
     my $pitch   = $ref->nearest($note);
 
     # changing note always resets chroma
@@ -472,12 +464,12 @@ sub change_pitch {
     $pitch->chroma($key->chroma($note));
 
     if ($self->mode eq "insert") {
-        my $new = Music("Note")->new(copy_from => $self);
-        $pos->insert($new);
-        $pos = $new;
+        my $new = Music("Note")->new(copy_from => [$self, $pitch]);
+        $self->_iter->insert($new);
     }
-    $pos->copy_from($pitch);
-    $self->position($pos);
+    else {
+        $pos->copy_from($pitch);
+    }
     $self->_play_note;
     $self->_emit_doc_changed;
 }
