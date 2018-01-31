@@ -424,7 +424,7 @@ sub _adjust_chroma {
     catch   { $view->silly; 0 }
         or return;
 
-    Has("Pitch")->check($pos) and $self->_play_note;
+    $self->_play_note;
     $self->_change_position;
     $self->_emit_doc_changed;
 }
@@ -532,8 +532,7 @@ sub _toggle_grace :Action(Grace) {
 sub _insert_rest :Action(Rest) {
     my ($self) = @_;
     $self->mode eq "insert" or return;
-    $self->position($self->position->insert(
-        Music("Rest")->new(copy_from => $self)));
+    $self->_iter->insert(Music("Rest")->new(copy_from => $self));
     $self->_emit_doc_changed;
 }
 
@@ -545,8 +544,7 @@ sub _multi_rest :Action {
         $pos->bars($pos->bars + 1);
     }
     else {
-        $self->position($pos->insert(
-            Music("MultiRest")->new(bars => 1)));
+        $self->_iter->insert(Music("MultiRest")->new(bars => 1));
     }
     $self->_emit_doc_changed;
 }
@@ -601,7 +599,7 @@ BEGIN {
 
 sub _backspace :Action {
     my ($self) = @_;
-    $self->position($self->position->remove);
+    $self->_iter->remove;
     $self->_emit_doc_changed;
 }
 
@@ -609,8 +607,7 @@ sub _do_clef {
     my ($self, $type) = @_;
     my $pos = $self->position;
     if ($self->mode eq "insert") {
-        $self->position($pos->insert(
-            Music("Clef")->new(clef => $type)));
+        $self->_iter->insert(Music("Clef")->new(clef => $type));
         $pos->ambient->owner->clear_ambient;
     }
     else {
@@ -640,7 +637,7 @@ sub _insert_with_dialog {
     $class->DOES("App::Jacana::Music::HasAmbient")
         and $pos->ambient->owner->clear_ambient;
     my $new = $class->new(copy_from => $dlg);
-    $self->position($pos->insert($new));
+    $self->_iter->insert($new);
     $self->_emit_doc_changed;
 }
 
