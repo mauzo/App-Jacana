@@ -5,6 +5,11 @@ use Moose::Role;
 use Carp;
 use Moose::Util     qw/find_meta/;
 
+BEGIN { 
+    *debug = $ENV{MOOSEX_COPIABLE_DEBUG} ?
+        sub { carp "COPIABLE: ", @_ } : sub {};
+}
+
 use namespace::autoclean;
 
 sub copy_from {
@@ -19,22 +24,22 @@ sub copy_from {
 
         my $n = $t->name;
         unless ($f->has_value($from)) {
-            carp "COPY CLEAR FOR [$n]";
+            debug "COPY CLEAR FOR [$n]";
             $t->clear_value($self);
             next;
         }
 
         my $v = $f->get_value($from);
         if (!$t->deep_copy) {
-            carp "SHALLOW COPY FOR [$n]";
+            debug "SHALLOW COPY FOR [$n]";
             $t->set_value($self, $v);
         }
         elsif ($t->has_value($self)) {
-            carp "COPY TO EXISTING FOR [$n]";
+            debug "COPY TO EXISTING FOR [$n]";
             $t->get_value($self)->copy_from($v);
         }
         else {
-            carp "DEEP COPY FOR [$n]";
+            debug "DEEP COPY FOR [$n]";
             $t->set_value($self, { copy_from => $v });
         }
     }
