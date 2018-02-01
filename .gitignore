@@ -1,6 +1,7 @@
 *.c
 *.o
 *.sf2
+.*.swp
 Build
 _build
 blib
