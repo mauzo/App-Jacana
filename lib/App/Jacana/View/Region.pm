@@ -1,7 +1,6 @@
 package App::Jacana::View::Region;
 
-use Moose::Role;
-use MooseX::AttributeShortcuts;
+use App::Jacana::Moose -role;
 use MooseX::Gtk2;
 
 requires qw/ cursor redraw refresh /;
@@ -10,10 +9,8 @@ has mark => (
     is          => "rw", 
     predicate   => 1, 
     clearer     => 1, 
-    #isa         => Music,
+    isa         => Music,
 );
-
-sub My ($) { "App::Jacana::$_[0]" }
 
 sub set_mark :Action(SetMark) { 
     my ($self) = @_;
@@ -60,7 +57,7 @@ sub _rgn_change_octave {
 
     my ($pos, $end) = $self->find_region or return;
     while (1) {
-        $pos->DOES("App::Jacana::Has::Pitch") 
+        Has("Pitch")->check($pos)
             and $pos->octave($pos->octave + $by);
         $pos == $end and last;
         $pos = $pos->next;
@@ -80,7 +77,7 @@ sub rgn_transpose :Action(RegionTranspose) {
     my ($self) = @_;
 
     my ($pos, $end) = $self->find_region or return;
-    $pos->isa(My "Music::Voice") 
+    Music("Voice")->check($pos)
         and ($pos = $pos->next or return);
     $pos = $pos->find_next_with(qw/Key Pitch/) or do {
         $self->status_flash("Nothing to transpose!");
