@@ -79,4 +79,24 @@ sub find_next_with {
     $pos;
 }
 
+sub duration_to {
+    my ($self, $upto) = @_;
+
+    $upto //= $self->prev_music;
+
+    my $item    = $self;
+    my $dur     = 0;
+
+    while (1) {
+        Has("Length")->check($item)
+            and $dur += $item->duration;
+
+        $item == $upto and last;
+        $item = $item->next_music;
+        $item == $self and Carp::croak("Music wrapped in duration_to!");
+    }
+
+    return $dur;
+}
+
 1;

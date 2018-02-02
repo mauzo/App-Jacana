@@ -9,12 +9,15 @@ has mark => (
     is          => "rw", 
     predicate   => 1, 
     clearer     => 1, 
-    isa         => Music,
+    isa         => StaffCtx("Cursor"),
+    coerce      => 1,
 );
 
 sub set_mark :Action(SetMark) { 
     my ($self) = @_;
-    $self->mark($self->cursor->position);
+    $self->clear_mark;
+    $self->mark({copy_from => $self->cursor->_iter});
+    warn "MARK TICK: " . $self->mark->tick;
     $self->redraw;
 }
 sub _act_clear_mark :Action(ClearMark) {
@@ -25,13 +28,17 @@ sub _act_clear_mark :Action(ClearMark) {
 sub goto_mark :Action(GotoMark) {
     my ($self) = @_;
     $self->has_mark or return;
-    $self->cursor->position($self->mark);
+    $self->cursor->_iter->copy_from($self->mark);
 }
 
 sub find_region {
     my ($self) = @_;
 
-    my $mark    = $self->mark;
+    my $mt = $self->mark->tick;
+    my $ct = $self->cursor->_iter->tick;
+    warn "MARK TICK [$mt] CURSOR TICK [$ct]";
+
+    my $mark    = $self->mark->item;
     my $curs    = $self->cursor->position;
     my $cv      = $curs->ambient->find_voice;
 

@@ -28,7 +28,6 @@ sub next {
     $note->is_music_end     and return $self->at_end;
 
     $self->item($note->next);
-    return 1;
 }
 
 sub at_end {

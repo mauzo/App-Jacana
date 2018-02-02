@@ -294,12 +294,13 @@ sub scroll_to_cursor {
 sub clip_cut :Action(Cut) {
     my ($self) = @_;
 
-    my ($start, $end) = $self->find_region or return;
-    $_->break_ambient for $start, $end;
-    my $pos = $self->cursor->position($start->remove($end));
+    my $curs    = $self->cursor;
+    my $clip    = $curs->_iter->remove($self->mark);
+    my $pos     = $curs->position;
+
     $pos->break_ambient;
     $self->clear_mark;
-    $self->clip($start);
+    $self->clip($clip);
     $self->doc->signal_emit(changed => $pos);
 }
 
@@ -318,12 +319,10 @@ sub clip_paste :Action(Paste) {
     };
     #$self->clear_clip;
     my $start = $clip->clone_music($clip->prev_music);
-    my $curs = $self->cursor;
-    my $end = $curs->position->insert($start);
+
+    $self->cursor->_iter->insert($start);
     $start->break_ambient;
-    $self->mark($start);
-    $curs->position($end);
-    $self->doc->signal_emit(changed => $end);
+    $self->doc->signal_emit(changed => $start);
 }
 
 sub _realize :Signal {
@@ -404,8 +403,8 @@ sub _show_highlights {
 
     my $curs = $self->cursor;
     for (
-        ($curs->mode eq "edit" ? [0, 0, 1, $curs->position] : ()),
-        [0, 1, 0, $self->mark],
+        ($curs->mode eq "edit"  ? [0, 0, 1, $curs->position]    : ()),
+        ($self->has_mark        ? [0, 1, 0, $self->mark->item]  : ()),
         map([1, 0, 0, $_], @{$self->_playing}),
     ) {
         my ($r, $g, $b, $item) = @$_;
