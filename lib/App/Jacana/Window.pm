@@ -195,8 +195,11 @@ sub update {
 
         my %status = (
             ($curs
-                ? (mode => $curs->mode) 
-                : (mode => "")),
+                ? ( mode    => $curs->mode,
+                    cursor  => $curs->_iter->tick,
+                ) 
+                : (mode => "", cursor => "")),
+            mark    => ($vw->has_mark ? $vw->mark->tick : ""),
         );
         warn "SET STATUS: " . Data::Dump::pp(\%status);
         $self->set_status_items(%status);
