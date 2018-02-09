@@ -359,6 +359,18 @@ sub redraw {
     $self->_window->update;
 }
 
+sub _sig_info :Signal(app.) {
+    my ($self) = @_;
+    if ($self->has_cursor) {
+        my $c = $self->cursor;
+        warn "CURSOR MODE: " . $c->mode;
+        warn "CURSOR TICK: " . $c->_iter->tick;
+    }
+    if ($self->has_mark) {
+        warn "MARK TICK: " . $self->mark->tick;
+    }
+}
+
 sub _build_renderer {
     my ($self) = @_;
     my $w = $self->widget->get_allocation;

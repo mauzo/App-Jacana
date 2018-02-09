@@ -20,4 +20,5 @@ use Getopt::Std     qw/getopts/;
 getopts "d:", \my %opts;
 
 my $A = App::Jacana->new(logfile => $log);
+$A->connect_unix_signals;
 $A->start(\%opts, @ARGV);

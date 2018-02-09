@@ -14,6 +14,7 @@ our $VERSION = "4";
 
 use App::Jacana::Moose;
 use App::Jacana::Log;
+use MooseX::Gtk2;
 
 use App::Jacana::Document;
 use App::Jacana::MIDI;
@@ -29,7 +30,11 @@ use Hash::Merge     ();
 use POSIX           ();
 use YAML::XS        ();
 
-with qw/ App::Jacana::Has::App /;
+with qw/ 
+    MooseX::Role::Signal
+    MooseX::Role::WeakClosure
+    App::Jacana::Has::App
+/;
 
 has "+app" => (
     required    => 0, 
@@ -112,6 +117,14 @@ sub _setup_logging {
 
     App::Jacana::Log::add_logger \*STDERR, @levels;
     App::Jacana::Log::resume_log;
+}
+
+sub connect_unix_signals {
+    my ($self) = @_;
+
+    $SIG{INFO} = $self->weak_closure(
+        "signal_emit", sub { $SIG{INFO} = "DEFAULT" }, ["sig-info"]
+    );
 }
 
 sub start {
