@@ -117,7 +117,7 @@ sub save_as :Action(SaveAs) {
     $dlg->destroy;
     $doc->save;
     $self->status_flash("Saved as '$file'.");
-    $self->reset_title;
+    $self->_window->update;
 }
 
 sub save :Action(Save) {
@@ -338,6 +338,7 @@ sub redraw {
     catch {
         Carp::cluck("INVALIDATE RECT FAILED [$_]");
     };
+    $self->_window->update;
 }
 
 sub _build_renderer {

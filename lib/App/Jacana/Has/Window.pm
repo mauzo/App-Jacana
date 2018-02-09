@@ -1,7 +1,6 @@
 package App::Jacana::Has::Window;
 
-use Moose::Role;
-use MooseX::AttributeShortcuts;
+use App::Jacana::Moose  -role;
 use MooseX::Copiable;
 
 has _window => (
@@ -11,7 +10,7 @@ has _window => (
     weak_ref    => 1,
     required    => 1,
     handles     => [qw/ 
-        silly set_status status_flash status_mode set_busy reset_title
+        silly set_status status_flash set_busy
     /],
 );
 

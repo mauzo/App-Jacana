@@ -26,7 +26,6 @@ has mode        => (
     is          => "rw",
     isa         => Enum[qw/insert edit/],
     default     => "insert",
-    gtk_prop    => "view.status_mode.label",
     trigger     => 1,
 );
 
@@ -231,7 +230,6 @@ sub np_mvmt {
     my $vw = $self->view;
     $vw->refresh;
     $vw->scroll_to_cursor;
-    $vw->reset_title;
 }
 
 sub previous_movement :Action 
@@ -249,7 +247,6 @@ sub name_movement :Action {
         value   => $m->name,
     ) or return;
     $m->name($dlg->value);
-    $self->view->reset_title;
 }
 
 sub insert_movement :Action {
@@ -287,7 +284,6 @@ sub delete_movement :Action {
     $v->stop_playing;
     $v->refresh;
     $v->scroll_to_cursor;
-    $v->reset_title;
 }
 
 sub up_down_staff {

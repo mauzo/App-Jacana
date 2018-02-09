@@ -22,7 +22,7 @@ has views       => is => "lazy";
 has frame           => is => "lazy";
 has notebook        => is => "lazy";
 has status_bar      => is => "lazy";
-has status_mode     => is => "lazy";
+has status_items    => is => "lazy";
 has status_flash_id => is => "rw", clearer => 1, predicate => 1;
 
 has "+uimgr"        => builder => 1;
@@ -116,6 +116,7 @@ sub _switch_tab :Signal(notebook.switch-page) {
     my $tab = $self->views->{$kid};
     warn "SWITCH TAB TO [$tab] [$ix] [$kid]";
     $tab->insert_ui;
+    $self->update;
 }
 
 sub _add_tab :Signal(notebook.page-added) {
@@ -169,16 +170,30 @@ sub _build_frame {
     $w;
 }
 
-sub reset_title {
+sub update {
     my ($self) = @_;
+    Glib::Idle->add(sub {
+        my ($self) = @_;
 
-    my $vw = $self->current_tab or return;
+        my $vw      = $self->current_tab or return;
+        my $curs    = $vw->cursor;
+        
+        $self->frame->set_title(
+            sprintf "%s: %s: Jacana",
+                $curs ? $curs->movement->name : "",
+                $vw->doc->filename,
+        );
 
-    $self->frame->set_title(
-        sprintf "%s: %s: Jacana",
-            $vw->cursor->movement->name,
-            $vw->doc->filename,
-    );
+        my %status = (
+            ($curs
+                ? (mode => $curs->mode) 
+                : (mode => "")),
+        );
+        warn "SET STATUS: " . Data::Dump::pp(\%status);
+        $self->set_status_items(%status);
+
+        return;
+    }, $self);
 }
 
 sub _quit :Action(Quit) { 
@@ -226,21 +241,33 @@ sub _build_uimgr { Gtk2::UIManager->new }
 
 # status bar
 
-sub _build_status_mode { Gtk2::Label->new("insert") }
+sub _build_status_items {
+    my ($self) = @_;
+
+    return +{ 
+        map {
+            my $l = Gtk2::Label->new;
+            $l->set_width_chars(6);
+            ($_, $l);
+        } qw/ mode cursor mark /
+    };
+}
 
 sub _build_status_bar { 
     my ($self) = @_;
     my $b = Gtk2::Statusbar->new;
 
-    my $l = $self->status_mode;
-    my $r = $l->size_request;
-    $l->set_size_request($r->width + 4, -1);
-    my $f = Gtk2::Frame->new;
-    $f->add($l);
-    $f->set_shadow_type("in");
+    my $ls = $self->status_items;
     my $m = $b->get_message_area;
-    $m->pack_start($f, 0, 0, 0);
-    $m->reorder_child($f, 0);
+    $m->foreach(sub {
+        $m->set_child_packing($_[0], 1, 1, 0, "end");
+    });
+    for (qw/mode cursor mark/) {
+        my $f = Gtk2::Frame->new;
+        $f->add($$ls{$_});
+        $f->set_shadow_type("in");
+        $m->pack_start($f, 0, 0, 0);
+    }
 
     my $id = $b->push(0, "loading…");
     Glib::Idle->add(sub { $b->remove(0, $id) });
@@ -252,6 +279,15 @@ sub set_status {
     my $b = $self->status_bar;
     $b->pop(0);
     $b->push(0, $msg);
+}
+
+sub set_status_items {
+    my ($self, %items) = @_;
+
+    my $ls = $self->status_items;
+    for (keys %items) {
+        $$ls{$_}->set_text($items{$_});
+    }
 }
 
 sub _status_flash_clear :Signal(actions.pre-activate) {
@@ -297,7 +333,7 @@ sub set_busy {
 sub show {
     my ($self) = @_;
     $self->frame->show_all;
-    $self->reset_title;
+    $self->update;
 }
 
 1;
