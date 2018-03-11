@@ -37,10 +37,14 @@ sub to_lily {
         $time->beats, $time->divisor, $self->bars;
 }
 
+sub bar_duration {
+    my ($self) = @_;
+    $self->ambient->find_role("Time")->length;
+}
+
 sub duration {
     my ($self) = @_;
-    my $time = $self->ambient->find_role("Time");
-    $time->length * $self->bars;
+    $self->bar_duration * $self->bars;
 }
 
 sub draw {

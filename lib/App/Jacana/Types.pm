@@ -29,6 +29,9 @@ declare Pitch =>
 
 declare Tick => as PositiveOrZeroInt;
 
+declare ChangeType =>
+    as Enum[qw/ insert remove length staff movement other /];
+
 sub My ($) {
     my ($which) = @_;
     my $class   = "App::Jacana::$which";

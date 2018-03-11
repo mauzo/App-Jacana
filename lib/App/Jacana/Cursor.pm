@@ -5,6 +5,7 @@ use utf8;
 use App::Jacana::Moose;
 use MooseX::Gtk2;
 
+use App::Jacana::Event::Change;
 use App::Jacana::StaffCtx::Cursor;
 
 use Try::Tiny;
@@ -26,6 +27,7 @@ has _iter => (
     is      => "lazy", 
     clearer => 1,
     isa     => My "StaffCtx::Cursor",
+    handles => [qw/tick/],
 );
 
 gtk_default_target action => "view";
@@ -72,6 +74,7 @@ sub _trigger_voice {
 sub _build__iter {
     my ($self) = @_;
     App::Jacana::StaffCtx::Cursor->new(
+        doc         => $self->doc,
         item        => $self->voice,
         on_change   => $self->weak_method("_change_position"),    
     );
@@ -132,9 +135,14 @@ sub _change_position {
 }
 
 sub _emit_doc_changed {
-    my ($self, $item) = @_;
-    $item //= $self->position;
-    $self->doc->signal_emit(changed => $item);
+    my ($self, %args) = @_;
+
+    $args{type} //= "other";
+    $args{item} //= $self->position
+        unless delete $args{no_item};
+
+    my $ev = App::Jacana::Event::Change->new(\%args);
+    $self->doc->signal_emit(changed => $ev);
 }
 
 sub _trigger_length {
@@ -177,8 +185,15 @@ sub _note_length :Action {
     $self->dots(0);
 
     my $pos = $self->position;
+    my $dur = $pos->duration;
+
+    $self->_emit_doc_changed(
+        type        => "length",
+        tick        => $self->tick - $dur,
+        duration    => $self->duration - $dur,
+    );
+
     $pos->copy_from($self, "App::Jacana::Has::Length");
-    $self->_emit_doc_changed;
 }
 
 sub _action_method {
@@ -276,8 +291,8 @@ sub name_movement :Action {
         label   => "Name",
         value   => $m->name,
     ) or return;
+    $self->_emit_doc_changed(type => "movement", no_item => 1);
     $m->name($dlg->value);
-    $self->_emit_doc_changed($m);
 }
 
 sub insert_movement :Action {
@@ -297,11 +312,13 @@ sub insert_movement :Action {
 
     $self->movement->insert_movement($m);
     $self->movement($m);
-    $self->name_mvmt;
+    $self->name_movement;
 }
 
 sub delete_movement :Action {
     my ($self) = @_;
+
+    $self->_emit_doc_changed(type => "movement", no_item => 1);
 
     my $m = $self->movement->remove_movement;
     $m->is_movement_start and $m = $m->next_movement;
@@ -309,7 +326,6 @@ sub delete_movement :Action {
         Music("Movement")->new(name => ""));
     
     $self->movement($m);
-    $self->_emit_doc_changed($m);
     my $v = $self->view;
     $v->stop_playing;
     $v->scroll_to_cursor;
@@ -329,10 +345,10 @@ sub down_staff :Action(Down) { $_[0]->up_down_staff("next_voice") }
 sub insert_staff :Action {
     my ($self) = @_;
     
+    $self->_emit_doc_changed(type => "staff", no_item => 1);
     my $v = Music("Voice")->new(name => "voice");
     $self->voice($self->voice->insert_voice($v));
     $self->view->scroll_to_cursor;
-    $self->_emit_doc_changed;
 }
 
 sub delete_staff :Action {
@@ -340,6 +356,8 @@ sub delete_staff :Action {
 
     my $v = $self->voice;
     my $n = $v->next_voice;
+
+    $self->_emit_doc_changed(type => "staff", no_item => 1);
 
     if ($v->is_voice_end) {
         $n = $n->next_voice;
@@ -351,7 +369,6 @@ sub delete_staff :Action {
     $self->voice($n);
     $v->remove_voice;
 
-    $self->_emit_doc_changed;
     $self->view->scroll_to_cursor;
 }
 
@@ -361,11 +378,12 @@ sub move_staff :Action {
     my $v = $self->voice;
     my $n = $v->next_voice;
 
+    $self->_emit_doc_changed(type => "staff", no_item => 1);
+
     $self->view->stop_playing;
     $v->remove_voice;
     $n->insert_voice($v);
 
-    $self->_emit_doc_changed;
     $self->view->scroll_to_cursor;
 }
 
@@ -385,6 +403,7 @@ sub name_staff :Action {
         label   => "Name:",
         value   => $voice->name,
     ) or return;
+    $self->_emit_doc_changed(type => "staff", no_item => 1);
     $voice->name($dlg->value);
 }
 
@@ -420,13 +439,14 @@ sub _adjust_chroma {
         Has("Pitch")->check($pos)   ? "chroma"  :
         return;
 
+    $self->_emit_doc_changed;
+
     try     { $pos->$meth($pos->$meth + $by); 1 }
     catch   { $view->silly; 0 }
         or return;
 
     $self->_play_note;
     $self->_change_position;
-    $self->_emit_doc_changed;
 }
 
 sub sharpen :Action { $_[0]->_adjust_chroma(+1) }
@@ -438,12 +458,14 @@ sub change_pitch {
     my $pos     = $self->position;
     my $mode    = $self->mode;
 
+    warn "CHANGE PITCH pos [$pos] mode [$mode]";
+
     my ($note)  = $action->get_name =~ /^Pitch([A-Z])$/ or return;
     $note = lc $note;
 
     if ($mode eq "edit" && Has("Key")->check($pos)) {
-        $pos->set_from_note($note);
         $self->_emit_doc_changed;
+        $pos->set_from_note($note);
         return;
     }
 
@@ -465,13 +487,15 @@ sub change_pitch {
 
     if ($self->mode eq "insert") {
         my $new = Music("Note")->new(copy_from => [$self, $pitch]);
+        $self->_emit_doc_changed(type => "insert",
+            tick => $self->tick, duration => $new->duration);
         $self->_iter->insert($new);
     }
     else {
+        $self->_emit_doc_changed;
         $pos->copy_from($pitch);
     }
     $self->_play_note;
-    $self->_emit_doc_changed;
 }
 
 BEGIN { _action_method change_pitch => map "Pitch$_", "A".."G" }
@@ -482,15 +506,16 @@ sub _add_dot :Action {
     my $note = $self->position;
     Has("Length")->check($note)     or return;
 
-    my $view = $self->view;
+    my $dur = $note->duration;
+    $self->_emit_doc_changed(
+        type        => "length",
+        tick        => $self->tick - $dur,
+        duration    => $dur,
+    );
 
     my $dots = $note->dots + 1;
-    $dots > 6 and return $view->silly;
+    $dots > 6 and return $self->view->silly;
     $note->dots($dots);
-
-    $note->duration != int($note->duration) and
-        $view->status_flash("Divisions this small will not play correctly.");
-    $self->_emit_doc_changed;
 }
 
 sub _toggle_tie :Action(Tie) {
@@ -498,8 +523,8 @@ sub _toggle_tie :Action(Tie) {
 
     my $note = $self->position;
     Music("Note")->check($note)     or return;
-    $note->tie($act->get_active);
     $self->_emit_doc_changed;
+    $note->tie($act->get_active);
 }
 
 sub _triplet :Action {
@@ -507,54 +532,68 @@ sub _triplet :Action {
 
     my $note = $self->position;
     Music("Note")->check($note)     or return;
+    # XXX this is a time change but I can't account for it properly yet
+    $self->_emit_doc_changed;
     my $tuplet = $note->tuplet;
     $note->tuplet($tuplet == 1 ? (2/3) : 1);
-    $self->_emit_doc_changed;
 }
 
 sub _toggle_grace :Action(Grace) {
     my ($self, $act) = @_;
     
-    my $note = $self->position;
+    my $note    = $self->position;
+    my $dur     = $note->duration;
 
     if ($act->get_active) {
         Music("Note")->check($note)     or return;
+        $self->_emit_doc_changed;
         bless $note, "App::Jacana::Music::Note::Grace"; # XXX
     }
     else {
         Music("Note::Grace")->check($note)  or return;
+        $self->_emit_doc_changed;
         bless $note, "App::Jacana::Music::Note"; # XXX
     }
-
-    $self->_emit_doc_changed;
 }
 
 sub _insert_rest :Action(Rest) {
     my ($self) = @_;
     $self->mode eq "insert" or return;
-    $self->_iter->insert(Music("Rest")->new(copy_from => $self));
     $self->_emit_doc_changed;
+    $self->_iter->insert(Music("Rest")->new(copy_from => $self));
 }
 
 sub _multi_rest :Action {
     my ($self) = @_;
     $self->mode eq "insert" or return;
+
     my $pos = $self->position;
+    my $dur;
+
     if (Music("MultiRest")->check($pos)) {
+        $self->_emit_doc_changed(
+            type        => "length",
+            tick        => $self->tick - $pos->duration,
+            duration    => $pos->bar_duration,
+        );
         $pos->bars($pos->bars + 1);
     }
     else {
+        $self->_emit_doc_changed(
+            type        => "insert",
+            tick        => $self->tick - $pos->duration,
+            duration    => $pos->bar_duration,
+        );
         $self->_iter->insert(Music("MultiRest")->new(bars => 1));
     }
-    $self->_emit_doc_changed;
 }
 
 sub _do_marks {
     my ($self, $type, @args) = @_;
     my $pos = $self->position;
     Has("Marks")->check($pos)       or return;
-    @args ? $pos->add_mark($type, @args) : $pos->delete_marks($type);
     $self->_emit_doc_changed;
+    @args ? $pos->add_mark($type, @args) : $pos->delete_marks($type);
 }
 
 sub _clear_articulation :Action {
@@ -599,22 +638,32 @@ BEGIN {
 
 sub _backspace :Action {
     my ($self) = @_;
+    my $dur     = $self->position->duration;
+    $self->_emit_doc_changed(
+        type        => "remove",
+        tick        => $self->tick - $dur,
+        duration    => $dur,
+    );
     $self->_iter->remove;
-    $self->_emit_doc_changed;
 }
 
 sub _do_clef {
     my ($self, $type) = @_;
     my $pos = $self->position;
     if ($self->mode eq "insert") {
+        $self->_emit_doc_changed(
+            type        => "insert",
+            tick        => $self->tick,
+            duration    => 0,
+        );
         $self->_iter->insert(Music("Clef")->new(clef => $type));
         $pos->ambient->owner->clear_ambient;
     }
     else {
         Music("Clef")->check($pos)  or return;
+        $self->_emit_doc_changed;
         $pos->clef($type);
     }
-    $self->_emit_doc_changed;
 }
 
 BEGIN {
@@ -637,8 +686,12 @@ sub _insert_with_dialog {
     $class->DOES("App::Jacana::Music::HasAmbient")
         and $pos->ambient->owner->clear_ambient;
     my $new = $class->new(copy_from => $dlg);
+    $self->_emit_doc_changed(
+        type        => "insert",
+        tick        => $self->tick,
+        duration    => $new->duration,
+    );
     $self->_iter->insert($new);
-    $self->_emit_doc_changed;
 }
 
 BEGIN {
@@ -658,8 +711,8 @@ sub _properties :Action {
     my $pos = $self->position;
     Has("Dialog")->check($pos)  or return;
 
-    $pos->run_dialog($self->view);
     $self->_emit_doc_changed;
+    $pos->run_dialog($self->view);
 }
 
 1;

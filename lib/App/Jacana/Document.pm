@@ -20,6 +20,12 @@ with qw/
     App::Jacana::Has::Movements
 /;
 
+# SIGNALS
+#
+# changed(ev)
+# Emitted when the document changes. <ev> is an Event::Change.
+#
+
 has filename => (
     is          => "rw",
     isa         => Str,
@@ -37,7 +43,8 @@ sub BUILD { }
 sub DEMOLISH { warn "DEMOLISH DOCUMENT [$_[0]]" }
 
 sub _changed :Signal {
-    my ($self) = @_;
+    my ($self, $ev) = @_;
+    warn "DOC CHANGED: " . Data::Dump::pp($ev);
     $self->dirty(1);
 }
 

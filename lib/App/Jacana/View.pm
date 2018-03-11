@@ -58,6 +58,7 @@ with qw/App::Jacana::View::Region/;
 sub actions_name { "doc" }
 
 sub _build_cursor { 
+    warn "BUILD CURSOR";
     App::Jacana::Cursor->new(
         view        => $_[0],
         #position    => $_[0]->doc->next_movement->next_voice,
@@ -108,7 +109,9 @@ sub system_for {
 }
 
 sub _doc_changed :Signal(doc.changed) {
-    my ($self, $item) = @_;
+    my ($self, $e) = @_;
+    $e->has_item or return;
+    my $item = $e->item;
     warn "DOC CHANGED [$item]";
     $self->refresh($self->system_for($item));
 }
@@ -432,6 +435,8 @@ sub _show_highlights {
         $c->restore;
     }
 
+    my $pos = $curs->position;
+    warn "CURSOR POSITION [$pos]";
     if (my $l = $curs->position->system) {
         #warn sprintf "HIGHLIGHTING SYSTEM [%d][%d]-[%d][%d]",
         #    0, $l->top, $l->width, $l->height;
