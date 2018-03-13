@@ -1,0 +1,389 @@
+{
+   "abstract" : "A GUI for editing Lilypond files",
+   "author" : [
+      "Ben Morrow <ben@morrow.me.uk>"
+   ],
+   "dynamic_config" : 1,
+   "generated_by" : "Module::Build version 0.4224",
+   "license" : [
+      "bsd"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : "2"
+   },
+   "name" : "App-Jacana",
+   "prereqs" : {
+      "build" : {
+         "requires" : {
+            "ExtUtils::CBuilder" : "0",
+            "Test::More" : "0.96"
+         }
+      },
+      "configure" : {
+         "requires" : {
+            "ExtUtils::Depends" : "0",
+            "Module::Build" : "0.38"
+         }
+      },
+      "runtime" : {
+         "requires" : {
+            "Audio::FluidSynth" : "0",
+            "B::Hooks::AtRuntime" : "0",
+            "Cairo" : "0",
+            "Data::Dump" : "0",
+            "File::Path" : "0",
+            "File::ShareDir" : "1.00",
+            "File::Slurp" : "0",
+            "File::Temp" : "0",
+            "Font::FreeType" : "0",
+            "Gtk2" : "0",
+            "Gtk2::Ex::WidgetCursor" : "0",
+            "Hash::Merge" : "0",
+            "List::BinarySearch" : "0",
+            "List::MoreUtils" : "0",
+            "List::Util" : "0",
+            "Memoize" : "0",
+            "Module::Runtime" : "0",
+            "Moose" : "0",
+            "MooseX::AttributeShortcuts" : "0",
+            "MooseX::Gtk2" : "0",
+            "Pango" : "0",
+            "Readonly::Tiny" : "0",
+            "Regexp::Common" : "0",
+            "Text::Wrap" : "0",
+            "Time::HiRes" : "0",
+            "Try::Tiny" : "0",
+            "Type::Tiny" : "0",
+            "XML::LibXML" : "0",
+            "YAML::XS" : "0",
+            "namespace::autoclean" : "0"
+         }
+      }
+   },
+   "provides" : {
+      "App::Jacana" : {
+         "file" : "lib/App/Jacana.pm",
+         "version" : "1"
+      },
+      "App::Jacana::Cursor" : {
+         "file" : "lib/App/Jacana/Cursor.pm"
+      },
+      "App::Jacana::Dialog" : {
+         "file" : "lib/App/Jacana/Dialog.pm"
+      },
+      "App::Jacana::Dialog::Barline" : {
+         "file" : "lib/App/Jacana/Dialog/Barline.pm"
+      },
+      "App::Jacana::Dialog::KeySig" : {
+         "file" : "lib/App/Jacana/Dialog/KeySig.pm"
+      },
+      "App::Jacana::Dialog::Lily" : {
+         "file" : "lib/App/Jacana/Dialog/Lily.pm"
+      },
+      "App::Jacana::Dialog::MIDI::Instrument" : {
+         "file" : "lib/App/Jacana/Dialog/MIDI/Instrument.pm"
+      },
+      "App::Jacana::Dialog::MIDI::Transpose" : {
+         "file" : "lib/App/Jacana/Dialog/MIDI/Transpose.pm"
+      },
+      "App::Jacana::Dialog::MIDI::Transpose::Pitch" : {
+         "file" : "lib/App/Jacana/Dialog/MIDI/Transpose.pm"
+      },
+      "App::Jacana::Dialog::RehearsalMark" : {
+         "file" : "lib/App/Jacana/Dialog/RehearsalMark.pm"
+      },
+      "App::Jacana::Dialog::Simple" : {
+         "file" : "lib/App/Jacana/Dialog/Simple.pm"
+      },
+      "App::Jacana::Dialog::Tempo" : {
+         "file" : "lib/App/Jacana/Dialog/Tempo.pm"
+      },
+      "App::Jacana::Dialog::Text" : {
+         "file" : "lib/App/Jacana/Dialog/Text.pm"
+      },
+      "App::Jacana::Dialog::TimeSig" : {
+         "file" : "lib/App/Jacana/Dialog/TimeSig.pm"
+      },
+      "App::Jacana::Dialog::Tweak" : {
+         "file" : "lib/App/Jacana/Dialog/Tweak.pm"
+      },
+      "App::Jacana::Dialog::Tweak::Enum" : {
+         "file" : "lib/App/Jacana/Dialog/Tweak/Enum.pm"
+      },
+      "App::Jacana::Dialog::Tweaks" : {
+         "file" : "lib/App/Jacana/Dialog/Tweaks.pm"
+      },
+      "App::Jacana::Dialog::Widget::Length" : {
+         "file" : "lib/App/Jacana/Dialog/Widget/Length.pm"
+      },
+      "App::Jacana::Document" : {
+         "file" : "lib/App/Jacana/Document.pm"
+      },
+      "App::Jacana::Document::Movement" : {
+         "file" : "lib/App/Jacana/Document/Movement.pm"
+      },
+      "App::Jacana::DrawCtx" : {
+         "file" : "lib/App/Jacana/DrawCtx.pm"
+      },
+      "App::Jacana::Gtk2::Activatable" : {
+         "file" : "lib/App/Jacana/Gtk2/Activatable.pm"
+      },
+      "App::Jacana::Gtk2::ComboBox" : {
+         "file" : "lib/App/Jacana/Gtk2/ComboBox.pm"
+      },
+      "App::Jacana::Gtk2::RadioGroup" : {
+         "file" : "lib/App/Jacana/Gtk2/RadioGroup.pm"
+      },
+      "App::Jacana::Gtk2::RadioMember" : {
+         "file" : "lib/App/Jacana/Gtk2/RadioMember.pm"
+      },
+      "App::Jacana::Gtk2::RadioMenuItem" : {
+         "file" : "lib/App/Jacana/Gtk2/RadioMenuItem.pm"
+      },
+      "App::Jacana::Gtk2::RadioToolItem" : {
+         "file" : "lib/App/Jacana/Gtk2/RadioToolItem.pm"
+      },
+      "App::Jacana::Has::Actions" : {
+         "file" : "lib/App/Jacana/Has/Actions.pm"
+      },
+      "App::Jacana::Has::App" : {
+         "file" : "lib/App/Jacana/Has/App.pm"
+      },
+      "App::Jacana::Has::Articulation" : {
+         "file" : "lib/App/Jacana/Has/Articulation.pm"
+      },
+      "App::Jacana::Has::Barline" : {
+         "file" : "lib/App/Jacana/Has/Barline.pm"
+      },
+      "App::Jacana::Has::Clef" : {
+         "file" : "lib/App/Jacana/Has/Clef.pm"
+      },
+      "App::Jacana::Has::Dialog" : {
+         "file" : "lib/App/Jacana/Has/Dialog.pm"
+      },
+      "App::Jacana::Has::Key" : {
+         "file" : "lib/App/Jacana/Has/Key.pm"
+      },
+      "App::Jacana::Has::Length" : {
+         "file" : "lib/App/Jacana/Has/Length.pm"
+      },
+      "App::Jacana::Has::Lily" : {
+         "file" : "lib/App/Jacana/Has/Lily.pm"
+      },
+      "App::Jacana::Has::Marks" : {
+         "file" : "lib/App/Jacana/Has/Marks.pm"
+      },
+      "App::Jacana::Has::Markup" : {
+         "file" : "lib/App/Jacana/Has/Markup.pm"
+      },
+      "App::Jacana::Has::MidiInstrument" : {
+         "file" : "lib/App/Jacana/Has/MidiInstrument.pm"
+      },
+      "App::Jacana::Has::MidiTranspose" : {
+         "file" : "lib/App/Jacana/Has/MidiTranspose.pm"
+      },
+      "App::Jacana::Has::Movements" : {
+         "file" : "lib/App/Jacana/Has/Movements.pm"
+      },
+      "App::Jacana::Has::Pitch" : {
+         "file" : "lib/App/Jacana/Has/Pitch.pm"
+      },
+      "App::Jacana::Has::RehearsalMark" : {
+         "file" : "lib/App/Jacana/Has/RehearsalMark.pm"
+      },
+      "App::Jacana::Has::Tempo" : {
+         "file" : "lib/App/Jacana/Has/Tempo.pm"
+      },
+      "App::Jacana::Has::Tie" : {
+         "file" : "lib/App/Jacana/Has/Tie.pm"
+      },
+      "App::Jacana::Has::Time" : {
+         "file" : "lib/App/Jacana/Has/Time.pm"
+      },
+      "App::Jacana::Has::Tweaks" : {
+         "file" : "lib/App/Jacana/Has/Tweaks.pm"
+      },
+      "App::Jacana::Has::Voices" : {
+         "file" : "lib/App/Jacana/Has/Voices.pm"
+      },
+      "App::Jacana::Has::Window" : {
+         "file" : "lib/App/Jacana/Has/Window.pm"
+      },
+      "App::Jacana::Has::Zoom" : {
+         "file" : "lib/App/Jacana/Has/Zoom.pm"
+      },
+      "App::Jacana::MIDI" : {
+         "file" : "lib/App/Jacana/MIDI.pm"
+      },
+      "App::Jacana::MIDI::Player" : {
+         "file" : "lib/App/Jacana/MIDI/Player.pm"
+      },
+      "App::Jacana::Moose" : {
+         "file" : "lib/App/Jacana/Moose.pm"
+      },
+      "App::Jacana::Music" : {
+         "file" : "lib/App/Jacana/Music.pm"
+      },
+      "App::Jacana::Music::Ambient" : {
+         "file" : "lib/App/Jacana/Music/Ambient.pm"
+      },
+      "App::Jacana::Music::Barline" : {
+         "file" : "lib/App/Jacana/Music/Barline.pm"
+      },
+      "App::Jacana::Music::Clef" : {
+         "file" : "lib/App/Jacana/Music/Clef.pm"
+      },
+      "App::Jacana::Music::FindAmbient" : {
+         "file" : "lib/App/Jacana/Music/FindAmbient.pm"
+      },
+      "App::Jacana::Music::HasAmbient" : {
+         "file" : "lib/App/Jacana/Music/HasAmbient.pm"
+      },
+      "App::Jacana::Music::KeySig" : {
+         "file" : "lib/App/Jacana/Music/KeySig.pm"
+      },
+      "App::Jacana::Music::Lily" : {
+         "file" : "lib/App/Jacana/Music/Lily.pm"
+      },
+      "App::Jacana::Music::MIDI::Instrument" : {
+         "file" : "lib/App/Jacana/Music/MIDI/Instrument.pm"
+      },
+      "App::Jacana::Music::MIDI::Transpose" : {
+         "file" : "lib/App/Jacana/Music/MIDI/Transpose.pm"
+      },
+      "App::Jacana::Music::Mark" : {
+         "file" : "lib/App/Jacana/Music/Mark.pm"
+      },
+      "App::Jacana::Music::Mark::Articulation" : {
+         "file" : "lib/App/Jacana/Music/Mark/Articulation.pm"
+      },
+      "App::Jacana::Music::Mark::Dynamic" : {
+         "file" : "lib/App/Jacana/Music/Mark/Dynamic.pm"
+      },
+      "App::Jacana::Music::Mark::Slur" : {
+         "file" : "lib/App/Jacana/Music/Mark/Slur.pm"
+      },
+      "App::Jacana::Music::MultiRest" : {
+         "file" : "lib/App/Jacana/Music/MultiRest.pm"
+      },
+      "App::Jacana::Music::Note" : {
+         "file" : "lib/App/Jacana/Music/Note.pm"
+      },
+      "App::Jacana::Music::Note::Grace" : {
+         "file" : "lib/App/Jacana/Music/Note/Grace.pm"
+      },
+      "App::Jacana::Music::RehearsalMark" : {
+         "file" : "lib/App/Jacana/Music/RehearsalMark.pm"
+      },
+      "App::Jacana::Music::Rest" : {
+         "file" : "lib/App/Jacana/Music/Rest.pm"
+      },
+      "App::Jacana::Music::Tempo" : {
+         "file" : "lib/App/Jacana/Music/Tempo.pm"
+      },
+      "App::Jacana::Music::Text" : {
+         "file" : "lib/App/Jacana/Music/Text.pm"
+      },
+      "App::Jacana::Music::Text::Mark" : {
+         "file" : "lib/App/Jacana/Music/Text/Mark.pm"
+      },
+      "App::Jacana::Music::TimeSig" : {
+         "file" : "lib/App/Jacana/Music/TimeSig.pm"
+      },
+      "App::Jacana::Music::Voice" : {
+         "file" : "lib/App/Jacana/Music/Voice.pm"
+      },
+      "App::Jacana::Resource" : {
+         "file" : "lib/App/Jacana/Resource.pm"
+      },
+      "App::Jacana::StaffCtx" : {
+         "file" : "lib/App/Jacana/StaffCtx.pm"
+      },
+      "App::Jacana::StaffCtx::Draw" : {
+         "file" : "lib/App/Jacana/StaffCtx/Draw.pm"
+      },
+      "App::Jacana::StaffCtx::Has::Tie" : {
+         "file" : "lib/App/Jacana/StaffCtx/Has/Tie.pm"
+      },
+      "App::Jacana::StaffCtx::Has::When" : {
+         "file" : "lib/App/Jacana/StaffCtx/Has/When.pm"
+      },
+      "App::Jacana::StaffCtx::MIDI" : {
+         "file" : "lib/App/Jacana/StaffCtx/MIDI.pm"
+      },
+      "App::Jacana::Tables" : {
+         "file" : "lib/App/Jacana/Tables.pm"
+      },
+      "App::Jacana::Types" : {
+         "file" : "lib/App/Jacana/Types.pm"
+      },
+      "App::Jacana::Util::Length" : {
+         "file" : "lib/App/Jacana/Util/Length.pm"
+      },
+      "App::Jacana::Util::LinkList" : {
+         "file" : "lib/App/Jacana/Util/LinkList.pm"
+      },
+      "App::Jacana::Util::Pitch" : {
+         "file" : "lib/App/Jacana/Util/Pitch.pm"
+      },
+      "App::Jacana::View" : {
+         "file" : "lib/App/Jacana/View.pm"
+      },
+      "App::Jacana::View::Region" : {
+         "file" : "lib/App/Jacana/View/Region.pm"
+      },
+      "App::Jacana::View::Render" : {
+         "file" : "lib/App/Jacana/View/Render.pm"
+      },
+      "App::Jacana::View::StaffInfo" : {
+         "file" : "lib/App/Jacana/View/StaffInfo.pm"
+      },
+      "App::Jacana::View::System" : {
+         "file" : "lib/App/Jacana/View/System.pm"
+      },
+      "App::Jacana::Window" : {
+         "file" : "lib/App/Jacana/Window.pm"
+      },
+      "File::Temp::AutoRename" : {
+         "file" : "lib/File/Temp/AutoRename.pm"
+      },
+      "MooseX::Copiable" : {
+         "file" : "lib/MooseX/Copiable.pm"
+      },
+      "MooseX::Copiable::Meta::Attribute" : {
+         "file" : "lib/MooseX/Copiable/Meta/Attribute.pm"
+      },
+      "MooseX::Copiable::Meta::Attribute::Class" : {
+         "file" : "lib/MooseX/Copiable/Meta/Attribute/Class.pm"
+      },
+      "MooseX::Copiable::Meta::Attribute::Role" : {
+         "file" : "lib/MooseX/Copiable/Meta/Attribute/Role.pm"
+      },
+      "MooseX::Copiable::Meta::Class" : {
+         "file" : "lib/MooseX/Copiable/Meta/Class.pm"
+      },
+      "MooseX::Copiable::Role" : {
+         "file" : "lib/MooseX/Copiable/Role.pm"
+      },
+      "MooseX::Trait::Coercer" : {
+         "file" : "lib/MooseX/Trait/Coercer.pm"
+      },
+      "MooseX::Trait::IgnoreUndef" : {
+         "file" : "lib/MooseX/Trait/IgnoreUndef.pm"
+      }
+   },
+   "release_status" : "stable",
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://rt.cpan.org/Public/Dist/Display.html?Name=App-Jacana"
+      },
+      "license" : [
+         "http://opensource.org/licenses/bsd-license.php"
+      ],
+      "repository" : {
+         "url" : "http://github.com/mauzo/App-Jacana"
+      }
+   },
+   "version" : "1"
+}

@@ -1,10 +1,16 @@
 package App::Jacana;
 
+=head1 NAME
+
+App::Jacana - A GUI for editing Lilypond files
+
+=cut
+
 use utf8;
 use 5.012;
 use warnings;
 
-our $VERSION = "0";
+our $VERSION = "1";
 
 use App::Jacana::Moose;
 
@@ -124,3 +130,18 @@ sub start {
 }
 
 1;
+
+=head1 BUGS
+
+Please report bugs to <L<bug-App-Jacana@rt.cpan.org>>.
+
+=head1 AUTHOR
+
+Ben Morrow <ben@morrow.me.uk>
+
+=head1 COPYRIGHT
+
+Copyright 2018 Ben Morrow.
+
+Released under the 2-clause BSD licence.
+
