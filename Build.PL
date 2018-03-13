@@ -58,6 +58,7 @@ Module::Build->subclass(
     },
     configure_requires	=> {
         "ExtUtils::Depends" => "0",
+        "Gtk2"              => "0",
 	"Module::Build"	    => "0.38",
     },
     build_requires	=> {

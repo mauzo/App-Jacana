@@ -7,6 +7,7 @@ build_requires:
   Test::More: '0.96'
 configure_requires:
   ExtUtils::Depends: '0'
+  Gtk2: '0'
   Module::Build: '0.38'
 dynamic_config: 1
 generated_by: 'Module::Build version 0.4224, CPAN::Meta::Converter version 2.150001'
