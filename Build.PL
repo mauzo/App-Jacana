@@ -1,7 +1,6 @@
 use Module::Build;
 use ExtUtils::Depends;
 use ExtUtils::ParseXS;
-use Data::Dump qw/pp/;
 
 my %dep = ExtUtils::Depends->new("App::Jacana", "Gtk2")
     ->get_makefile_vars;
