@@ -510,7 +510,7 @@ sub _insert_rest :Action(Rest) {
     $self->view->refresh;
 }
 
-sub _multirest :Action {
+sub _multi_rest :Action {
     my ($self) = @_;
     $self->mode eq "insert" or return;
     my $pos = $self->position;
