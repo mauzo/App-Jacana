@@ -5,7 +5,7 @@ use ExtUtils::ParseXS;
 my %dep = ExtUtils::Depends->new("App::Jacana", "Gtk2")
     ->get_makefile_vars;
 
-Module::Build->subclass(
+my $MB = Module::Build->subclass(
     code => q{  # yuck
         require ExtUtils::ParseXS;
 
@@ -70,6 +70,17 @@ Module::Build->subclass(
     typemaps                => $dep{TYPEMAPS},
 
     share_dir           => "share",
+    PL_files            => {
+        "xdg/Jacana.desktop.PL" => "xdg/Jacana.desktop",
+    },
+    xdg_files           => {
+        "xdg/Jacana.desktop"    => "xdg/applications/Jacana.desktop",
+        "xdg/Jacana.png"        => "xdg/icons/hicolor/48x48/Jacana.png",
+    },
+    install_path        => {
+        xdg     =>          "/usr/local/share",
+    },
+
     meta_merge		=> {
 	resources   => {
 	    repository => "http://github.com/mauzo/App-Jacana",
@@ -77,4 +88,6 @@ Module::Build->subclass(
 		"Display.html?Name=App-Jacana",
 	},
     },
-)->create_build_script;
+);
+$MB->add_build_element("xdg");
+$MB->create_build_script;
