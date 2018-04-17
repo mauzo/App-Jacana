@@ -6,12 +6,7 @@ use Cairo;
 use File::Path      qw/mkpath/;
 use File::ShareDir  qw/dist_file/;
 use File::Temp::AutoRename;
-use Font::FreeType;
-
-require XSLoader;
-
-Font::FreeType::Face->can("get_name_index")
-    or XSLoader::load("App::Jacana::Font::FreeType");
+use Font::FreeType  0.10; 
 
 has dist    => is => "ro";
 has userdir => is => "lazy";
