@@ -11,6 +11,7 @@ with    qw/
 /;
 
 sub dialog { "Lily" }
+sub dialog_title { "Lilypond comment" }
 
 sub lily_rx {
     qr( (?<indent>\h*) \% \h* (?<lily>[^\n]*) \n )x

@@ -11,6 +11,7 @@ with    qw/
 /;
 
 sub dialog { "Lily" }
+sub dialog_title { "Lilypond code" }
 
 sub to_lily { 
     my ($self) = @_;

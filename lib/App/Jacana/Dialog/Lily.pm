@@ -13,7 +13,7 @@ has buffer => is => "lazy";
 has view   => is => "lazy";
 has "+lily" => traits => ["Shortcuts"], trigger => 1;
 
-sub title { "Edit Lilypond code" }
+sub title { "Edit " . $_[0]->src->dialog_title }
 
 sub _build_buffer { 
     Gtk2::TextBuffer->new;
@@ -47,7 +47,8 @@ sub _build_view {
 sub _build_content_area {
     my ($self, $vb) = @_;
 
-    $vb->pack_start(Gtk2::Label->new("Lilypond code:"), 1, 1, 5);
+    my $title = $self->src->dialog_title;
+    $vb->pack_start(Gtk2::Label->new("$title:"), 1, 1, 5);
     $vb->pack_start($self->view, 1, 1, 5);
 }
 
