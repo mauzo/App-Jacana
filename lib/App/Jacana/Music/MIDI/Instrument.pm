@@ -7,6 +7,7 @@ with qw/
     App::Jacana::Music::HasAmbient
     App::Jacana::Has::Dialog
     App::Jacana::Has::MidiInstrument
+    App::Jacana::Has::OwnLine
 /;
 
 sub lily_rx { qr{ 

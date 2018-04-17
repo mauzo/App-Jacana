@@ -9,12 +9,4 @@ has lily => (
     traits  => [qw/Copiable/],
 );
 
-has indent => (
-    is          => "rw",
-    isa         => Str,
-    predicate   => 1,
-    clearer     => 1,
-    traits      => [qw/Copiable/],
-);
-
 1;

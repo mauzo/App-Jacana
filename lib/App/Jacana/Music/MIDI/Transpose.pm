@@ -9,6 +9,7 @@ with qw/
     App::Jacana::Music::HasAmbient
     App::Jacana::Has::Dialog
     App::Jacana::Has::MidiTranspose
+    App::Jacana::Has::OwnLine
 /;
 
 has "+into" => (
