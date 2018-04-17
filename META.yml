@@ -19,7 +19,7 @@ name: App-Jacana
 provides:
   App::Jacana:
     file: lib/App/Jacana.pm
-    version: '1'
+    version: '2'
   App::Jacana::Cursor:
     file: lib/App/Jacana/Cursor.pm
   App::Jacana::Dialog:
@@ -100,6 +100,8 @@ provides:
     file: lib/App/Jacana/Has/MidiTranspose.pm
   App::Jacana::Has::Movements:
     file: lib/App/Jacana/Has/Movements.pm
+  App::Jacana::Has::OwnLine:
+    file: lib/App/Jacana/Has/OwnLine.pm
   App::Jacana::Has::Pitch:
     file: lib/App/Jacana/Has/Pitch.pm
   App::Jacana::Has::RehearsalMark:
@@ -132,6 +134,8 @@ provides:
     file: lib/App/Jacana/Music/Barline.pm
   App::Jacana::Music::Clef:
     file: lib/App/Jacana/Music/Clef.pm
+  App::Jacana::Music::Comment:
+    file: lib/App/Jacana/Music/Comment.pm
   App::Jacana::Music::FindAmbient:
     file: lib/App/Jacana/Music/FindAmbient.pm
   App::Jacana::Music::HasAmbient:
@@ -259,4 +263,4 @@ resources:
   bugtracker: https://rt.cpan.org/Public/Dist/Display.html?Name=App-Jacana
   license: http://opensource.org/licenses/bsd-license.php
   repository: http://github.com/mauzo/App-Jacana
-version: '1'
+version: '2'

@@ -1,5 +1,6 @@
 Build.PL
 Changes
+MANIFEST
 META.json
 META.yml
 bin/jacana
@@ -45,6 +46,7 @@ lib/App/Jacana/Has/Markup.pm
 lib/App/Jacana/Has/MidiInstrument.pm
 lib/App/Jacana/Has/MidiTranspose.pm
 lib/App/Jacana/Has/Movements.pm
+lib/App/Jacana/Has/OwnLine.pm
 lib/App/Jacana/Has/Pitch.pm
 lib/App/Jacana/Has/RehearsalMark.pm
 lib/App/Jacana/Has/Tempo.pm
@@ -61,6 +63,7 @@ lib/App/Jacana/Music.pm
 lib/App/Jacana/Music/Ambient.pm
 lib/App/Jacana/Music/Barline.pm
 lib/App/Jacana/Music/Clef.pm
+lib/App/Jacana/Music/Comment.pm
 lib/App/Jacana/Music/FindAmbient.pm
 lib/App/Jacana/Music/HasAmbient.pm
 lib/App/Jacana/Music/KeySig.pm
@@ -145,3 +148,5 @@ share/icons/hicolor/scalable/actions/icon-tie.svg
 share/icons/hicolor/scalable/actions/icon-timesig.svg
 share/icons/hicolor/scalable/actions/icon-treble.svg
 t/00use.t
+xdg/Jacana.desktop.PL
+xdg/Jacana.png

@@ -65,7 +65,7 @@
    "provides" : {
       "App::Jacana" : {
          "file" : "lib/App/Jacana.pm",
-         "version" : "1"
+         "version" : "2"
       },
       "App::Jacana::Cursor" : {
          "file" : "lib/App/Jacana/Cursor.pm"
@@ -187,6 +187,9 @@
       "App::Jacana::Has::Movements" : {
          "file" : "lib/App/Jacana/Has/Movements.pm"
       },
+      "App::Jacana::Has::OwnLine" : {
+         "file" : "lib/App/Jacana/Has/OwnLine.pm"
+      },
       "App::Jacana::Has::Pitch" : {
          "file" : "lib/App/Jacana/Has/Pitch.pm"
       },
@@ -234,6 +237,9 @@
       },
       "App::Jacana::Music::Clef" : {
          "file" : "lib/App/Jacana/Music/Clef.pm"
+      },
+      "App::Jacana::Music::Comment" : {
+         "file" : "lib/App/Jacana/Music/Comment.pm"
       },
       "App::Jacana::Music::FindAmbient" : {
          "file" : "lib/App/Jacana/Music/FindAmbient.pm"
@@ -386,5 +392,5 @@
          "url" : "http://github.com/mauzo/App-Jacana"
       }
    },
-   "version" : "1"
+   "version" : "2"
 }
