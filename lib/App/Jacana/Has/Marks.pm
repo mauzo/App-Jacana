@@ -2,6 +2,7 @@ package App::Jacana::Has::Marks;
 
 use Moose::Role;
 
+use List::Util      qw/any/;
 use Module::Runtime qw/use_module/;
 
 use namespace::autoclean;
@@ -38,7 +39,13 @@ sub marks_to_lily {
 
 sub add_mark {
     my ($self, $type, @args) = @_;
-    push @{$self->marks}, "$Mark\::$type"->new(@args);
+
+    my $mrk = $self->marks;
+    my $new = "$Mark\::$type"->new(@args);
+    my $cmp = $new->to_lily;
+    
+    any { $_->to_lily eq $cmp } @$mrk and return;
+    push @$mrk, $new;
 }
 
 sub delete_marks {
