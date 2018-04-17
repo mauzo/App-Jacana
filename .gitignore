@@ -3,6 +3,8 @@
 *.sf2
 .*.swp
 Build
+MYMETA.*
+NOTES
 _build
 blib
 bm*
@@ -11,3 +13,4 @@ ly
 otherblibs
 parts
 try*
+xdg/Jacana.desktop
