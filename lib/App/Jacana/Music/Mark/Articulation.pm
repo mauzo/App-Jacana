@@ -9,7 +9,7 @@ my $Artic = __PACKAGE__->articulation_types;
 
 sub lily_rx {
     my $artic = join "|", keys %$Artic;
-    qr( \s* \\ (?<articulation>$artic) )x;
+    qr( (?<articulation> (?: \s* \\ (?:$artic) )+ ) )x;
 }
 
 sub to_lily { "\\" . $_[0]->articulation }
@@ -17,7 +17,11 @@ sub to_lily { "\\" . $_[0]->articulation }
 sub from_lily {
     my ($self, %n) = @_;
     $n{articulation} or return;
-    $self->new(\%n);
+    wantarray or Carp::croak(
+        "Mark::Articulation->from_lily must be in list context!");
+    return map $self->new($_),
+        map +{ articulation => $_ },
+        $n{articulation} =~ /\s* \\ (\w+)/agx;
 }
 
 sub draw {
