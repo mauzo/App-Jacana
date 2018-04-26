@@ -269,6 +269,9 @@ sub _build_status_bar {
         $f->set_shadow_type("in");
         $m->pack_start($f, 0, 0, 0);
     }
+    my $ver = Gtk2::Label->new("version " . App::Jacana->VERSION);
+    $m->pack_end($ver, 0, 0, 0);
+    $m->reorder_child($ver, 0);
 
     my $id = $b->push(0, "loading…");
     Glib::Idle->add(sub { $b->remove(0, $id) });
