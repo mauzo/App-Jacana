@@ -186,7 +186,6 @@ sub draw {
 
     $self->_draw_tuplet($c, $pos);
     $wd += $self->_draw_dots($c, $wd, $pos);
-    $wd += $self->_draw_tie($c, $wd);
 
     return $wd;
 }

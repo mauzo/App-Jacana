@@ -24,7 +24,7 @@ has staffs => (
 
 sub _build_surface {
     my ($self) = @_;
-    Cairo::ImageSurface->create("a8", $self->width, $self->height);
+    Cairo::ImageSurface->create("argb32", $self->width, $self->height);
 }
 
 sub bottom { $_[0]->top + $_[0]->height }

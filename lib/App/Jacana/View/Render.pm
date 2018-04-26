@@ -245,6 +245,8 @@ sub _show_music {
         $x += max 0, map $_->lsb($c), map $_->item, @draw;
         $x += max 0, map $self->_show_item($c, $x, $_), @draw;
 
+        $_->has_item or $self->_show_tie($c, $x, $_)
+            for @voices;
         @voices = grep $_->has_item, @voices or last;
     }
 
@@ -259,6 +261,7 @@ sub _show_music {
         $c->close_path;
         $c->fill;
     $c->restore;
+    $_->clear_tie for @voices;
 
     return $x;
 }
@@ -281,15 +284,15 @@ sub _show_item {
     my $y       = $v->y;
     my $item    = $v->item;
 
-    $v->has_tie and $self->_show_tie($c, $x, $v);
+    $self->_show_tie($c, $x, $v);
 
     $c->save;
         $c->translate($x, $y);
         my $wd = $self->_draw_item($c, $item);
     $c->restore;
 
-    $item->DOES(My "Has::Tie") && $item->tie
-        and $v->start_tie($x + $wd);
+    Has("Tie")->check($item) && $item->tie
+        and $v->start_tie($x + $wd), $wd += 2;
 
     $wd = ($wd // 0) + $item->rsb;
     $item->bbox->[4] = $c->u2d($x + $wd);
@@ -312,25 +315,29 @@ sub _draw_item {
 
 sub _show_tie {
     my ($self, $c, $x, $v) = @_;
-    my $item    = $v->item;
+
+    $v->has_tie or return;
     my $from    = $v->tie_from;
+    my $item    = $v->item;
+    Has("Length")->check($item) || !$item or return;
 
     $c->save;
-        if ($item->isa("App::Jacana::Music::Note")
-            && $from->pitch == $item->pitch
-        )       { $c->set_source_rgb(0, 0, 0) }
-        else    { $c->set_source_rgb(1, 0, 0) }
+        if (Has("Pitch")->check($item)
+            && $from->pitch == $item->pitch)
+                { $c->set_source_rgb(0, 0, 0) }
+        else    { $c->set_source_rgb(0.9, 0, 0) }
         $c->set_line_width(0.5);
 
         my $x1  = $v->tie_x;
-        my $x2  = $x - $item->lsb($c);
+        my $x2  = $x - ($item ? $item->lsb($c) : 0);
         my $xc  = ($x2 - $x1) / 4;
-        my $y   = $v->y - $from->staff_line - 1;
-        $c->move_to($x1, $y);
+        my $y1  = $v->y - $from->staff_line - 1;
+        my $y2  = $item ? ($v->y - $item->staff_line - 1) : $y1;
+        $c->move_to($x1, $y1);
         $c->curve_to(
-            $x1 + $xc,  $y - 2,
-            $x2 - $xc,  $y - 2,
-            $x2,        $y,
+            $x1 + $xc,  $y1 - 2,
+            $x2 - $xc,  $y2 - 2,
+            $x2,        $y2,
         );
         $c->stroke;
     $c->restore;

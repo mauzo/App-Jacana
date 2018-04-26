@@ -10,6 +10,8 @@ has tie => (
     default     => 0, 
 );
 
+=begin obsolete
+
 sub _draw_tie {
     my ($self, $c, $wd) = @_;
 
@@ -24,5 +26,9 @@ sub _draw_tie {
 
     return 2;
 }
+
+=end
+
+=cut
 
 1;
