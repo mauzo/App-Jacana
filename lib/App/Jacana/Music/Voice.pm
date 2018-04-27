@@ -55,7 +55,6 @@ my @MTypes = map "App::Jacana::Music::$_",
         MIDI::Instrument MIDI::Transpose
     /;
 for (@MTypes) {
-    warn "LOADING [$_]";
     use_module $_;
 }
 my $Unkn = "App::Jacana::Music::Lily";

@@ -6,7 +6,6 @@ use App::Jacana::Music::Voice;
 
 use namespace::autoclean;
 
-warn "CAN BUILD: " . __PACKAGE__->can("BUILD");
 with qw/ 
     App::Jacana::Has::Movements
     App::Jacana::Has::Voices
