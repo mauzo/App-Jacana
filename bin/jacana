@@ -10,10 +10,9 @@ BEGIN { App::Jacana::Log::handle_sigs }
 
 use Gtk2 "-init";
 use App::Jacana;
+use Getopt::Std     qw/getopts/;
 
-App::Jacana::Log::add_logfh \*STDERR;
-App::Jacana::Log::set_verbose 1;
-App::Jacana::Log::resume_log;
+getopts "d:", \my %opts;
 
-my $A = App::Jacana->new(args => \@ARGV);
-$A->start;
+my $A = App::Jacana->new;
+$A->start(\%opts, @ARGV);

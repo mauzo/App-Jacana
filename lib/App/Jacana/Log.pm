@@ -28,7 +28,7 @@ sub msg {
     $Suspend and push(@$Suspend, [$fac, @msg]), return;
     $Verbose || $Active{$fac} or return;
 
-    say $_ "$Prefix$fac: ", map +(ref ? pp $_ : $_), @msg 
+    say $_ "$Prefix\[$fac] ", map +(ref ? pp $_ : $_), @msg 
         for @LogFH;
 }
 

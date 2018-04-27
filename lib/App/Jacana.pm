@@ -23,17 +23,13 @@ use App::Jacana::Window;
 use Gtk2;
 use Gtk2::Ex::WidgetCursor;
 
+use File::Path      ();
 use File::ShareDir  ();
 use Hash::Merge     ();
+use POSIX           ();
 use YAML::XS        ();
 
 with qw/ App::Jacana::Has::App /;
-
-has args    => (
-    is          => "ro",
-    isa         => ArrayRef[Str],
-    required    => 1,
-);
 
 has "+app" => (
     required    => 0, 
@@ -69,16 +65,7 @@ sub yield { Gtk2::Gdk::Window->process_all_updates }
 has window      => is => "lazy", clearer => 1;
 sub _build_window {
     my ($self) = @_;
-
-    my $args    = $self->args;
-
-    my $w = App::Jacana::Window->new(copy_from => $self);
-    for (@$args) {
-        my $doc = App::Jacana::Document->open($_) or next;
-        $w->add_tab($doc);
-    }
-
-    $w;
+    App::Jacana::Window->new(copy_from => $self);
 }
 
 has midi        => is => "lazy", predicate => 1;
@@ -108,9 +95,37 @@ sub load_config {
     msg APP => "NEW CONFIG [$file]: ", $c;
 }
 
+sub _setup_logging {
+    my ($self, $d) = @_;
+
+    if ($d) {
+        App::Jacana::Log::add_logfh \*STDERR;
+        if ($d eq "-") {
+            App::Jacana::Log::set_verbose 1;
+        }
+        else {
+            App::Jacana::Log::set_active
+                map +($_, 1),
+                split /,/, $d;
+        }
+    }
+    else {
+        my $logdir  = "$ENV{HOME}/.local/share/morrow.me.uk/Jacana";
+        File::Path::make_path($logdir);
+        my $logfile = POSIX::strftime "%Y-%m-%d-%H.%M.%S.log", localtime;
+        open my $LOG, ">", "$logdir/$logfile";
+        App::Jacana::Log::add_logfh $LOG;
+        App::Jacana::Log::set_verbose 1;
+        say STDERR "App::Jacana: logging to '$logdir/$logfile'";
+    }
+
+    App::Jacana::Log::resume_log;
+}
 
 sub start {
-    my ($self) = @_;
+    my ($self, $opts, @files) = @_;
+
+    $self->_setup_logging($$opts{d});
 
     msg APP => "START APP";
 
@@ -118,7 +133,13 @@ sub start {
     Gtk2::AccelMap->load($res->find_user_file("accelmap"));
     $self->load_config($_) for $res->find_all("config");
     
-    $self->window->show;
+    my $w = $self->window;
+    for (@files) {
+        my $doc = App::Jacana::Document->open($_) or next;
+        $w->add_tab($doc);
+    }
+    $w->show;
+
     Gtk2->main;
 
     $res->write_user_file("accelmap", sub {
