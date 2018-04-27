@@ -13,6 +13,7 @@ use warnings;
 our $VERSION = "3";
 
 use App::Jacana::Moose;
+use App::Jacana::Log;
 
 use App::Jacana::Document;
 use App::Jacana::MIDI;
@@ -104,14 +105,14 @@ sub load_config {
     HashRef->check($n) or die "Invalid config file '$file'\n";
     %$c = %{ Hash::Merge::merge $n, $c };
 
-    warn "NEW CONFIG [$file]: " . Data::Dump::pp $c;
+    msg APP => "NEW CONFIG [$file]: ", $c;
 }
 
 
 sub start {
     my ($self) = @_;
 
-    warn "START APP";
+    msg APP => "START APP";
 
     my $res = $self->resource;
     Gtk2::AccelMap->load($res->find_user_file("accelmap"));
