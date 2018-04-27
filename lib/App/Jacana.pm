@@ -10,7 +10,7 @@ use utf8;
 use 5.012;
 use warnings;
 
-our $VERSION = "2";
+our $VERSION = "3";
 
 use App::Jacana::Moose;
 

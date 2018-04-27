@@ -19,7 +19,7 @@ name: App-Jacana
 provides:
   App::Jacana:
     file: lib/App/Jacana.pm
-    version: '2'
+    version: '3'
   App::Jacana::Cursor:
     file: lib/App/Jacana/Cursor.pm
   App::Jacana::Dialog:
@@ -237,7 +237,7 @@ requires:
   File::ShareDir: '1.00'
   File::Slurp: '0'
   File::Temp: '0'
-  Font::FreeType: '0'
+  Font::FreeType: '0.10'
   Gtk2: '0'
   Gtk2::Ex::WidgetCursor: '0'
   Hash::Merge: '0'
@@ -263,4 +263,4 @@ resources:
   bugtracker: https://rt.cpan.org/Public/Dist/Display.html?Name=App-Jacana
   license: http://opensource.org/licenses/bsd-license.php
   repository: http://github.com/mauzo/App-Jacana
-version: '2'
+version: '3'

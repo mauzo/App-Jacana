@@ -110,6 +110,7 @@ lib/MooseX/Copiable/Meta/Class.pm
 lib/MooseX/Copiable/Role.pm
 lib/MooseX/Trait/Coercer.pm
 lib/MooseX/Trait/IgnoreUndef.pm
+share/Jacana.png
 share/accelmap
 share/actions.app
 share/actions.doc
