@@ -56,6 +56,8 @@ lib/App/Jacana/Has/Tweaks.pm
 lib/App/Jacana/Has/Voices.pm
 lib/App/Jacana/Has/Window.pm
 lib/App/Jacana/Has/Zoom.pm
+lib/App/Jacana/Log.pm
+lib/App/Jacana/Log/Logger.pm
 lib/App/Jacana/MIDI.pm
 lib/App/Jacana/MIDI/Player.pm
 lib/App/Jacana/Moose.pm

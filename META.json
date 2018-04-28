@@ -65,7 +65,7 @@
    "provides" : {
       "App::Jacana" : {
          "file" : "lib/App/Jacana.pm",
-         "version" : "3"
+         "version" : "4"
       },
       "App::Jacana::Cursor" : {
          "file" : "lib/App/Jacana/Cursor.pm"
@@ -216,6 +216,12 @@
       },
       "App::Jacana::Has::Zoom" : {
          "file" : "lib/App/Jacana/Has/Zoom.pm"
+      },
+      "App::Jacana::Log" : {
+         "file" : "lib/App/Jacana/Log.pm"
+      },
+      "App::Jacana::Log::Logger" : {
+         "file" : "lib/App/Jacana/Log/Logger.pm"
       },
       "App::Jacana::MIDI" : {
          "file" : "lib/App/Jacana/MIDI.pm"
@@ -392,5 +398,5 @@
          "url" : "http://github.com/mauzo/App-Jacana"
       }
    },
-   "version" : "3"
+   "version" : "4"
 }
