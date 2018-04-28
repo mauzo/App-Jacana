@@ -27,6 +27,12 @@ has status_flash_id => is => "rw", clearer => 1, predicate => 1;
 
 has "+uimgr"        => builder => 1;
 
+has _done_update    => (
+    is      => "rw",
+    isa     => Bool,
+    default => 0,
+);
+
 sub DEMOLISH {
     my ($self) = @_;
     %{$self->views} = ();
@@ -173,8 +179,10 @@ sub _build_frame {
 
 sub update {
     my ($self) = @_;
-    Glib::Idle->add(sub {
+    $self->_done_update or Glib::Idle->add(sub {
         my ($self) = @_;
+
+        $self->_done_update(0);
 
         my $vw      = $self->current_tab or return;
         my $curs    = $vw->cursor;
@@ -195,6 +203,7 @@ sub update {
 
         return;
     }, $self);
+    $self->_done_update(1);
 }
 
 sub _quit :Action(Quit) { 
