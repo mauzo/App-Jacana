@@ -50,9 +50,10 @@ sub BUILD {
     my $trans   = $amb->find_role("MidiTranspose");
     $trans and $self->transposition($trans);
 
-    my $tempo   = $amb->find_role("Tempo");
-    warn "STAFFCTX FOUND TEMPO [$tempo]: " . $tempo->to_lily;
-    $self->player->set_tempo($tempo);
+    if (my $tempo = $amb->find_role("Tempo")) {
+        warn "STAFFCTX FOUND TEMPO [$tempo]: " . $tempo->to_lily;
+        $self->player->set_tempo($tempo);
+    }
 }
 
 sub DEMOLISH {
