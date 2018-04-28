@@ -3,6 +3,7 @@ package App::Jacana::MIDI::Player;
 use 5.012;
 use App::Jacana::Moose;
 
+use App::Jacana::Log;
 use App::Jacana::StaffCtx::MIDI;
 
 use namespace::autoclean;
@@ -44,8 +45,7 @@ has _timer => (
     clearer     => 1,
 );
 has staffs => (
-    is          => "ro",
-    builder     => 1,
+    is          => "lazy",
 );
 
 sub DEMOLISH {
@@ -63,6 +63,7 @@ sub _build_staffs {
 
     my @music; 
     my $m = $self->music;
+
     while (1) {
         $m->is_voice_end and last;
         $m = $m->next_voice;
@@ -81,6 +82,10 @@ sub _build_staffs {
 
 sub start {
     my ($self) = @_;
+    # Autoviv so we get errors here rather than from the callback. This
+    # must be lazy since the builder relies on the other attributes
+    # being set.
+    $self->staffs;
     $self->_start_timer($self->speed);
 }
 
