@@ -28,6 +28,7 @@ sub _build_settings {
 
     $s->set("audio.driver", "oss");
     $s->set("audio.oss.device", $c->config("midi.device"));
+    $s->set("synth.midi-channels", 256);
     $s;
 }
 
@@ -63,9 +64,9 @@ sub remove_active {
 sub alloc_chan {
     my ($s) = @_;
     my $used = $s->in_use;
-    my $c = first { !$$used[$_] } 0..15;
-    defined $c or die "Out of MIDI channels!";
-    warn "ALLOC MIDI CHANNEL [$c]";
+    my $c = first { !$$used[$_] } 0..255;
+    defined $c or die "Out of MIDI channels!\n";
+    Carp::carp "ALLOC MIDI CHANNEL [$c]";
     $$used[$c] = 1;
     $c;
 }

@@ -179,7 +179,10 @@ sub _play_music {
         $self->set_status("Playing");
         $player->start;
     }
-    catch { $self->status_flash($_) };
+    catch { 
+        s/\n//;
+        $self->status_flash("Can't play: $_");
+    };
 }
 
 sub _play_all :Action(MidiPlay) { $_[0]->_play_music(0) }

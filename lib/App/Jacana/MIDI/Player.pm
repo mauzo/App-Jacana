@@ -44,7 +44,8 @@ has _timer => (
     clearer     => 1,
 );
 has staffs => (
-    is          => "lazy",
+    is          => "ro",
+    builder     => 1,
 );
 
 sub DEMOLISH {
