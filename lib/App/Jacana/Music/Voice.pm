@@ -61,6 +61,8 @@ for (@MTypes) {
 my $Unkn = "App::Jacana::Music::Lily";
 use_module $Unkn;
 
+warn "MTYPES: " . pp {map +($_ => $_->lily_rx), @MTypes};
+
 sub from_lily {
     my ($class, %n) = @_;
 
@@ -70,8 +72,6 @@ sub from_lily {
 
     my $unknown = "";
     (my $text   = $n{music}) =~ s/^\{|\}$//g;
-
-    warn "MTYPES: " . pp {map +($_ => $_->lily_rx), @MTypes};
 
     ITEM: while ($text) {
         $text =~ s/^\s+//;
