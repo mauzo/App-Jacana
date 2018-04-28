@@ -180,7 +180,9 @@ sub _play_music {
         $player->start;
     }
     catch { 
-        s/\n//;
+        warn "CAN'T PLAY: $_";
+        s/\n$//;
+        s/ at \S+ line \d+.*//a;
         $self->status_flash("Can't play: $_");
     };
 }
