@@ -3,33 +3,37 @@ package App::Jacana::Log;
 use 5.012;
 use warnings;
 
+use App::Jacana::Log::Logger;
+
 use Carp;
 use Data::Dump  qw/pp/;
 use Exporter    qw/import/;
+use Fcntl;
+use File::Path  qw/make_path/;
+use File::Slurp qw/read_dir/;
 use List::Util  qw/uniqnum/;
+use POSIX       qw/strftime/;
 
 our @EXPORT = qw/msg msgf/;
 
-my %Active  = (ERR => 1, WARN => 1);
-my $Verbose = 0;
-my $Suspend = [];
-my @LogFH;
-my $Prefix  = "";
+my @Loggers;
+my $Suspend;
+my $Prefix = "";
 
 sub suspend_log;
+sub add_logger;
+sub set_prefix;
 
 sub warnx { say STDERR map +(ref ? pp $_ : $_), @_ }
 
 sub msg {
     my ($fac, @msg) = @_;
 
-    @LogFH or suspend_log;
-
+    @Loggers or suspend_log;
     $Suspend and push(@$Suspend, [$fac, @msg]), return;
-    $Verbose || $Active{$fac} or return;
 
-    say $_ "$Prefix\[$fac] ", map +(ref ? pp $_ : $_), @msg 
-        for @LogFH;
+    my $msg = join " ", map +(ref ? pp $_ : $_), @msg;
+    $_->msg($fac, "$Prefix\[$fac] $msg") for @Loggers;
 }
 
 sub msgf {
@@ -37,26 +41,50 @@ sub msgf {
     msg $fac, sprintf $fmt, @args;
 }
 
-sub set_active {
-    my %act = @_;
-    $Active{$_} = $act{$_} for keys %act;
+sub open_logfile {
+    my $logdir  = "$ENV{HOME}/.local/share/morrow.me.uk/Jacana/logs";
+    make_path $logdir;
+
+    my @old = sort +read_dir $logdir;
+    if (@old > 4) {
+        splice @old, -4;
+        unlink "$logdir/$_" for @old;
+    }
+
+    my $logfile = strftime "%Y-%m-%d-%H.%M.%S.log", localtime;
+    my $logpath = "$logdir/$logfile";
+
+    sysopen my $LOG, $logpath, O_WRONLY|O_CREAT|O_EXCL
+        or die "Can't open '$logpath': $!\n";
+    add_logger $LOG, 1;
+
+    warnx "App::Jacana: logging to '$logpath'";
+
+    return $logpath;
 }
 
-sub set_verbose {
-    ($Verbose) = @_;
+sub add_logger {
+    my ($FH, @levels) = @_;
+
+    my $log = App::Jacana::Log::Logger->new(
+        logfh   => $FH,
+        (@levels == 1 && $levels[0] eq "1"
+            ? (verbose  => 1)
+            : (active   => +{ map +($_, 1), @levels })
+        ),
+    );
+    push @Loggers, $log;
+
+    return $log;
 }
 
-sub add_logfh {
-    @LogFH = uniqnum @LogFH, @_;
+sub remove_logger {
+    my ($log) = @_;
+    @Loggers = grep $_ != $log, @Loggers;
 }
 
-sub remove_logfh {
-    my %fh = map +(0+$_, 1), @_;
-    @LogFH = grep !$fh{0+$_}, @LogFH;
-}
-
-sub clear_logfh {
-    @LogFH = ();
+sub clear_loggers {
+    @Loggers = ();
 }
 
 sub suspend_log {
@@ -85,8 +113,8 @@ sub handle_sigs {
 
 END {
     if ($Suspend) {
-        clear_logfh;
-        add_logfh \*STDERR;
+        clear_loggers;
+        add_logger \*STDERR, 1;
         warnx "App::Jacana::Log: unread suspended messages:";
         set_prefix "  ";
         resume_log;

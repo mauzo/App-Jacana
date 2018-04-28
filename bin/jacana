@@ -6,7 +6,12 @@ use warnings;
 
 use App::Jacana::Log;
 
-BEGIN { App::Jacana::Log::handle_sigs }
+my $log;
+BEGIN { 
+    App::Jacana::Log::suspend_log;
+    $log = App::Jacana::Log::open_logfile;
+    App::Jacana::Log::handle_sigs;
+}
 
 use Gtk2 "-init";
 use App::Jacana;
@@ -14,5 +19,5 @@ use Getopt::Std     qw/getopts/;
 
 getopts "d:", \my %opts;
 
-my $A = App::Jacana->new;
+my $A = App::Jacana->new(logfile => $log);
 $A->start(\%opts, @ARGV);

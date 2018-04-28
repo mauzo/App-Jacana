@@ -36,6 +36,12 @@ has "+app" => (
     default     => sub { $_[0] },
 );
 
+has logfile => (
+    is          => "ro",
+    isa         => Str,
+    required    => 1,
+);
+
 has _config => (
     is          => "ro",
     isa         => HashRef,
@@ -98,27 +104,13 @@ sub load_config {
 sub _setup_logging {
     my ($self, $d) = @_;
 
-    if ($d) {
-        App::Jacana::Log::add_logfh \*STDERR;
-        if ($d eq "-") {
-            App::Jacana::Log::set_verbose 1;
-        }
-        else {
-            App::Jacana::Log::set_active
-                map +($_, 1),
-                split /,/, $d;
-        }
-    }
-    else {
-        my $logdir  = "$ENV{HOME}/.local/share/morrow.me.uk/Jacana";
-        File::Path::make_path($logdir);
-        my $logfile = POSIX::strftime "%Y-%m-%d-%H.%M.%S.log", localtime;
-        open my $LOG, ">", "$logdir/$logfile";
-        App::Jacana::Log::add_logfh $LOG;
-        App::Jacana::Log::set_verbose 1;
-        say STDERR "App::Jacana: logging to '$logdir/$logfile'";
-    }
+    my @levels = $d 
+        ? $d eq "-" 
+            ? 1 
+            : split /,/, $d
+        : ();
 
+    App::Jacana::Log::add_logger \*STDERR, @levels;
     App::Jacana::Log::resume_log;
 }
 
