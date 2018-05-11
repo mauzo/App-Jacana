@@ -6,7 +6,7 @@ use warnings;
 use App::Jacana::Log::Logger;
 
 use Carp;
-use Data::Dump  qw/pp/;
+use Data::Dumper;
 use Exporter    qw/import/;
 use Fcntl;
 use File::Path  qw/make_path/;
@@ -23,6 +23,12 @@ my $Prefix = "";
 sub suspend_log;
 sub add_logger;
 sub set_prefix;
+
+sub pp {
+    Data::Dumper->new([$_[0]])->Terse(1)->Sparseseen(1)
+        ->Sortkeys(1)->Useqq(1)->Quotekeys(0)->Maxdepth(2)->Dump
+        =~ s/\n\z//r;
+}
 
 sub warnx { say STDERR map +(ref ? pp $_ : $_), @_ }
 

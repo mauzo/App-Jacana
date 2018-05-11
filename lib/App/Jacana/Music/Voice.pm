@@ -3,6 +3,7 @@ package App::Jacana::Music::Voice;
 use App::Jacana::Moose;
 
 use App::Jacana::StaffCtx::FindTime;
+use App::Jacana::Log;
 
 use Data::Dump      qw/pp/;
 use Module::Runtime     qw/use_module/;
@@ -54,7 +55,7 @@ for (@MTypes) {
 my $Unkn = "App::Jacana::Music::Lily";
 use_module $Unkn;
 
-warn "MTYPES: " . pp {map +($_ => $_->lily_rx), @MTypes};
+msg READ => "MTYPES:", {map +($_ => $_->lily_rx), @MTypes};
 
 sub from_lily {
     my ($class, %n) = @_;
