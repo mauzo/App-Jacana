@@ -3,6 +3,10 @@ package App::Jacana::Music::FindAmbient;
 use Moose::Role;
 use MooseX::AttributeShortcuts;
 
+use Carp;
+
+use namespace::autoclean;
+
 requires    qw/prev is_music_start/;
 
 has ambient     => (
@@ -18,7 +22,7 @@ has ambient     => (
 sub _build_ambient {
     my ($self) = @_;
 
-    $self->is_music_start and die "Start of list must be HasAmbient";
+    $self->is_music_start and confess "Start of list must be HasAmbient";
     my $prev = $self->prev;
     my $amb = $self->prev->ambient;
     #warn "FOUND AMBIENT [$amb] FROM [$prev] FOR [$self]";
