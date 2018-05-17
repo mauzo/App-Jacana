@@ -10,7 +10,7 @@ use Types::Common::Numeric qw/PositiveOrZeroInt/;
 
 use Memoize;
 
-our @EXPORT_OK = qw/Has My Music StaffCtx/;
+our @EXPORT_OK = qw/Has My Music StaffCtx Event/;
 
 declare Chroma =>
     as Int, where { $_ > -3 && $_ < 3 };
@@ -65,5 +65,11 @@ sub Has ($) {
 }
 
 memoize "Has";
+
+sub Event ($) {
+    my ($which) = @_;
+    my $name = @_ ? "Event::$which" : "Event";
+    My $name;
+}
 
 __PACKAGE__->meta->make_immutable;

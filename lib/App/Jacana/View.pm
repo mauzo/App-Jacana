@@ -7,6 +7,7 @@ use App::Jacana::Moose;
 use MooseX::Gtk2;
 
 use App::Jacana::Cursor;
+use App::Jacana::Log;
 use App::Jacana::MIDI::Player;
 use App::Jacana::View::Render;
 
@@ -294,17 +295,36 @@ sub scroll_to_cursor {
     $vaj->clamp_page($$bbx[1] - 6, $$bbx[3] + 6);
 }
 
+sub _clip_duration {
+    my ($self, $clip) = @_;
+
+    my $end = $clip->prev_music;
+    my $ctx = StaffCtx("FindTime")->new(item => $clip);
+
+    return $ctx->get_time_for($end);
+}
+
 sub clip_cut :Action(Cut) {
     my ($self) = @_;
 
+    my $mark    = $self->mark       or return;
     my $curs    = $self->cursor;
-    my $clip    = $curs->_iter->remove($self->mark);
+    my $clip    = $curs->_iter->remove($mark);
+    my $dur     = $self->_clip_duration($clip);
     my $pos     = $curs->position;
 
     $pos->break_ambient;
     $self->clear_mark;
     $self->clip($clip);
-    $self->doc->signal_emit(changed => $pos);
+
+    $self->doc->signal_emit(changed =>
+        Event("Change")->new(
+            type        => "remove",
+            item        => $pos,
+            tick        => $curs->tick,
+            duration    => $dur,
+        )
+    );
 }
 
 sub clip_copy :Action(Copy) {
@@ -321,11 +341,20 @@ sub clip_paste :Action(Paste) {
         return;
     };
     #$self->clear_clip;
-    my $start = $clip->clone_music($clip->prev_music);
+    my $start   = $clip->clone_music($clip->prev_music);
+    my $end     = $start->prev_music;
+    my $dur     = $self->_clip_duration($start);
+    my $curs    = $self->cursor;
 
-    $self->cursor->_iter->insert($start);
+    $curs->_iter->insert($start);
     $start->break_ambient;
-    $self->doc->signal_emit(changed => $start);
+    $self->doc->signal_emit(changed => Event("Change")->new(
+        type        => "insert",
+        item        => $curs->position,
+        tick        => $curs->tick,
+        duration    => $dur,
+    ));
+    $curs->step_to(next => $end);
 }
 
 sub _realize :Signal {

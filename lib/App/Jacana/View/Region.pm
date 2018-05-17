@@ -3,6 +3,8 @@ package App::Jacana::View::Region;
 use App::Jacana::Moose -role;
 use MooseX::Gtk2;
 
+use App::Jacana::Log;
+
 requires qw/ cursor redraw doc /;
 
 has mark => (
@@ -34,6 +36,8 @@ sub goto_mark :Action(GotoMark) {
 sub find_region {
     my ($self) = @_;
 
+    $self->mark or return;
+
     my $mt = $self->mark->tick;
     my $ct = $self->cursor->_iter->tick;
     warn "MARK TICK [$mt] CURSOR TICK [$ct]";
@@ -62,7 +66,9 @@ sub find_region {
 sub _rgn_change_octave {
     my ($self, $by) = @_;
 
-    my ($pos, $end) = $self->find_region or return;
+    # XXX this wants to be a StaffCtx::Region
+    my ($start, $end) = $self->find_region or return;
+    my $pos = $start;
     while (1) {
         Has("Pitch")->check($pos)
             and $pos->octave($pos->octave + $by);
@@ -70,7 +76,10 @@ sub _rgn_change_octave {
         $pos = $pos->next;
     }
 
-    $self->doc->signal_emit(changed => $pos);
+    $self->doc->signal_emit(changed => Event("Change")->new(
+        type    => "other",
+        item    => $start,
+    ));
 }
 
 sub rgn_octave_up :Action(RegionOctaveUp) { 
@@ -83,23 +92,26 @@ sub rgn_octave_down :Action(RegionOctaveDown) {
 sub rgn_transpose :Action(RegionTranspose) {
     my ($self) = @_;
 
-    my ($pos, $end) = $self->find_region or return;
-    Music("Voice")->check($pos)
-        and ($pos = $pos->next or return);
-    $pos = $pos->find_next_with(qw/Key Pitch/) or do {
+    # XXX this wants to be a StaffCtx::Region
+    my ($start, $end) = $self->find_region or return;
+    Music("Voice")->check($start)
+        and ($start = $start->next or return);
+    $start = $start->find_next_with(qw/Key Pitch/) or do {
         $self->status_flash("Nothing to transpose!");
         return;
     };
 
-    my $old     = $pos->ambient->find_role("Key");
+    my $old     = $start->ambient->find_role("Key");
     my $reset   = My("Music::KeySig")->new(copy_from => $old);
     my $new     = My("Music::KeySig")->new(copy_from => $old);
     $new->run_dialog($self);
 
     my $diff = $new->subtract($old);
 
-    $pos == $old or $pos->prev->insert($new);
-    $pos->break_ambient;
+    $start == $old or $start->prev->insert($new);
+    $start->break_ambient;
+
+    my $pos = $start;
     while (1) {
         $pos = $new->transpose($diff, $pos, $end) or last;
         $reset = My("Music::KeySig")->new(copy_from => $pos);
@@ -111,15 +123,21 @@ sub rgn_transpose :Action(RegionTranspose) {
     $end->find_next_with("Pitch") and $end->insert($reset);
     $end->break_ambient;
 
-    $self->doc->signal_emit(changed => $end);
+    $self->doc->signal_emit(changed => Event("Change")->new(
+        type    => "other",
+        item    => $start,
+    ));
 }
 
 sub _rgn_length {
     my ($self, $by) = @_;
-    my ($pos, $end) = $self->find_region;
 
+    # XXX this wants to be a StaffCtx::Region
+    my ($start, $end) = $self->find_region or return;
+
+    my $pos = $start;
     while (1) {
-        $pos->DOES(My "Has::Length") or next;
+        $pos ~~ Has "Length"    or next;
         my $len = $pos->length;
         $len == 0 && $by == -1
             || $len == 8 && $by == 1
@@ -131,7 +149,10 @@ sub _rgn_length {
         $pos = $pos->next
             or die "Length change ran off the end of the list!";
     }
-    $self->doc->signal_emit(changed => $pos);
+    $self->doc->signal_emit(changed => Event("Change")->new(
+        type    => "other",
+        item    => $start,
+    ));
 }
 
 sub rgn_halve :Action(RegionHalve) { $_[0]->_rgn_length(+1) }
