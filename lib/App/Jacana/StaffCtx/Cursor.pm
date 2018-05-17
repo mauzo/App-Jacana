@@ -137,6 +137,8 @@ sub remove {
 #    $dur and warn("REMOVE [$self] DURATION [$dur]"),
 #        $self->add_to_tick(-$dur);
 
+    $self->step_to(prev => $start->prev_music);
+
     $_->break_ambient for $start, $end;
     $start->remove($end);
     return $start;
