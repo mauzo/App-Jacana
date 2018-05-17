@@ -12,6 +12,7 @@ use Module::Runtime qw/use_module/;
 use Regexp::Common;
 
 use App::Jacana::Document::Movement;
+use App::Jacana::Log;
 
 use namespace::autoclean;
 
@@ -44,7 +45,7 @@ sub DEMOLISH { warn "DEMOLISH DOCUMENT [$_[0]]" }
 
 sub _changed :Signal {
     my ($self, $ev) = @_;
-    warn "DOC CHANGED: " . Data::Dump::pp($ev);
+    msg DOC => "changed", $ev;
     $self->dirty(1);
 }
 
