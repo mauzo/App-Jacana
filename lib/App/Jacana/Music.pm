@@ -43,6 +43,8 @@ sub from_lily {
     $class->new(\%args);
 }
 
+sub duration { 0 }
+
 # position($centre)
 # $centre is the note on the centre staff line, where middle C is 0.
 # Returns the staff line on which this should be drawn.
