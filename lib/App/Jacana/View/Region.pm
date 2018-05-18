@@ -68,6 +68,12 @@ sub _rgn_change_octave {
 
     # XXX this wants to be a StaffCtx::Region
     my ($start, $end) = $self->find_region or return;
+
+    $self->doc->signal_emit(changed => Event("Change")->new(
+        type    => "other",
+        item    => $start,
+    ));
+
     my $pos = $start;
     while (1) {
         Has("Pitch")->check($pos)
@@ -75,11 +81,6 @@ sub _rgn_change_octave {
         $pos == $end and last;
         $pos = $pos->next;
     }
-
-    $self->doc->signal_emit(changed => Event("Change")->new(
-        type    => "other",
-        item    => $start,
-    ));
 }
 
 sub rgn_octave_up :Action(RegionOctaveUp) { 
@@ -108,6 +109,11 @@ sub rgn_transpose :Action(RegionTranspose) {
 
     my $diff = $new->subtract($old);
 
+    $self->doc->signal_emit(changed => Event("Change")->new(
+        type    => "other",
+        item    => $start,
+    ));
+
     $start == $old or $start->prev->insert($new);
     $start->break_ambient;
 
@@ -122,11 +128,6 @@ sub rgn_transpose :Action(RegionTranspose) {
     }
     $end->find_next_with("Pitch") and $end->insert($reset);
     $end->break_ambient;
-
-    $self->doc->signal_emit(changed => Event("Change")->new(
-        type    => "other",
-        item    => $start,
-    ));
 }
 
 sub _rgn_length {
@@ -134,6 +135,11 @@ sub _rgn_length {
 
     # XXX this wants to be a StaffCtx::Region
     my ($start, $end) = $self->find_region or return;
+
+    $self->doc->signal_emit(changed => Event("Change")->new(
+        type    => "other",
+        item    => $start,
+    ));
 
     my $pos = $start;
     while (1) {
@@ -149,10 +155,6 @@ sub _rgn_length {
         $pos = $pos->next
             or die "Length change ran off the end of the list!";
     }
-    $self->doc->signal_emit(changed => Event("Change")->new(
-        type    => "other",
-        item    => $start,
-    ));
 }
 
 sub rgn_halve :Action(RegionHalve) { $_[0]->_rgn_length(+1) }
