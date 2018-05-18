@@ -80,7 +80,6 @@ sub _do_changed {
 sub _do_keypress {
     my ($self, $event) = @_;
     my $key = Gtk2::Gdk->keyval_name($event->keyval);
-    warn "KEYPRESS [$key]";
     return;
 }
 

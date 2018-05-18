@@ -1,10 +1,9 @@
 package App::Jacana::Window;
 
 use utf8;
-use 5.012;
-use warnings;
 
 use App::Jacana::Moose;
+use App::Jacana::Log;
 use MooseX::Gtk2;
 
 use App::Jacana::Gtk2::RadioGroup;
@@ -114,20 +113,20 @@ sub _switch_tab :Signal(notebook.switch-page) {
     my ($self, $nb, $ptr, $ix) = @_;
 
     if (my $old = $self->current_tab) {
-        warn "SWITCH AWAY FROM [$old]";
+        msg DEBUG => "SWITCH AWAY FROM [$old]";
         $old->remove_ui;
     }
 
     my $kid = $nb->get_nth_page($ix);
     my $tab = $self->views->{$kid};
-    warn "SWITCH TAB TO [$tab] [$ix] [$kid]";
+    msg DEBUG => "SWITCH TAB TO [$tab] [$ix] [$kid]";
     $tab->insert_ui;
     $self->update;
 }
 
 sub _add_tab :Signal(notebook.page-added) {
     my ($self, $nb, $kid, $ix) = @_;
-    warn "TAB ADDED [$kid] [$ix]";
+    msg DEBUG => "TAB ADDED [$kid] [$ix]";
     $nb->set_tab_reorderable($kid, 1);
 }
 
@@ -135,14 +134,14 @@ sub _remove_tab :Signal(notebook.page-removed) {
     my ($self, $nb, $kid, $ix) = @_;
     my $tab = $self->views->{$kid};
     $tab->remove_ui;
-    warn "TAB REMOVED [$ix] [$kid] [$tab]";
+    msg DEBUG => "TAB REMOVED [$ix] [$kid] [$tab]";
     delete $self->views->{$kid};
 }
 
 sub _reorder_tab :Signal(notebook.page-reordered) {
     my ($self, $nb, $kid, $ix) = @_;
     my $cur = $nb->get_current_page;
-    warn "TAB REORDERED [$kid] [$cur]->[$ix]";
+    msg DEBUG => "TAB REORDERED [$kid] [$cur]->[$ix]";
 }
 
 # frame
@@ -201,7 +200,7 @@ sub update {
                 : (mode => "", cursor => "")),
             mark    => ($vw->has_mark ? $vw->mark->tick : ""),
         );
-        warn "SET STATUS: " . Data::Dump::pp(\%status);
+        msg DEBUG => "SET STATUS: " . Data::Dump::pp(\%status);
         $self->set_status_items(%status);
 
         return;

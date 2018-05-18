@@ -3,6 +3,7 @@ package App::Jacana::View::Render;
 use App::Jacana::Moose;
 
 use App::Jacana::DrawCtx;
+use App::Jacana::Log;
 use App::Jacana::StaffCtx::Draw;
 use App::Jacana::View::StaffInfo;
 use App::Jacana::View::System;
@@ -38,7 +39,7 @@ sub clear_lines_from {
     my ($self, $from) = @_;
     my $l   = $self->lines;
     my $ix  = firstidx { $_ == $from } @$l;
-    warn "CLEAR LINES FROM sys [$from] ix [$ix]";
+    msg DEBUG => "CLEAR LINES FROM sys [$from] ix [$ix]";
     splice @$l, $ix;
 }
 
@@ -54,7 +55,7 @@ sub show_lines {
     my ($self, $c, $from, $to) = @_;
 
     my $lines   = $self->lines;
-#    warn "CURRENT LINES: [" . 
+#    msg DEBUG => "CURRENT LINES: [" . 
 #        join(", ", map {
 #            my $s = $_->staffs->[0];
 #            my $i = $s ? $s->start : "<none>";
@@ -67,7 +68,7 @@ sub show_lines {
         { $a <=> (ref $b ? $b->top : $b) } 
         $from, $to, @$lines;
     $s and $s -= 1;
-    #warn "SHOWING LINES [$s]-[$e]";
+    #msg DEBUG => "SHOWING LINES [$s]-[$e]";
 
     for my $l (@$lines[$s..$e]) {
         $c->set_source_surface($l->surface, 0, $l->top);
@@ -95,7 +96,7 @@ sub _initial_staffctx {
 sub render_upto {
     my ($self, $upto) = @_;
 
-    #warn "RENDERING UP TO [$upto]";
+    #msg DEBUG => "RENDERING UP TO [$upto]";
     my $lines   = $self->lines;
     my $scale   = $self->view->zoom;
 
@@ -111,7 +112,7 @@ sub render_upto {
     }
 
     while (1) {
-#        warn "RENDER_UPTO lines ["
+#        msg DEBUG => "RENDER_UPTO lines ["
 #            . join("", map "[$_]", @$lines)
 #            . "] voices ["
 #            . join("", map { 
@@ -120,16 +121,16 @@ sub render_upto {
 #                } @voices)
 #            . "]";
         @$lines && $upto->($$lines[-1]) 
-            and last;#warn("RENDER_UPTO returning, UPTO"), last;
+            and last;#msg DEBUG =>("RENDER_UPTO returning, UPTO"), last;
 
         @voices = grep $_->has_item, @voices;
-        @voices or last;#warn("RENDER_UPTO returning, VOICES"), last;
+        @voices or last;#msg DEBUG =>("RENDER_UPTO returning, VOICES"), last;
 
-        #warn "RENDERING LINE AT [$top]:\n" .
+        #msg DEBUG => "RENDERING LINE AT [$top]:\n" .
         #    join "\n", map "  $_",
         #    map $_->item, @$start;
         my $tick = $voices[0]->tick;
-        warn "STARTING A NEW SYSTEM AT [$tick]";
+        msg DEBUG => "STARTING A NEW SYSTEM AT [$tick]";
         my $l = My("View::System")->new(
             top     => $top,
             width   => $self->width,
@@ -211,10 +212,10 @@ sub _show_music {
     $c->set_source_rgb(0, 0, 0);
     $self->_show_stave($c, $_) for map $_->y, @voices;
 
-    warn "SHOW MUSIC VOICES: " . 
+    msg DEBUG => "SHOW MUSIC VOICES: " . 
         join " ", map "[$_]", map $_->item, @voices;
     my @x = map $self->_show_item($c, 4, $_), @voices;
-    warn "SHOW MUSIC \@x: " . join " ", map "[$_]", @x;
+    msg DEBUG => "SHOW MUSIC \@x: " . join " ", map "[$_]", @x;
 
     my $x = 4 + max @x;
     for (@voices) {

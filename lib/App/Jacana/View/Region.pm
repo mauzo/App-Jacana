@@ -19,7 +19,7 @@ sub set_mark :Action(SetMark) {
     my ($self) = @_;
     $self->clear_mark;
     $self->mark({copy_from => $self->cursor->_iter});
-    warn "MARK TICK: " . $self->mark->tick;
+    msg DEBUG => "MARK TICK: " . $self->mark->tick;
     $self->redraw;
 }
 sub _act_clear_mark :Action(ClearMark) {
@@ -40,7 +40,7 @@ sub find_region {
 
     my $mt = $self->mark->tick;
     my $ct = $self->cursor->_iter->tick;
-    warn "MARK TICK [$mt] CURSOR TICK [$ct]";
+    msg DEBUG => "MARK TICK [$mt] CURSOR TICK [$ct]";
 
     my $mark    = $self->mark->item;
     my $curs    = $self->cursor->position;

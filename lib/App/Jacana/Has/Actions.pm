@@ -1,6 +1,7 @@
 package App::Jacana::Has::Actions;
 
 use App::Jacana::Moose -role;
+use App::Jacana::Log;
 use MooseX::Copiable;
 
 use App::Jacana::Gtk2::RadioGroup;
@@ -113,7 +114,7 @@ before BUILD => sub {
 
     my $name    = $self->actions_name;
 
-    warn "BUILD ACTIONS FOR [$self]";
+    msg DEBUG => "BUILD ACTIONS FOR [$self]";
 
     my ($xml, $actions, $radios, $accels) = 
         $self->_actions_parse_xml("actions.$name");
@@ -152,7 +153,7 @@ sub insert_ui {
 
     $self->_set__ui_id($id);
 
-    warn "ADDED UI FOR [$self]: [$id]\n";# .
+    msg DEBUG => "ADDED UI FOR [$self]: [$id]\n";# .
         #join "", map "  [$_]\n", 
         #sort map $_->get_accel_path, $grp->list_actions;
 }
@@ -171,7 +172,7 @@ sub remove_ui {
     $_->disconnect_accelerator for @{$self->_ui_accels};
     $self->_set__ui_id(undef);
 
-    warn "REMOVED UI FOR [$self]: [$id]\n";# .
+    msg DEBUG => "REMOVED UI FOR [$self]: [$id]\n";# .
         #join "", map "  [$_]\n", 
         #sort map $_->get_accel_path, $grp->list_actions;
 }

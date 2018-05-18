@@ -1,6 +1,7 @@
 package App::Jacana::Document::Movement;
 
 use App::Jacana::Moose;
+use App::Jacana::Log;
 
 use App::Jacana::Music::Voice;
 
@@ -22,11 +23,11 @@ sub BUILD { }
 sub to_lily {
     my ($self) = @_;
     my $nm = $self->name;
-    warn "TO_LILY MOVEMENT [%s]: " . $self->dump_voice;
+    msg DEBUG => "TO_LILY MOVEMENT [%s]: " . $self->dump_voice;
     length $nm and $nm .= "-";
     my ($lily, $v) = ("", $self->next_voice);
     while (1) {
-        warn sprintf "TO_LILY VOICE [%s] [%s]",
+        msgf DEBUG => "TO_LILY VOICE [%s] [%s]",
             $nm, $v->name;
         $lily .= $nm . $v->to_lily . "\n";
         $v->is_voice_end and last;

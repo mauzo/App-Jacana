@@ -1,7 +1,7 @@
 package App::Jacana::View::StaffInfo;
 
 use App::Jacana::Moose;
-use App::Jacana::Types;
+use App::Jacana::Log;
 
 use POSIX       qw/ceil floor/;
 use namespace::autoclean;
@@ -33,7 +33,7 @@ sub BUILDARGS {
 
     my $hi = $s->has_item;
     my $i = $s->item;
-    warn "BUILD STAFFINFO s [$s] hi [$hi] item [$i]";
+    msg DEBUG => "BUILD STAFFINFO s [$s] hi [$hi] item [$i]";
 
     return {
         start   => $s->item,

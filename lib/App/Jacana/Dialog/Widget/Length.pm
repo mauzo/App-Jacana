@@ -48,8 +48,6 @@ sub _build_widget {
     $hbox->pack_start($self->_length, 1, 0, 0);
     $hbox->pack_start($self->_dots, 1, 0, 0);
 
-    warn "BUILD WIDGET [$self] [$hbox]";
-
     $hbox;
 }
 

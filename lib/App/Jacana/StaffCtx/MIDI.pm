@@ -1,6 +1,7 @@
 package App::Jacana::StaffCtx::MIDI;
 
 use App::Jacana::Moose;
+use App::Jacana::Log;
 use namespace::autoclean;
 
 extends "App::Jacana::StaffCtx";
@@ -51,7 +52,7 @@ sub BUILD {
     $trans and $self->transposition($trans);
 
     if (my $tempo = $amb->find_role("Tempo")) {
-        warn "STAFFCTX FOUND TEMPO [$tempo]: " . $tempo->to_lily;
+        msg DEBUG => "STAFFCTX FOUND TEMPO [$tempo]: " . $tempo->to_lily;
         $self->player->set_tempo($tempo);
     }
 }
@@ -91,7 +92,7 @@ sub start_note {
             my $written     = $note->pitch_to_lily;
             my $sounding    = $sound->pitch_to_lily;
             my $by = $trans ? $trans->into->pitch_to_lily : "";
-            warn "*$chan NOTE [$written][$by] -> [$sounding]";
+            msg DEBUG => "*$chan NOTE [$written][$by] -> [$sounding]";
 
             $midi->note_on($chan, $pitch);
             $self->pitch($pitch);

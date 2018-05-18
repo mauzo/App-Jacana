@@ -1,7 +1,7 @@
 package App::Jacana::MIDI;
 
-use 5.012;
 use App::Jacana::Moose;
+use App::Jacana::Log;
 
 use Audio::FluidSynth;
 use Glib;
@@ -73,20 +73,20 @@ sub alloc_chan {
 
 sub free_chan {
     my ($s, $c) = @_;
-    warn "FREE MIDI CHANNEL [$c]";
+    msg MIDI => "FREE MIDI CHANNEL [$c]";
     $s->_all_notes_off($c);
     $s->in_use->[$c] = 0;
 }
 
 sub set_program {
     my ($s, $c, $v) = @_;
-    warn "MIDI PROGRAM SELECT [$c] [$v]";
+    msg MIDI => "MIDI PROGRAM SELECT [$c] [$v]";
     $s->synth->program_select($c, $s->sfont, 0, $v);
 }
 
 sub DEMOLISH {
     my ($self) = @_;
-    warn "DEMOLISH MIDI [$self]";
+    msg MIDI => "DEMOLISH MIDI [$self]";
     $self->remove_active($_) for keys %{$self->active};
 }
 
@@ -105,14 +105,14 @@ sub play_note {
 
 sub note_on {
     my ($self, $chan, $pitch) = @_;
-    warn "MIDI NOTE ON [$chan][$pitch]";
+    msg MIDI => "MIDI NOTE ON [$chan][$pitch]";
     defined $pitch
         and eval { $self->synth->noteon($chan, $pitch, 100) };
 }
 
 sub note_off {
     my ($self, $chan, $pitch) = @_;
-    warn "MIDI NOTE OFF [$chan][$pitch]";
+    msg MIDI => "MIDI NOTE OFF [$chan][$pitch]";
     defined $pitch 
         and eval { $self->synth->noteoff($chan, $pitch) };
 }

@@ -123,7 +123,7 @@ sub _start_timer {
     }
 
     my $id = Glib::Timeout->add($speed, $self->weak_method("_play_step"));
-    warn "TIMER [$self] STARTING [$id] @[$speed]";
+    msg MIDI => "TIMER [$self] STARTING [$id] @[$speed]";
     $self->_timer($id);
 }
 
@@ -132,7 +132,7 @@ sub _stop_timer {
 
     $self->_has_timer or return;
     my $id = $self->_timer;
-    warn "TIMER [$self] STOPPING [$id]";
+    msg MIDI => "TIMER [$self] STOPPING [$id]";
     Glib::Source->remove($id);
     $self->_clear_timer;
 }

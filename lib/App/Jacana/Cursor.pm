@@ -301,7 +301,6 @@ sub insert_movement :Action {
     my $m = My("Document::Movement")->new(name => "");
     my $v = $self->movement->next_voice;
     while (1) {
-        warn "OLD VOICE [$v]";
         my $n = Music("Voice")->new(name => $v->name);
         my $c = $v->find_next_with("Clef");
         $n->insert(Music("Clef")->new(clef => $c->clef));
@@ -457,8 +456,6 @@ sub change_pitch {
 
     my $pos     = $self->position;
     my $mode    = $self->mode;
-
-    warn "CHANGE PITCH pos [$pos] mode [$mode]";
 
     my ($note)  = $action->get_name =~ /^Pitch([A-Z])$/ or return;
     $note = lc $note;

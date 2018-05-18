@@ -1,6 +1,7 @@
 package App::Jacana::Dialog;
 
 use App::Jacana::Moose;
+use App::Jacana::Log;
 
 with qw/ App::Jacana::Has::Window /;
 
@@ -11,7 +12,7 @@ sub BUILD {
     my ($self) = @_;
     my $src = $self->src;
     if (ref $src) {
-        warn "DIALOG [$self] COPYING FROM [$src]";
+        msg DEBUG => "DIALOG [$self] COPYING FROM [$src]";
         $self->copy_from($src);
     }
 }

@@ -25,7 +25,6 @@ sub _build_ambient {
     $self->is_music_start and confess "Start of list must be HasAmbient";
     my $prev = $self->prev;
     my $amb = $self->prev->ambient;
-    #warn "FOUND AMBIENT [$amb] FROM [$prev] FOR [$self]";
     $amb;
 }
 

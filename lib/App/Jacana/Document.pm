@@ -41,7 +41,7 @@ has dirty => (
 
 sub BUILD { }
 
-sub DEMOLISH { warn "DEMOLISH DOCUMENT [$_[0]]" }
+sub DEMOLISH { msg DEBUG => "DEMOLISH DOCUMENT [$_[0]]" }
 
 sub _changed :Signal {
     my ($self, $ev) = @_;
@@ -73,7 +73,7 @@ sub to_lily {
     my ($self) = @_;
     my ($lily, $m) = ("", $self->next_movement);
     while (1) {
-        warn sprintf "SAVING MOVEMENT [%s] [%s]",
+        msgf DEBUG => "SAVING MOVEMENT [%s] [%s]",
             $m, $m->name;
         $lily .= $m->to_lily;
         $m->is_movement_end and last;
@@ -86,7 +86,7 @@ sub save {
     my ($self) = @_;
 
     $self->has_filename or die "No filename";
-    warn sprintf "SAVING TO [%s]", $self->filename;
+    msgf DEBUG => "SAVING TO [%s]", $self->filename;
     my $lily = $self->to_lily;
     write_file $self->filename, $lily;
     $self->dirty(0);
@@ -105,7 +105,7 @@ sub find_movement {
         $m = App::Jacana::Document::Movement->new(name => $n);
         $self->prev_movement->insert_movement($m);
     }
-    warn "FOUND MVMT [$n] [$m]: " . $self->dump_movement;
+    msg DEBUG => "FOUND MVMT [$n] [$m]: " . $self->dump_movement;
     return $m;
 }
 

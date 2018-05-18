@@ -59,7 +59,7 @@ with qw/App::Jacana::View::Region/;
 sub actions_name { "doc" }
 
 sub _build_cursor { 
-    warn "BUILD CURSOR";
+    msg DEBUG => "BUILD CURSOR";
     App::Jacana::Cursor->new(
         view        => $_[0],
         #position    => $_[0]->doc->next_movement->next_voice,
@@ -97,11 +97,11 @@ sub BUILD {
 
 sub DEMOLISH {
     my ($self) = @_;
-    warn "DEMOLISH VIEW [$self]: STOP MIDI";
+    msg DEBUG => "DEMOLISH VIEW [$self]: STOP MIDI";
     $self->_stop_playing;
-    warn "DEMOLISH VIEW [$self]: REMOVE CURSOR";
+    msg DEBUG => "DEMOLISH VIEW [$self]: REMOVE CURSOR";
     $self->clear_cursor;
-    warn "FINISHED DEMOLISHING [$self]";
+    msg DEBUG => "FINISHED DEMOLISHING [$self]";
 }
 
 sub system_for {
@@ -113,7 +113,7 @@ sub _doc_changed :Signal(doc.changed) {
     my ($self, $e) = @_;
     $e->has_item or return;
     my $item = $e->item;
-    warn "DOC CHANGED [$item]";
+    msg DEBUG => "DOC CHANGED [$item]";
     $self->refresh($self->system_for($item));
 }
 
@@ -161,7 +161,7 @@ sub file_close :Action(Close) {
     my ($self) = @_;
 
     if ($self->doc->dirty) {
-        warn "CLOSING DIRTY DOCUMENT";
+        warn "CLOSING DIRTY DOCUMENT\n";
     }
     $self->_window->remove_tab($self);
 }
@@ -395,11 +395,11 @@ sub _sig_info :Signal(app.) {
     my ($self) = @_;
     if ($self->has_cursor) {
         my $c = $self->cursor;
-        warn "CURSOR MODE: " . $c->mode;
-        warn "CURSOR TICK: " . $c->_iter->tick;
+        msg DEBUG => "CURSOR MODE: " . $c->mode;
+        msg DEBUG => "CURSOR TICK: " . $c->_iter->tick;
     }
     if ($self->has_mark) {
-        warn "MARK TICK: " . $self->mark->tick;
+        msg DEBUG => "MARK TICK: " . $self->mark->tick;
     }
 }
 
@@ -407,7 +407,7 @@ sub _build_renderer {
     my ($self) = @_;
     my $w = $self->widget->get_allocation;
     $w = $w ? $w->width : 100;
-    warn "BUILDING RENDERER [$w]";
+    msg DEBUG => "BUILDING RENDERER [$w]";
     My("View::Render")->new(view => $self, width => $w);
 }
 
@@ -416,7 +416,7 @@ sub _size_allocate :Signal {
     my $rnd = $self->renderer;
     my $new = $rect->width;
     $new == $rnd->width and return;
-    warn "SIZE ALLOCATE [$new]";
+    msg DEBUG => "SIZE ALLOCATE [$new]";
     $rnd->width($new);
 }
 
@@ -431,7 +431,7 @@ sub _expose_event :Signal {
 
     my $to = $rnd->render_upto(sub {
         my ($l) = @_;
-#        warn "RENDER UP TO CB [$l]["
+#        msg DEBUG => "RENDER UP TO CB [$l]["
 #            . $l->bottom . "] > [$bot]";
         $l && $l->bottom > $bot;
     });
@@ -465,9 +465,9 @@ sub _show_highlights {
     }
 
     my $pos = $curs->position;
-    warn "CURSOR POSITION [$pos]";
+    msg DEBUG => "CURSOR POSITION [$pos]";
     if (my $l = $curs->position->system) {
-        #warn sprintf "HIGHLIGHTING SYSTEM [%d][%d]-[%d][%d]",
+        #msgf DEBUG => "HIGHLIGHTING SYSTEM [%d][%d]-[%d][%d]",
         #    0, $l->top, $l->width, $l->height;
         $c->save;
         $c->set_source_rgba(1, 1, 0, 0.04);
@@ -475,7 +475,7 @@ sub _show_highlights {
         $c->fill;
         $c->restore;
     }
-    else { warn "NO SYSTEM REF FOUND" }
+    else { msg DEBUG => "NO SYSTEM REF FOUND" }
 }
 
 sub _show_cursor {

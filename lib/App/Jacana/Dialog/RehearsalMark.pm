@@ -55,7 +55,6 @@ sub _build_content_area {
     my $hn = $self->has_number;
     ($hn ? $manual : $auto)->set_active(1);
     my $ac = $auto->get_active;
-    warn "AUTO ACTIVE [$ac] HAS NUMBER [$hn]";
 }
 
 1;

@@ -1,6 +1,7 @@
 package App::Jacana::Music::MIDI::Instrument;
 
 use App::Jacana::Moose;
+use App::Jacana::Log;
 
 extends "App::Jacana::Music";
 with qw/
@@ -18,7 +19,7 @@ sub lily_rx { qr{
 sub from_lily {
     my ($class, %n) = @_;
     my $prg = $class->from_instrument($n{instrument});
-    warn "MIDI INSTRUMENT [$n{instrument}] = [$prg]";
+    msg DEBUG => "MIDI INSTRUMENT [$n{instrument}] = [$prg]";
     $class->new(program => $prg);
 }
 

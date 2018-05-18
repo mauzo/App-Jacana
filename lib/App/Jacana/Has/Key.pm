@@ -1,6 +1,7 @@
 package App::Jacana::Has::Key;
 
 use App::Jacana::Moose -role;
+use App::Jacana::Log;
 use MooseX::Copiable;
 
 use App::Jacana::Tables qw/
@@ -103,7 +104,7 @@ sub transpose {
         $new < 0        and $new += 12;
         $new > $#Trans  and $new -= 12;
 
-        warn "TRANSPOSE [$old]->[$new][$Trans[$new]] ($by)";
+        msg DEBUG => "TRANSPOSE [$old]->[$new][$Trans[$new]] ($by)";
 
         my ($note, $chrm) = $Trans[$new] =~ /(.)(.*)/;
         my $near = $pos->nearest($note, $Chroma{$chrm});

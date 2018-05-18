@@ -36,7 +36,6 @@ sub find_item_at {
 
     my $staff = first {
         my $bot = $_->bottom;
-        #warn "FIND STAFF [$_] [$y] [$bot]";
         $_->bottom >= $y 
     } @{$self->staffs};
     my ($i, $e) = ($staff->start, $staff->end);

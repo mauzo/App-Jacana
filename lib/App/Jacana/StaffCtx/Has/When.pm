@@ -17,7 +17,7 @@ sub skip {
 
     $self->has_item or return;
     my $when = $self->when;
-    $when < $by and warn sprintf "SKIPPED OVER A NOTE [%s]!",
+    $when < $by and warn "SKIPPED OVER A NOTE [%s]!",
         $self->item->to_lily;
     $self->when($when - $by);
     $self->add_to_tick($by);

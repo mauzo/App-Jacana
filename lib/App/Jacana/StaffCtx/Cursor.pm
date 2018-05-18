@@ -1,6 +1,7 @@
 package App::Jacana::StaffCtx::Cursor;
 
 use App::Jacana::Moose;
+use App::Jacana::Log;
 use MooseX::Gtk2;
 
 use namespace::autoclean;
@@ -39,14 +40,14 @@ sub _changed :Signal {
     my $tick    = $e->tick;
     my $dur     = $e->duration;
 
-    warn "CAUGHT TIME CHANGE [$self] [$type] @[$tick] +[$dur]";
+    msg DEBUG => "CAUGHT TIME CHANGE [$self] [$type] @[$tick] +[$dur]";
 
     $tick >= $self->tick and return;
     if ($type eq "remove") {
         if ($tick + $dur >= $self->tick) {
-            warn "REMOVAL, STEP TO " . $e->item;
+            msg DEBUG => "REMOVAL, STEP TO " . $e->item;
             $self->step_to(prev => $e->item);
-            warn "NOW AT: " . $self->item;
+            msg DEBUG => "NOW AT: " . $self->item;
             return;
         }
         $dur = -$dur;
@@ -75,7 +76,7 @@ sub prev {
         my $d = $note->duration;
         my $t = $self->tick;
         if ($d > $t) {
-            warn "NEGATIVE TICK [$d] > [$t]";
+            msg DEBUG => "NEGATIVE TICK [$d] > [$t]";
             $self->tick(0);
         }
         else {
@@ -91,10 +92,10 @@ sub step_to {
 
     my $on = $self->item    or Carp::confess("No item!");
 
-    #warn "STEP_TO to [$to] on: " . $on->dump_music;
+    #msg DEBUG => "STEP_TO to [$to] on: " . $on->dump_music;
 
     while ($on != $to) {
-        warn "STEP_TO on [$on] to [$to]";
+        msg DEBUG => "STEP_TO on [$on] to [$to]";
         $on = $self->$dir   or Carp::confess("No $dir!");
     }
 }
@@ -102,7 +103,7 @@ sub step_to {
 sub at_start {
     my ($self) = @_;
     if ($self->tick != 0) {
-        warn "RESET TICK";
+        msg DEBUG => "RESET TICK";
         $self->tick(0);
     }
     return;
@@ -112,7 +113,7 @@ sub insert {
     my ($self, $new) = @_;
     
 #    my $dur = $new->duration_to;
-#    $dur and warn("INSERT [$self] DURATION [$dur]"),
+#    $dur and msg DEBUG =>("INSERT [$self] DURATION [$dur]"),
 #        $self->add_to_tick($dur);
 
     $self->step_to(next => $self->item->insert($new));
@@ -134,7 +135,7 @@ sub remove {
     Music("Voice")->check($start) and return;
 
 #    my $dur = $start->duration_to($self->item);
-#    $dur and warn("REMOVE [$self] DURATION [$dur]"),
+#    $dur and msg DEBUG =>("REMOVE [$self] DURATION [$dur]"),
 #        $self->add_to_tick(-$dur);
 
     $self->step_to(prev => $start->prev_music);
