@@ -188,8 +188,8 @@ sub update {
         
         $self->frame->set_title(
             sprintf "%s: %s: Jacana",
-                $curs ? $curs->movement->name : "",
-                $vw->doc->filename,
+                $curs ? $curs->movement->name : "?",
+                $vw->doc->filename // "???",
         );
 
         my %status = (
