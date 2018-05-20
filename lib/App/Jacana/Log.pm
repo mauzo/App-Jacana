@@ -76,7 +76,7 @@ sub add_logger {
         logfh   => $FH,
         (@levels == 1 && $levels[0] eq "1"
             ? (verbose  => 1)
-            : (active   => +{ map +($_, 1), @levels })
+            : (active   => +{ map +($_, 1), @levels, qw/ERR WARN/ })
         ),
     );
     push @Loggers, $log;
