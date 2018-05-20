@@ -66,7 +66,7 @@ sub alloc_chan {
     my $used = $s->in_use;
     my $c = first { !$$used[$_] } 0..255;
     defined $c or die "Out of MIDI channels!\n";
-    Carp::carp "ALLOC MIDI CHANNEL [$c]";
+    msg MIDI => "ALLOC MIDI CHANNEL [$c]" . Carp::shortmess;
     $$used[$c] = 1;
     $c;
 }
