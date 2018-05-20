@@ -309,6 +309,8 @@ sub clip_cut :Action(Cut) {
 
     my $mark    = $self->mark       or return;
     my $curs    = $self->cursor;
+
+    # ->remove emits the changed signal
     my $clip    = $curs->_iter->remove($mark);
     my $dur     = $self->_clip_duration($clip);
     my $pos     = $curs->position;
@@ -316,15 +318,6 @@ sub clip_cut :Action(Cut) {
     $pos->break_ambient;
     $self->clear_mark;
     $self->clip($clip);
-
-    $self->doc->signal_emit(changed =>
-        Event("Change")->new(
-            type        => "remove",
-            item        => $pos,
-            tick        => $curs->tick,
-            duration    => $dur,
-        )
-    );
 }
 
 sub clip_copy :Action(Copy) {

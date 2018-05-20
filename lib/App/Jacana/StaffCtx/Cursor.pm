@@ -4,6 +4,8 @@ use App::Jacana::Moose;
 use App::Jacana::Log;
 use MooseX::Gtk2;
 
+use App::Jacana::Log;
+
 use namespace::autoclean;
 
 extends "App::Jacana::StaffCtx";
@@ -40,14 +42,18 @@ sub _changed :Signal {
     my $tick    = $e->tick;
     my $dur     = $e->duration;
 
-    msg DEBUG => "CAUGHT TIME CHANGE [$self] [$type] @[$tick] +[$dur]";
+    msgf TICK => "caught time change [%s] [%s] @[%u] +[%u]",
+        $self, $type, $tick, $dur;
 
-    $tick >= $self->tick and return;
+    if ($tick >= $self->tick) {
+        msgf TICK => "...ignoring (%u >= %u)", $tick, $self->tick;
+        return;
+    }
     if ($type eq "remove") {
         if ($tick + $dur >= $self->tick) {
-            msg DEBUG => "REMOVAL, STEP TO " . $e->item;
+            msg TICK => "removal, step to", $e->item;
             $self->step_to(prev => $e->item);
-            msg DEBUG => "NOW AT: " . $self->item;
+            msg TICK => "now at", $self->item;
             return;
         }
         $dur = -$dur;
@@ -128,17 +134,24 @@ sub remove {
             ? ($mark, $self) : ($self, $mark)
         : ($self, $self);
 
-    my $tick = $start->tick;
+    my $tick    = $start->tick;
+    my $dur     = $end->tick - $tick;
     $_ = $_->item for $start, $end;
 
-    Music("Voice")->check($start) and $start = $start->next_music;
-    Music("Voice")->check($start) and return;
+    Music("Voice")->check($start)   and $start = $start->next_music;
+    Music("Voice")->check($start)   and return;
+    $start->is_music_start          and Carp::confess("list start");
 
-#    my $dur = $start->duration_to($self->item);
-#    $dur and msg DEBUG =>("REMOVE [$self] DURATION [$dur]"),
-#        $self->add_to_tick(-$dur);
+    my $first   = $start->duration;
 
-    $self->step_to(prev => $start->prev_music);
+    msg TICK => "before remove", $self->item;
+    $self->doc->signal_emit(changed => Event("Change")->new(
+        type        => "remove",
+        item        => $start->prev_music,
+        tick        => $tick - $first,
+        duration    => $dur + $first,
+    ));
+    msg TICK => "after remove", $self->item;
 
     $_->break_ambient for $start, $end;
     $start->remove($end);

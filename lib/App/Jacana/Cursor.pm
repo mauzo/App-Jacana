@@ -6,6 +6,7 @@ use App::Jacana::Moose;
 use MooseX::Gtk2;
 
 use App::Jacana::Event::Change;
+use App::Jacana::Log;
 use App::Jacana::StaffCtx::Cursor;
 
 use Try::Tiny;
@@ -635,12 +636,6 @@ BEGIN {
 
 sub _backspace :Action {
     my ($self) = @_;
-    my $dur     = $self->position->duration;
-    $self->_emit_doc_changed(
-        type        => "remove",
-        tick        => $self->tick - $dur,
-        duration    => $dur,
-    );
     $self->_iter->remove;
 }
 
