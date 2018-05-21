@@ -5,6 +5,8 @@ use Moose::Role;
 use Moose::Util     qw/does_role find_meta/;
 use Scalar::Util    qw/blessed reftype/;
 
+BEGIN { *debug = \&MooseX::Copiable::debug }
+
 use namespace::autoclean;
 
 has copiable_roles => (
@@ -48,6 +50,10 @@ sub find_copiable_atts_for {
         for my $m (keys %$rf) {
             my $mt = $$rt{$m}       or next;
             my $mf = $$rf{$m};
+
+            ref $mt or $mt = $self->find_attribute_by_name($mt);
+            ref $mf or $mf = $meta->find_attribute_by_name($mf);
+
             push @out, [$mf, $mt];
         }
     }
@@ -56,6 +62,8 @@ sub find_copiable_atts_for {
 
 sub _copiable_process_params {
     my ($self, $params) = @_;
+
+    debug "process copiable params for " . $self->name;
 
     my $all     = delete $$params{copy_from}            or return;
     ref $all && !blessed $all && reftype($all) eq "ARRAY"
@@ -74,6 +82,9 @@ sub _copiable_process_params {
             $f->has_value($from)    or next;
 
             my $v = $f->get_value($from);
+
+            debug "copy_from [$i] => [$t]";
+
             $$params{$i} = $t->deep_copy ? { copy_from => $v } : $v;
         }
     }

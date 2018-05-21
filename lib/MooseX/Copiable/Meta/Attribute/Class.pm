@@ -3,6 +3,8 @@ package MooseX::Copiable::Meta::Attribute::Class;
 use Moose::Role;
 use Moose::Util     qw/does_role/;
 
+BEGIN { *debug = \&MooseX::Copiable::debug }
+
 use namespace::autoclean;
 
 Moose::Util::meta_attribute_alias "Copiable";
@@ -29,8 +31,10 @@ after attach_to_class => sub {
             cache           => 1,
         )->rebless_instance($class);
 
-    my $ns = $self->_copiable_role // $class->name;
-    $class->copiable_roles->{$ns}{$self->name} = $self;
+    my $ns      = $self->_copiable_role // $class->name;
+    my $name    = $self->name;
+
+    $class->copiable_roles->{$ns}{$name} = $name;
 };
 
 after detach_from_class => sub {

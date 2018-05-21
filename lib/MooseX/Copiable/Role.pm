@@ -5,10 +5,7 @@ use Moose::Role;
 use Carp;
 use Moose::Util     qw/find_meta/;
 
-BEGIN { 
-    *debug = $ENV{MOOSEX_COPIABLE_DEBUG} ?
-        sub { carp "COPIABLE: ", @_ } : sub {};
-}
+BEGIN { *debug = \&MooseX::Copiable::debug }
 
 use namespace::autoclean;
 
@@ -23,6 +20,9 @@ sub copy_from {
         my ($f, $t) = @$_;
 
         my $n = $t->name;
+
+        debug "copy_from processing [$n] using [$f]->[$t]";
+
         unless ($f->has_value($from)) {
             debug "COPY CLEAR FOR [$n]";
             $t->clear_value($self);
