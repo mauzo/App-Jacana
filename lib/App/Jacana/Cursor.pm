@@ -22,13 +22,12 @@ my @Mutable = qw/is rw lazy 1 builder 1 clearer 1 trigger 1/;
 has view        => is => "ro", weak_ref => 1;
 has doc         => is => "lazy", weak_ref => 1;
 has movement    => @Mutable, isa => My "Document::Movement";
-has voice       => @Mutable, isa => Music "Voice";
 
 has _iter => (
     is      => "lazy", 
     clearer => 1,
     isa     => My "StaffCtx::Cursor",
-    handles => [qw/tick/],
+    handles => [qw/tick voice/],
 );
 
 gtk_default_target action => "view";
@@ -56,27 +55,19 @@ has "+length"   => (
 
 sub _build_doc          { $_[0]->view->doc }
 sub _build_movement     { $_[0]->view->doc->next_movement }
-sub _build_voice        { $_[0]->movement->next_voice }
 
-sub _trigger_movement   { $_[0]->clear_voice; $_[0]->_clear_iter; }
-
-sub _trigger_voice { 
-    my ($self, $new) = @_;
-
-    my $time = $self->position->get_time;
-
-    my $pos = StaffCtx("FindTime")->new(item => $new);
-    $pos->skip_time($time);
-    $self->_iter->copy_from($pos);
-
-    $self->view->redraw;
-}
+sub _trigger_movement   { $_[0]->_clear_iter; }
 
 sub _build__iter {
     my ($self) = @_;
+
+    my $doc     = $self->doc;
+    my $voice   = $self->movement->next_voice;
+
     App::Jacana::StaffCtx::Cursor->new(
-        doc         => $self->doc,
-        item        => $self->voice,
+        doc         => $doc,
+        voice       => $voice,
+        item        => $voice,
         on_change   => $self->weak_method("_change_position"),    
     );
 }
@@ -94,6 +85,8 @@ sub _change_position {
     my ($self, $note) = @_;
 
     $note //= $self->position;
+
+    msg CURS => "change position to", $note;
 
     my $view = $self->view or return;
     my $edit = ($self->mode eq "edit");
@@ -331,24 +324,16 @@ sub delete_movement :Action {
     $v->scroll_to_cursor;
 }
 
-sub up_down_staff {
-    my ($self, $dir) = @_;
-    my $v = $self->voice->$dir;
-    $v->is_voice_start and $v = $v->$dir;
-    $self->voice($v);
-    $self->view->scroll_to_cursor;
-}
-
-sub up_staff :Action(Up) { $_[0]->up_down_staff("prev_voice") }
-sub down_staff :Action(Down) { $_[0]->up_down_staff("next_voice") }
+sub up_staff :Action(Up) { $_[0]->_iter->change_voice("prev")}
+sub down_staff :Action(Down) { $_[0]->_iter->change_voice("next") }
 
 sub insert_staff :Action {
     my ($self) = @_;
     
     $self->_emit_doc_changed(type => "staff", no_item => 1);
     my $v = Music("Voice")->new(name => "voice");
-    $self->voice($self->voice->insert_voice($v));
-    $self->view->scroll_to_cursor;
+    $self->voice->insert_voice($v);
+    $self->down_staff;
 }
 
 sub delete_staff :Action {

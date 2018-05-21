@@ -19,6 +19,14 @@ has doc => (
     traits      => [qw/Copiable/],
 );
 
+has voice => (
+    is          => "rwp",
+    isa         => Music "Voice",
+    required    => 1,
+    weak_ref    => 1,
+    traits      => [qw/Copiable/],
+);
+
 gtk_default_target signal => "doc";
 
 has on_change => (
@@ -113,6 +121,23 @@ sub at_start {
         $self->tick(0);
     }
     return;
+}
+
+sub change_voice {
+    my ($self, $dir) = @_;
+
+    $dir =~ /^(?:prev|next)$/m or Carp::confess("bad direction");
+    $dir = "$dir\_voice";
+
+    my $v = $self->voice->$dir;
+    $v->is_voice_start and $v = $v->$dir;
+
+    $self->_set_voice($v);
+
+    my $time = $self->item->get_time;
+    my $pos = StaffCtx("FindTime")->new(item => $v);
+    $pos->skip_time($time);
+    $self->copy_from($pos);
 }
 
 sub insert {
