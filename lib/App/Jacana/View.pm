@@ -111,9 +111,13 @@ sub system_for {
 
 sub _doc_changed :Signal(doc.changed) {
     my ($self, $e) = @_;
+    if ($e->type eq "staff") {
+        $self->refresh;
+        return;
+    }
     $e->has_item or return;
     my $item = $e->item;
-    msg DEBUG => "DOC CHANGED [$item]";
+    msg VIEW => "doc changed [$item]";
     $self->refresh($self->system_for($item));
 }
 
@@ -375,6 +379,7 @@ sub refresh :Action(Refresh) {
 
 sub redraw {
     my ($self) = @_;
+    msg VIEW => "redraw";
     try {
         $self->widget->get_window->invalidate_rect(undef, 0);
     }

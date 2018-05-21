@@ -68,7 +68,7 @@ sub show_lines {
         { $a <=> (ref $b ? $b->top : $b) } 
         $from, $to, @$lines;
     $s and $s -= 1;
-    #msg DEBUG => "SHOWING LINES [$s]-[$e]";
+    msg VIEW => "showing lines [$s]-[$e]";
 
     for my $l (@$lines[$s..$e]) {
         $c->set_source_surface($l->surface, 0, $l->top);
@@ -96,7 +96,7 @@ sub _initial_staffctx {
 sub render_upto {
     my ($self, $upto) = @_;
 
-    #msg DEBUG => "RENDERING UP TO [$upto]";
+    msg VIEW => "rendering up to [$upto]";
     my $lines   = $self->lines;
     my $scale   = $self->view->zoom;
 
