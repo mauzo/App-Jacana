@@ -65,6 +65,7 @@ sub _build__iter {
     my $voice   = $self->movement->next_voice;
 
     App::Jacana::StaffCtx::Cursor->new(
+        name        => "cursor",
         doc         => $doc,
         voice       => $voice,
         item        => $voice,
@@ -86,7 +87,7 @@ sub _change_position {
 
     $note //= $self->position;
 
-    msg CURS => "change position to", $note;
+    msgf CURS => "change position to [%s][%s]", $note, $note->to_lily;
 
     my $view = $self->view or return;
     my $edit = ($self->mode eq "edit");

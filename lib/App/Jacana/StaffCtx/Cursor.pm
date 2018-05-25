@@ -11,6 +11,12 @@ use namespace::autoclean;
 extends "App::Jacana::StaffCtx";
 with    qw/App::Jacana::Has::Tick/;
 
+has name => (
+    is          => "ro",
+    isa         => Str,
+    required    => 1,
+);
+
 has doc => (
     is          => "ro",
     isa         => My("Document"),
@@ -50,8 +56,8 @@ sub _changed :Signal {
     my $tick    = $e->tick;
     my $dur     = $e->duration;
 
-    msgf TICK => "caught time change [%s] [%s] @[%u] +[%u]",
-        $self, $type, $tick, $dur;
+    msgf TICK => "caught time change [%s] [%s] @[%u] +[%i]",
+        $self->name, $type, $tick, $dur;
 
     if ($tick >= $self->tick) {
         msgf TICK => "...ignoring (%u >= %u)", $tick, $self->tick;
@@ -59,9 +65,8 @@ sub _changed :Signal {
     }
     if ($type eq "remove") {
         if ($tick + $dur >= $self->tick) {
-            msg TICK => "removal, step to", $e->item;
+            msgf TICK => "removal, step to [%s]", $e->item->to_lily;
             $self->step_to(prev => $e->item);
-            msg TICK => "now at", $self->item;
             return;
         }
         $dur = -$dur;
@@ -169,14 +174,14 @@ sub remove {
 
     my $first   = $start->duration;
 
-    msg TICK => "before remove", $self->item;
+    msgf TICK => "before remove [%s]", $self->item->to_lily;
     $self->doc->signal_emit(changed => Event("Change")->new(
         type        => "remove",
         item        => $start->prev_music,
         tick        => $tick - $first,
         duration    => $dur + $first,
     ));
-    msg TICK => "after remove", $self->item;
+    msgf TICK => "after remove [%s]", $self->item->to_lily;
 
     $_->break_ambient for $start, $end;
     $start->remove($end);

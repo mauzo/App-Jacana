@@ -18,7 +18,7 @@ has mark => (
 sub set_mark :Action(SetMark) { 
     my ($self) = @_;
     $self->clear_mark;
-    $self->mark({copy_from => $self->cursor->_iter});
+    $self->mark({name => "mark", copy_from => $self->cursor->_iter});
     msg DEBUG => "MARK TICK: " . $self->mark->tick;
     $self->redraw;
 }
