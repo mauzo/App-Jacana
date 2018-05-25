@@ -53,6 +53,15 @@ sub duration {
     $dur * $self->tuplet;
 }
 
+sub get_next_dot {
+    my ($self) = @_;
+
+    my $dots    = $self->dots + 1;
+    my $bit     = 256 >> $dots;
+
+    return $dots, $bit >> $self->length;
+}
+
 sub _draw_dots {
     my ($self, $c, $wd, $pos) = @_;
 

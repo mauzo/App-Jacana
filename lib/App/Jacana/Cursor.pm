@@ -490,15 +490,14 @@ sub _add_dot :Action {
     my $note = $self->position;
     Has("Length")->check($note)     or return;
 
-    my $dur = $note->duration;
+    my ($dots, $dur) = $note->get_next_dot;
+    $dots > 3 || $dur < 1 and return $self->view->silly;
+
     $self->_emit_doc_changed(
         type        => "length",
-        tick        => $self->tick - $dur,
+        tick        => $self->tick - $self->duration,
         duration    => $dur,
     );
-
-    my $dots = $note->dots + 1;
-    $dots > 6 and return $self->view->silly;
     $note->dots($dots);
 }
 
