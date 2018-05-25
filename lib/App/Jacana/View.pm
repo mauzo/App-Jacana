@@ -320,7 +320,6 @@ sub clip_cut :Action(Cut) {
     my $pos     = $curs->position;
 
     $pos->break_ambient;
-    $self->clear_mark;
     $self->clip($clip);
 }
 
