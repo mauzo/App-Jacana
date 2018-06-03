@@ -340,17 +340,17 @@ sub clip_paste :Action(Paste) {
     my $start   = $clip->clone_music($clip->prev_music);
     my $end     = $start->prev_music;
     my $dur     = $self->_clip_duration($start);
-    my $curs    = $self->cursor;
+    my $iter    = $self->cursor->_iter;
 
-    $curs->_iter->insert($start);
-    $start->break_ambient;
     $self->doc->signal_emit(changed => Event("Change")->new(
         type        => "insert",
-        item        => $curs->position,
-        tick        => $curs->tick,
+        item        => $iter->item,
+        tick        => $iter->tick,
         duration    => $dur,
     ));
-    $curs->step_to(next => $end);
+    $iter->insert($start);
+    $start->break_ambient;
+    $iter->step_to(next => $end);
 }
 
 sub _realize :Signal {
